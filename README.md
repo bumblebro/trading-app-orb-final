@@ -1,36 +1,85 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Nifty 50 Trading Dashboard
 
-## Getting Started
+A professional, full-stack automated trading dashboard for Nifty 50 Options (CE/PE) built with **Next.js 14**, **Python FastAPI**, and **Angel One SmartAPI**.
 
-First, run the development server:
+## 🚀 Features
+- **Real-time Charting**: Interactive 5-min candlestick chart with EMA 9, EMA 21, and VWAP overlays.
+- **Smart Bot Engine**: Automated signal generation using EMA Crossover + VWAP + RSI.
+- **Security First**: Paper Trading mode by default with full simulation for safe testing.
+- **Risk Management**: Auto square-off at 3:15 PM IST, NSE holiday guards, and trade circuit breakers.
+- **Detailed History**: Full tracking of trades, P&L, win rates, and live logs.
 
+---
+
+## 🛠 Tech Stack
+- **Frontend**: Next.js 14 (App Router), Tailwind CSS v4, Lightweight Charts (TradingView)
+- **Backend**: Python FastAPI, Angel One SmartAPI
+- **Real-time**: WebSocket (SmartWebSocketV2)
+- **Database**: SQLite (for trades, settings, and logs)
+
+---
+
+## ⚙️ Setup & Installation
+
+### 1. Backend (Python Bot)
+Navigate to the `bot` directory:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cd bot
+```
+Create a virtual environment and install dependencies:
+```bash
+python3 -m venv venv
+source venv/bin/activate  # On Mac/Linux
+pip install -r requirements.txt
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Frontend (Next.js)
+Navigate back to the root directory and install dependencies:
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🏃 Operation Guide
 
-## Learn More
+### Step 1: Start the Trading Bot Server
+```bash
+cd bot
+python server.py
+```
+*The bot server will start on `http://localhost:8000`*
 
-To learn more about Next.js, take a look at the following resources:
+### Step 2: Start the Dashboard
+```bash
+npm run dev
+```
+*Open [http://localhost:3000](http://localhost:3000) in your browser.*
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🧪 Testing the Dashboard (Paper Trading)
 
-## Deploy on Vercel
+You can test the entire flow in **Simulation Mode** without using real money or Angel One credentials.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. **Bot Start**: Click the **"▶ Start Bot"** button on the dashboard.
+2. **Monitor Logs**: Check the bottom logs for `Bot STARTED` and `WebSocket CONNECTED`.
+3. **Price Feed**: You should see the Nifty 50 price and chart updating every second using simulated data.
+4. **Active Trade**: If a signal (EMA Crossover) is generated, a trade will appear on the **Active Trade** page.
+5. **Exit Trade**: Go to the **Active Trade** page and use the **Manual Exit** button to close a position and see the P&L update.
+6. **Verify History**: Check the **History** page to see your closed paper trades.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## 🔴 Live Trading Setup
+
+To use real market data and place live orders:
+1. Go to the **Settings** page in the dashboard.
+2. Enter your **Angel One API Key, Client ID, Password, and TOTP Secret**.
+3. Toggle the **Trading Mode** to "Live".
+4. Type `CONFIRM` in the warning dialog to enable live trading.
+
+---
+
+## ⚖️ Liability Disclaimer
+*This software is for educational purposes only. Trading options involves significant risk. The authors are not responsible for any financial losses incurred through the use of this software.*
