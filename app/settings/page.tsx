@@ -7,11 +7,12 @@ import type { Settings } from '@/lib/types';
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Settings>({
-    api_key: '', client_id: '', password: '', totp_secret: '',
+    api_key: '', client_id: '', pin: '', totp_secret: '',
     ema_fast: '9', ema_slow: '21', stop_loss_pct: '0.5', target_pct: '1.0',
     max_trades_per_day: '3', square_off_time: '15:15', lot_size: '65',
     trading_mode: 'paper', paper_capital: '100000',
     rsi_period: '14', rsi_overbought: '55', rsi_oversold: '45',
+    rsi_bull_threshold: '55', rsi_bear_threshold: '45', pullback_threshold: '0.001', crossover_window: '10',
     data_source: 'auto', playback_file: 'bot/data/nifty_sample.csv', playback_speed: '1',
   });
   const [loading, setLoading] = useState(true);
@@ -166,13 +167,13 @@ export default function SettingsPage() {
             />
           </div>
           <div className="form-group">
-            <label className="form-label">Password</label>
+            <label className="form-label">Trading PIN (MPIN)</label>
             <input
               type="password"
               className="form-input"
-              value={settings.password}
-              onChange={(e) => handleChange('password', e.target.value)}
-              placeholder="Enter Password"
+              value={settings.pin}
+              onChange={(e) => handleChange('pin', e.target.value)}
+              placeholder="Enter 4 or 6 digit PIN"
             />
           </div>
           <div className="form-group">
@@ -235,6 +236,44 @@ export default function SettingsPage() {
               className="form-input"
               value={settings.rsi_oversold}
               onChange={(e) => handleChange('rsi_oversold', e.target.value)}
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">RSI Bull Threshold (Rising)</label>
+            <input
+              type="number"
+              className="form-input"
+              value={settings.rsi_bull_threshold}
+              onChange={(e) => handleChange('rsi_bull_threshold', e.target.value)}
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">RSI Bear Threshold (Falling)</label>
+            <input
+              type="number"
+              className="form-input"
+              value={settings.rsi_bear_threshold}
+              onChange={(e) => handleChange('rsi_bear_threshold', e.target.value)}
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Pullback Threshold (Decimal %)</label>
+            <input
+              type="number"
+              step="0.0001"
+              className="form-input"
+              value={settings.pullback_threshold}
+              onChange={(e) => handleChange('pullback_threshold', e.target.value)}
+              placeholder="e.g., 0.001 for 0.1%"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Crossover Window (Candles)</label>
+            <input
+              type="number"
+              className="form-input"
+              value={settings.crossover_window}
+              onChange={(e) => handleChange('crossover_window', e.target.value)}
             />
           </div>
           <div className="form-group">

@@ -83,7 +83,8 @@ class OrderManager:
         return True
 
     def place_order(self, signal: str, current_price: float,
-                    mode: str = "paper", timestamp: Optional[datetime] = None) -> Optional[Dict]:
+                    mode: str = "paper", timestamp: Optional[datetime] = None, 
+                    entry_quality: Optional[float] = None) -> Optional[Dict]:
         """
         Place an order based on signal.
         signal: 'BUY_CE' or 'BUY_PE'
@@ -137,6 +138,21 @@ class OrderManager:
                     return None
 
                 # Place the order
+                trade_info = {
+                    "type": option_type,
+                    "strike_price": strike,
+                    "trading_symbol": trading_symbol,
+                    "entry_price": entry_price,
+                    "quantity": quantity,
+                    "lot_size": lot_size,
+                    "mode": mode,
+                    "stop_loss": stop_loss,
+                    "target": target,
+                    "underlying_entry_price": current_price,
+                    "token": token,
+                    "entry_quality": entry_quality
+                }
+
                 if mode == "live" and self.smart_api:
                     # Live order via Angel One
                     order_result = self._place_live_order(
@@ -162,6 +178,7 @@ class OrderManager:
                     "target": target,
                     "underlying_entry_price": current_price,
                     "token": token,
+                    "entry_quality": entry_quality
                 }
                 trade_id = insert_trade(trade_data, timestamp=timestamp)
 

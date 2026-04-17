@@ -255,6 +255,12 @@ async def update_settings(req: SettingsRequest):
     try:
         save_settings(req.settings)
         logger.info(f"Settings updated: {list(req.settings.keys())}")
+        
+        # Check if critical settings were changed while bot is running
+        bot = get_bot()
+        if bot.is_running and ("trading_mode" in req.settings or "pin" in req.settings or "totp_secret" in req.settings):
+            logger.warning("Bot is currently running. Please STOP and START the bot for live mode changes and credentials to take effect.")
+            
         return {"status": "saved", "message": "Settings saved successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -266,7 +272,7 @@ async def read_settings():
     settings = get_all_settings()
     # Mask sensitive fields
     masked = dict(settings)
-    for key in ["api_key", "password", "totp_secret"]:
+    for key in ["api_key", "pin", "totp_secret"]:
         if masked.get(key):
             masked[key] = "****" + masked[key][-4:] if len(masked[key]) > 4 else "****"
     return {"settings": masked}

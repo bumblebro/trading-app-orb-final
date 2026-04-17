@@ -50,6 +50,7 @@ def init_db(db_path: str = None):
             target REAL,
             underlying_entry_price REAL,
             token TEXT,
+            entry_quality REAL,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
     """)
@@ -73,7 +74,7 @@ def init_db(db_path: str = None):
     """)
 
     # Migration: Add underlying_entry_price and token columns if they don't exist
-    for column, col_type in [("underlying_entry_price", "REAL"), ("token", "TEXT")]:
+    for column, col_type in [("underlying_entry_price", "REAL"), ("token", "TEXT"), ("entry_quality", "REAL")]:
         try:
             conn.execute(f"ALTER TABLE trades ADD COLUMN {column} {col_type}")
         except sqlite3.OperationalError:
@@ -91,8 +92,8 @@ def insert_trade(trade: Dict[str, Any], timestamp: datetime = None, db_path: str
     now = timestamp or get_ist_now()
     cursor = conn.execute("""
         INSERT INTO trades (date, time, type, strike_price, trading_symbol, entry_price,
-                          quantity, lot_size, status, mode, stop_loss, target, underlying_entry_price, token)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'open', ?, ?, ?, ?, ?)
+                          quantity, lot_size, status, mode, stop_loss, target, underlying_entry_price, token, entry_quality)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'open', ?, ?, ?, ?, ?, ?)
     """, (
         now.strftime("%Y-%m-%d"),
         now.strftime("%H:%M:%S"),
@@ -106,7 +107,8 @@ def insert_trade(trade: Dict[str, Any], timestamp: datetime = None, db_path: str
         trade.get("stop_loss"),
         trade.get("target"),
         trade.get("underlying_entry_price"),
-        trade.get("token")
+        trade.get("token"),
+        trade.get("entry_quality")
     ))
     trade_id = cursor.lastrowid
     conn.commit()
@@ -240,7 +242,7 @@ def get_consecutive_losses(date_override: str = None, db_path: str = None) -> in
 DEFAULT_SETTINGS = {
     "api_key": "",
     "client_id": "",
-    "password": "",
+    "pin": "",
     "totp_secret": "",
     "ema_fast": "9",
     "ema_slow": "21",
@@ -254,6 +256,10 @@ DEFAULT_SETTINGS = {
     "rsi_period": "14",
     "rsi_overbought": "55",
     "rsi_oversold": "45",
+    "rsi_bull_threshold": "55",
+    "rsi_bear_threshold": "45",
+    "pullback_threshold": "0.001",
+    "crossover_window": "10",
     "data_source": "auto",
     "playback_file": "bot/data/nifty_sample.csv",
     "playback_speed": "1",

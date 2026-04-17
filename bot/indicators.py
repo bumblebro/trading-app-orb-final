@@ -107,6 +107,39 @@ def calculate_rsi(prices: List[float], period: int = 14) -> List[float]:
     return rsi_values
 
 
+def find_recent_crossover(ema_fast: List[float], ema_slow: List[float], window: int = 10) -> dict:
+    """
+    Find the most recent crossover within the specified lookback window.
+    Returns dict: {'type': 'bullish'|'bearish'|None, 'bars_ago': int|None}
+    """
+    if len(ema_fast) < 2 or len(ema_slow) < 2:
+        return {"type": None, "bars_ago": None}
+
+    # Look back from the latest candle
+    for i in range(1, min(window + 1, len(ema_fast))):
+        idx = -i
+        prev_idx = -i - 1
+        
+        # Avoid index error at start of list
+        if abs(prev_idx) > len(ema_fast):
+            break
+
+        prev_f, prev_s = ema_fast[prev_idx], ema_slow[prev_idx]
+        curr_f, curr_s = ema_fast[idx], ema_slow[idx]
+
+        if any(np.isnan(x) for x in [prev_f, prev_s, curr_f, curr_s]):
+            continue
+
+        # Bullish
+        if prev_f <= prev_s and curr_f > curr_s:
+            return {"type": "bullish", "bars_ago": i - 1}
+        # Bearish
+        if prev_f >= prev_s and curr_f < curr_s:
+            return {"type": "bearish", "bars_ago": i - 1}
+
+    return {"type": None, "bars_ago": None}
+
+
 def ema_crossover(ema_fast: List[float], ema_slow: List[float]) -> Optional[str]:
     """
     Check for EMA crossover between the last two data points.
@@ -157,13 +190,21 @@ def get_latest_indicators(candles: List[dict], ema_fast_period: int = 9,
     ema_slow = calculate_ema(close_prices, ema_slow_period)
     vwap = calculate_vwap(candles)
     rsi = calculate_rsi(close_prices, rsi_period)
+    
+    # Standard crossover (latest candle)
     crossover = ema_crossover(ema_fast, ema_slow)
+    
+    # Recent crossover (last 20 candles lookback)
+    recent_cross = find_recent_crossover(ema_fast, ema_slow, window=20)
 
     return {
         "ema_fast": round(ema_fast[-1], 2) if not np.isnan(ema_fast[-1]) else None,
         "ema_slow": round(ema_slow[-1], 2) if not np.isnan(ema_slow[-1]) else None,
         "vwap": round(vwap[-1], 2) if vwap else None,
         "rsi": round(rsi[-1], 2) if not np.isnan(rsi[-1]) else None,
+        "rsi_prev": round(rsi[-2], 2) if len(rsi) >= 2 and not np.isnan(rsi[-2]) else None,
         "crossover": crossover,
+        "recent_cross_type": recent_cross["type"],
+        "recent_cross_bars": recent_cross["bars_ago"],
         "ready": True
     }

@@ -17,6 +17,7 @@ from market_calendar import (
 from data_feed import get_data_feed, DataFeed
 from indicators import get_latest_indicators, ema_crossover
 from order_manager import get_order_manager, OrderManager
+from auth import login_and_get_session
 from database import (
     get_active_trade, get_today_trade_count, get_consecutive_losses,
     get_today_pnl, get_setting
@@ -41,6 +42,7 @@ class TradingBot:
         self._bot_thread: Optional[threading.Thread] = None
         self._current_signal = "WAIT"
         self._last_signal_time: Optional[datetime] = None
+        self._last_signal_quality = 0.0
 
         # Cached indicator values
         self._indicators: Dict = {}
@@ -87,9 +89,26 @@ class TradingBot:
             feed_args["playback_speed"] = playback_speed
             
         self.data_feed = get_data_feed(**feed_args)
+        
+        # Handle Live authentication if needed
+        smart_api = None
+        if mode == "live" and not use_simulation:
+            smart_api, feed_token = login_and_get_session()
+            if smart_api and feed_token:
+                # Update DataFeed with live credentials
+                self.data_feed.update_credentials(
+                    get_setting("api_key"),
+                    get_setting("client_id"),
+                    feed_token
+                )
+            else:
+                self.logger.error("Failed to initialize live Angel One session. Trading might not be possible.")
+
         self.data_feed.start()
 
         self.order_manager = get_order_manager()
+        if smart_api:
+            self.order_manager.set_smart_api(smart_api)
 
         # Start bot loop in background thread
         self._bot_thread = threading.Thread(target=self._run_loop, daemon=True)
@@ -179,7 +198,13 @@ class TradingBot:
         # Place order if signal is actionable
         if signal in ("BUY_CE", "BUY_PE"):
             mode = get_setting("trading_mode") or "paper"
-            result = self.order_manager.place_order(signal, current_price, mode, timestamp=now)
+            result = self.order_manager.place_order(
+                signal, 
+                current_price, 
+                mode, 
+                timestamp=now, 
+                entry_quality=self._last_signal_quality
+            )
             if result:
                 self.logger.order_placed(
                     f"BUY {result['type']}", result['strike'], result['entry_price'], result['quantity'], mode, timestamp=now
@@ -191,43 +216,72 @@ class TradingBot:
 
     def _generate_signal(self, current_price: float) -> str:
         """
-        Generate trading signal based on EMA crossover + VWAP + RSI.
+        Generate trading signal based on Strategy 2.0 (Trend + Pullback).
+        Conditions:
+        1. Trend: EMA crossover happened within X bars.
+        2. Filter: Price above VWAP (Call) or below VWAP (Put).
+        3. Momentum: RSI is in the right zone and moving in the right direction.
+        4. Pullback: Price is within a small percentage of EMA9 or VWAP.
         """
         if not self._indicators.get("ready"):
             return "WAIT"
 
+        # Get indicator values
         ema_fast = self._indicators.get("ema_fast")
         ema_slow = self._indicators.get("ema_slow")
         vwap = self._indicators.get("vwap")
         rsi = self._indicators.get("rsi")
-        crossover = self._indicators.get("crossover")
+        rsi_prev = self._indicators.get("rsi_prev")
+        cross_type = self._indicators.get("recent_cross_type")
+        cross_bars = self._indicators.get("recent_cross_bars")
 
-        if any(v is None for v in [ema_fast, ema_slow, vwap, rsi]):
+        if any(v is None for v in [ema_fast, ema_slow, vwap, rsi, rsi_prev]):
             return "WAIT"
 
-        rsi_overbought = float(get_setting("rsi_overbought") or "55")
-        rsi_oversold = float(get_setting("rsi_oversold") or "45")
+        # Get settings
+        rsi_bull = float(get_setting("rsi_bull_threshold") or "55")
+        rsi_bear = float(get_setting("rsi_bear_threshold") or "45")
+        pullback_threshold = float(get_setting("pullback_threshold") or "0.001")
+        cross_window = int(get_setting("crossover_window") or "10")
+
+        # Pullback Distance calculation
+        dist_ema = abs(current_price - ema_fast) / ema_fast
+        dist_vwap = abs(current_price - vwap) / vwap
+        is_pullback = (dist_ema <= pullback_threshold) or (dist_vwap <= pullback_threshold)
+        
+        entry_dist = min(dist_ema, dist_vwap) * 100 # Percentage for logging
 
         signal = "WAIT"
 
-        # BUY CE: EMA9 crosses above EMA21 + price > VWAP + RSI > 55
-        if crossover == "bullish" and current_price > vwap and rsi > rsi_overbought:
+        # --- BUY CE (CALL) ---
+        if (cross_type == "bullish" and cross_bars <= cross_window and 
+            current_price > vwap and 
+            rsi > rsi_bull and rsi > rsi_prev and 
+            is_pullback):
             signal = "BUY_CE"
 
-        # BUY PE: EMA9 crosses below EMA21 + price < VWAP + RSI < 45
-        elif crossover == "bearish" and current_price < vwap and rsi < rsi_oversold:
+        # --- BUY PE (PUT) ---
+        elif (cross_type == "bearish" and cross_bars <= cross_window and 
+              current_price < vwap and 
+              rsi < rsi_bear and rsi < rsi_prev and 
+              is_pullback):
             signal = "BUY_PE"
 
-        # Log signal if changed
+        # Log signal if found
         if signal != "WAIT":
+            self._last_signal_quality = round(entry_dist, 4)
             self.logger.signal(signal, {
                 "price": current_price,
                 "ema9": ema_fast,
                 "ema21": ema_slow,
                 "vwap": vwap,
                 "rsi": rsi,
-                "crossover": crossover
+                "rsi_prev": rsi_prev,
+                "cross_bars_ago": cross_bars,
+                "entry_dist_pct": self._last_signal_quality
             }, timestamp=self.data_feed.last_tick_time if self.data_feed else None)
+        else:
+            self._last_signal_quality = 0.0
 
         return signal
 

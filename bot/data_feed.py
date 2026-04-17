@@ -112,6 +112,13 @@ class DataFeed:
         with self._lock:
             return list(self._candles)
 
+    def update_credentials(self, api_key: str, client_id: str, feed_token: str):
+        """Update API credentials for live feed."""
+        self.api_key = api_key
+        self.client_id = client_id
+        self.feed_token = feed_token
+        self.use_simulation = False
+        
     def start(self):
         """Start the data feed."""
         if self._running:

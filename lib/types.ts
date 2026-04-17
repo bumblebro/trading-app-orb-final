@@ -93,7 +93,7 @@ export interface ChartData {
 export interface Settings {
   api_key: string;
   client_id: string;
-  password: string;
+  pin: string;
   totp_secret: string;
   ema_fast: string;
   ema_slow: string;
@@ -107,6 +107,10 @@ export interface Settings {
   rsi_period: string;
   rsi_overbought: string;
   rsi_oversold: string;
+  rsi_bull_threshold: string;
+  rsi_bear_threshold: string;
+  pullback_threshold: string;
+  crossover_window: string;
   data_source: string;
   playback_file: string;
   playback_speed: string;

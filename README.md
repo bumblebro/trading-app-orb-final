@@ -1,5 +1,5 @@
 # Nifty 50 Trading Dashboard
-
+IOAACBWQHXLGAGZ3URYN3CWAOE
 A professional, full-stack automated trading dashboard for Nifty 50 Options (CE/PE) built with **Next.js 14**, **Python FastAPI**, and **Angel One SmartAPI**.
 
 ## 🚀 Features

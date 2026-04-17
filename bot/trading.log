@@ -591,3 +591,251 @@
 [2026-04-17 21:30:55 IST] [INFO] [ORDER] [2015-05-18 12:55:00] BUY CE | Strike=8300 | Price=124.59 | Qty=65 | Mode=paper
 [2026-04-17 21:30:55 IST] [INFO] [SYSTEM] Trade opened: {'trade_id': 23, 'type': 'CE', 'strike': 8300, 'symbol': 'NIFTY8300CE', 'entry_price': 124.59, 'quantity': 65, 'stop_loss': 105.9, 'target': 149.51, 'mode': 'paper', 'expiry': '2026-04-23'}
 [2026-04-17 21:33:04 IST] [INFO] [ORDER] [2015-05-18 15:03:00] EXIT | Reason=target | P&L=+1740.05
+[2026-04-17 21:46:46 IST] [INFO] [SYSTEM] Settings updated: ['api_key', 'client_id', 'password', 'totp_secret', 'ema_fast', 'ema_slow', 'stop_loss_pct', 'target_pct', 'max_trades_per_day', 'square_off_time', 'lot_size', 'trading_mode', 'paper_capital', 'rsi_period', 'rsi_overbought', 'rsi_oversold', 'rsi_bull_threshold', 'rsi_bear_threshold', 'pullback_threshold', 'crossover_window', 'data_source', 'playback_file', 'playback_speed']
+[2026-04-17 21:46:49 IST] [INFO] [SYSTEM] Bot STARTED
+[2026-04-17 21:46:49 IST] [INFO] [SYSTEM] Starting CSV playback from /Users/shreyasms/Documents/TradingWebsite/trading-app/bot/data/nifty_sample.csv
+[2026-04-17 21:46:49 IST] [INFO] [SYSTEM] Bot STARTED | Market status: After market hours (closed at 15:30 IST)
+[2026-04-17 21:50:19 IST] [INFO] [SIGNAL] [2015-03-12 10:01:00] BUY_CE | EMA9=8759.43 vs EMA21=8744.29 | VWAP=8726.62 | RSI=65.61 | Price=8768.00
+[2026-04-17 21:50:19 IST] [INFO] [SYSTEM] Using estimated premium for CE: 131.52
+[2026-04-17 21:50:19 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8548.80 | PASS
+[2026-04-17 21:50:19 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8750CE at 131.52
+[2026-04-17 21:50:19 IST] [INFO] [ORDER] BUY CE | Strike=8750 | Price=131.52 | Qty=65 | Mode=paper
+[2026-04-17 21:50:19 IST] [INFO] [ORDER] [2015-03-12 10:01:00] BUY CE | Strike=8750 | Price=131.52 | Qty=65 | Mode=paper
+[2026-04-17 21:50:19 IST] [INFO] [SYSTEM] Trade opened: {'trade_id': 24, 'type': 'CE', 'strike': 8750, 'symbol': 'NIFTY8750CE', 'entry_price': 131.52, 'quantity': 65, 'stop_loss': 111.79, 'target': 157.82, 'mode': 'paper', 'expiry': '2026-04-23'}
+[2026-04-17 21:54:21 IST] [INFO] [SYSTEM] Settings updated: ['api_key', 'client_id', 'password', 'totp_secret', 'ema_fast', 'ema_slow', 'stop_loss_pct', 'target_pct', 'max_trades_per_day', 'square_off_time', 'lot_size', 'trading_mode', 'paper_capital', 'rsi_period', 'rsi_overbought', 'rsi_oversold', 'rsi_bull_threshold', 'rsi_bear_threshold', 'pullback_threshold', 'crossover_window', 'data_source', 'playback_file', 'playback_speed']
+[2026-04-17 21:55:34 IST] [INFO] [ORDER] EXIT | Reason=squareoff | P&L=+357.50
+[2026-04-17 21:55:34 IST] [INFO] [SYSTEM] Auto square-off executed at 3:15 PM IST
+[2026-04-17 21:55:50 IST] [ERROR] [ERROR] Bot tick error | no such table: settings
+[2026-04-17 21:55:51 IST] [ERROR] [ERROR] Bot tick error | no such table: settings
+[2026-04-17 21:55:52 IST] [ERROR] [ERROR] Bot tick error | no such table: settings
+[2026-04-17 21:55:53 IST] [ERROR] [ERROR] Bot tick error | no such table: settings
+[2026-04-17 21:55:54 IST] [ERROR] [ERROR] Bot tick error | no such table: settings
+[2026-04-17 21:57:29 IST] [INFO] [SYSTEM] Settings updated: ['api_key', 'client_id', 'password', 'totp_secret', 'ema_fast', 'ema_slow', 'stop_loss_pct', 'target_pct', 'max_trades_per_day', 'square_off_time', 'lot_size', 'trading_mode', 'paper_capital', 'rsi_period', 'rsi_overbought', 'rsi_oversold', 'rsi_bull_threshold', 'rsi_bear_threshold', 'pullback_threshold', 'crossover_window', 'data_source', 'playback_file', 'playback_speed']
+[2026-04-17 21:57:35 IST] [INFO] [SYSTEM] Bot STARTED
+[2026-04-17 21:57:35 IST] [INFO] [SYSTEM] Starting CSV playback from /Users/shreyasms/Documents/TradingWebsite/trading-app/bot/data/nifty_sample.csv
+[2026-04-17 21:57:35 IST] [INFO] [SYSTEM] Bot STARTED | Market status: After market hours (closed at 15:30 IST)
+[2026-04-17 22:01:05 IST] [INFO] [SIGNAL] [2015-03-12 10:01:00] BUY_CE | EMA9=8759.43 vs EMA21=8744.29 | VWAP=8726.62 | RSI=65.61 | Price=8768.00
+[2026-04-17 22:01:05 IST] [INFO] [SYSTEM] Using estimated premium for CE: 131.52
+[2026-04-17 22:01:05 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8548.80 | PASS
+[2026-04-17 22:01:05 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8750CE at 131.52
+[2026-04-17 22:01:05 IST] [INFO] [ORDER] BUY CE | Strike=8750 | Price=131.52 | Qty=65 | Mode=paper
+[2026-04-17 22:01:05 IST] [INFO] [ORDER] [2015-03-12 10:01:00] BUY CE | Strike=8750 | Price=131.52 | Qty=65 | Mode=paper
+[2026-04-17 22:01:05 IST] [INFO] [SYSTEM] Trade opened: {'trade_id': 1, 'type': 'CE', 'strike': 8750, 'symbol': 'NIFTY8750CE', 'entry_price': 131.52, 'quantity': 65, 'stop_loss': 111.79, 'target': 157.82, 'mode': 'paper', 'expiry': '2026-04-23'}
+[2026-04-17 22:06:20 IST] [INFO] [ORDER] EXIT | Reason=squareoff | P&L=+357.50
+[2026-04-17 22:06:20 IST] [INFO] [SYSTEM] Auto square-off executed at 3:15 PM IST
+[2026-04-17 22:07:26 IST] [INFO] [SIGNAL] [2015-03-13 10:26:00] BUY_PE | EMA9=8763.93 vs EMA21=8771.45 | VWAP=8750.05 | RSI=39.52 | Price=8743.55
+[2026-04-17 22:07:26 IST] [INFO] [SYSTEM] Using estimated premium for PE: 131.15
+[2026-04-17 22:07:26 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8524.75 | PASS
+[2026-04-17 22:07:26 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8750PE at 131.15
+[2026-04-17 22:07:26 IST] [INFO] [ORDER] BUY PE | Strike=8750 | Price=131.15 | Qty=65 | Mode=paper
+[2026-04-17 22:07:26 IST] [INFO] [ORDER] [2015-03-13 10:26:00] BUY PE | Strike=8750 | Price=131.15 | Qty=65 | Mode=paper
+[2026-04-17 22:07:26 IST] [INFO] [SYSTEM] Trade opened: {'trade_id': 2, 'type': 'PE', 'strike': 8750, 'symbol': 'NIFTY8750PE', 'entry_price': 131.15, 'quantity': 65, 'stop_loss': 111.48, 'target': 157.38, 'mode': 'paper', 'expiry': '2026-04-23'}
+[2026-04-17 22:08:37 IST] [INFO] [ORDER] [2015-03-13 11:37:00] EXIT | Reason=target | P&L=+1829.75
+[2026-04-17 22:16:59 IST] [INFO] [SYSTEM] Settings updated: ['api_key', 'client_id', 'password', 'totp_secret', 'ema_fast', 'ema_slow', 'stop_loss_pct', 'target_pct', 'max_trades_per_day', 'square_off_time', 'lot_size', 'trading_mode', 'paper_capital', 'rsi_period', 'rsi_overbought', 'rsi_oversold', 'rsi_bull_threshold', 'rsi_bear_threshold', 'pullback_threshold', 'crossover_window', 'data_source', 'playback_file', 'playback_speed']
+[2026-04-17 22:20:49 IST] [INFO] [SYSTEM] Settings updated: ['trading_mode']
+[2026-04-17 22:20:52 IST] [INFO] [SYSTEM] Bot STARTED
+[2026-04-17 22:20:52 IST] [INFO] [SYSTEM] Seeding simulation with 50 historical candles
+[2026-04-17 22:20:52 IST] [INFO] [SYSTEM] Starting simulated live price updates
+[2026-04-17 22:20:52 IST] [INFO] [SYSTEM] Bot STARTED | Market status: After market hours (closed at 15:30 IST)
+[2026-04-17 22:21:00 IST] [INFO] [SYSTEM] Bot STOPPED
+[2026-04-17 22:21:10 IST] [INFO] [SYSTEM] Settings updated: ['api_key', 'client_id', 'password', 'totp_secret', 'ema_fast', 'ema_slow', 'stop_loss_pct', 'target_pct', 'max_trades_per_day', 'square_off_time', 'lot_size', 'trading_mode', 'paper_capital', 'rsi_period', 'rsi_overbought', 'rsi_oversold', 'rsi_bull_threshold', 'rsi_bear_threshold', 'pullback_threshold', 'crossover_window', 'data_source', 'playback_file', 'playback_speed']
+[2026-04-17 22:21:13 IST] [INFO] [SYSTEM] Bot STARTED
+[2026-04-17 22:21:13 IST] [INFO] [SYSTEM] Seeding simulation with 50 historical candles
+[2026-04-17 22:21:13 IST] [INFO] [SYSTEM] Starting simulated live price updates
+[2026-04-17 22:21:13 IST] [INFO] [SYSTEM] Bot STARTED | Market status: After market hours (closed at 15:30 IST)
+[2026-04-17 22:21:28 IST] [INFO] [SYSTEM] Bot STOPPED
+[2026-04-17 22:22:14 IST] [INFO] [SYSTEM] Settings updated: ['trading_mode']
+[2026-04-17 22:29:35 IST] [INFO] [SYSTEM] Settings updated: ['api_key', 'client_id', 'pin', 'totp_secret', 'ema_fast', 'ema_slow', 'stop_loss_pct', 'target_pct', 'max_trades_per_day', 'square_off_time', 'lot_size', 'trading_mode', 'paper_capital', 'rsi_period', 'rsi_overbought', 'rsi_oversold', 'rsi_bull_threshold', 'rsi_bear_threshold', 'pullback_threshold', 'crossover_window', 'data_source', 'playback_file', 'playback_speed']
+[2026-04-17 22:29:48 IST] [INFO] [SYSTEM] Settings updated: ['trading_mode']
+[2026-04-17 22:30:26 IST] [INFO] [SYSTEM] Settings updated: ['api_key', 'client_id', 'pin', 'totp_secret', 'ema_fast', 'ema_slow', 'stop_loss_pct', 'target_pct', 'max_trades_per_day', 'square_off_time', 'lot_size', 'trading_mode', 'paper_capital', 'rsi_period', 'rsi_overbought', 'rsi_oversold', 'rsi_bull_threshold', 'rsi_bear_threshold', 'pullback_threshold', 'crossover_window', 'data_source', 'playback_file', 'playback_speed']
+[2026-04-17 22:30:29 IST] [INFO] [SYSTEM] Settings updated: ['trading_mode']
+[2026-04-17 22:30:34 IST] [INFO] [SYSTEM] Settings updated: ['trading_mode']
+[2026-04-17 22:31:42 IST] [INFO] [SYSTEM] Bot STARTED
+[2026-04-17 22:31:42 IST] [ERROR] [ERROR] TOTP generation failed: Non-base32 digit found
+[2026-04-17 22:31:42 IST] [ERROR] [ERROR] Failed to initialize live Angel One session. Trading might not be possible.
+[2026-04-17 22:31:42 IST] [INFO] [SYSTEM] Seeding simulation with 50 historical candles
+[2026-04-17 22:31:42 IST] [INFO] [SYSTEM] Starting simulated live price updates
+[2026-04-17 22:31:42 IST] [INFO] [SYSTEM] Bot STARTED | Market status: After market hours (closed at 15:30 IST)
+[2026-04-17 22:32:00 IST] [INFO] [SYSTEM] Bot STOPPED
+[2026-04-17 22:32:03 IST] [INFO] [SYSTEM] Bot STARTED
+[2026-04-17 22:32:03 IST] [ERROR] [ERROR] TOTP generation failed: Non-base32 digit found
+[2026-04-17 22:32:03 IST] [ERROR] [ERROR] Failed to initialize live Angel One session. Trading might not be possible.
+[2026-04-17 22:32:03 IST] [INFO] [SYSTEM] Seeding simulation with 50 historical candles
+[2026-04-17 22:32:03 IST] [INFO] [SYSTEM] Starting simulated live price updates
+[2026-04-17 22:32:03 IST] [INFO] [SYSTEM] Bot STARTED | Market status: After market hours (closed at 15:30 IST)
+[2026-04-17 22:32:06 IST] [INFO] [SYSTEM] Bot STOPPED
+[2026-04-17 22:33:08 IST] [INFO] [SYSTEM] Bot STARTED
+[2026-04-17 22:33:08 IST] [ERROR] [ERROR] TOTP generation failed: Non-base32 digit found
+[2026-04-17 22:33:08 IST] [ERROR] [ERROR] Failed to initialize live Angel One session. Trading might not be possible.
+[2026-04-17 22:33:08 IST] [INFO] [SYSTEM] Seeding simulation with 50 historical candles
+[2026-04-17 22:33:08 IST] [INFO] [SYSTEM] Starting simulated live price updates
+[2026-04-17 22:33:08 IST] [INFO] [SYSTEM] Bot STARTED | Market status: After market hours (closed at 15:30 IST)
+[2026-04-17 22:33:11 IST] [INFO] [SYSTEM] Settings updated: ['api_key', 'client_id', 'pin', 'totp_secret', 'ema_fast', 'ema_slow', 'stop_loss_pct', 'target_pct', 'max_trades_per_day', 'square_off_time', 'lot_size', 'trading_mode', 'paper_capital', 'rsi_period', 'rsi_overbought', 'rsi_oversold', 'rsi_bull_threshold', 'rsi_bear_threshold', 'pullback_threshold', 'crossover_window', 'data_source', 'playback_file', 'playback_speed']
+[2026-04-17 22:33:15 IST] [INFO] [SYSTEM] Bot STOPPED
+[2026-04-17 22:33:18 IST] [INFO] [SYSTEM] Bot STARTED
+[2026-04-17 22:33:18 IST] [ERROR] [ERROR] TOTP generation failed: Non-base32 digit found
+[2026-04-17 22:33:18 IST] [ERROR] [ERROR] Failed to initialize live Angel One session. Trading might not be possible.
+[2026-04-17 22:33:18 IST] [INFO] [SYSTEM] Seeding simulation with 50 historical candles
+[2026-04-17 22:33:18 IST] [INFO] [SYSTEM] Starting simulated live price updates
+[2026-04-17 22:33:18 IST] [INFO] [SYSTEM] Bot STARTED | Market status: After market hours (closed at 15:30 IST)
+[2026-04-17 22:33:21 IST] [INFO] [SYSTEM] Bot STOPPED
+[2026-04-17 22:33:55 IST] [INFO] [SYSTEM] Bot STARTED
+[2026-04-17 22:33:55 IST] [ERROR] [ERROR] TOTP generation failed: Non-base32 digit found
+[2026-04-17 22:33:55 IST] [ERROR] [ERROR] Failed to initialize live Angel One session. Trading might not be possible.
+[2026-04-17 22:33:55 IST] [INFO] [SYSTEM] Seeding simulation with 50 historical candles
+[2026-04-17 22:33:55 IST] [INFO] [SYSTEM] Starting simulated live price updates
+[2026-04-17 22:33:55 IST] [INFO] [SYSTEM] Bot STARTED | Market status: After market hours (closed at 15:30 IST)
+[2026-04-17 22:34:16 IST] [INFO] [SYSTEM] Bot STOPPED
+[2026-04-17 22:34:18 IST] [INFO] [SYSTEM] Settings updated: ['trading_mode']
+[2026-04-17 22:34:23 IST] [INFO] [SYSTEM] Settings updated: ['api_key', 'client_id', 'pin', 'totp_secret', 'ema_fast', 'ema_slow', 'stop_loss_pct', 'target_pct', 'max_trades_per_day', 'square_off_time', 'lot_size', 'trading_mode', 'paper_capital', 'rsi_period', 'rsi_overbought', 'rsi_oversold', 'rsi_bull_threshold', 'rsi_bear_threshold', 'pullback_threshold', 'crossover_window', 'data_source', 'playback_file', 'playback_speed']
+[2026-04-17 22:34:26 IST] [INFO] [SYSTEM] Bot STARTED
+[2026-04-17 22:34:26 IST] [INFO] [SYSTEM] Seeding simulation with 50 historical candles
+[2026-04-17 22:34:26 IST] [INFO] [SYSTEM] Starting simulated live price updates
+[2026-04-17 22:34:26 IST] [INFO] [SYSTEM] Bot STARTED | Market status: After market hours (closed at 15:30 IST)
+[2026-04-17 22:34:46 IST] [INFO] [SYSTEM] Bot STOPPED
+[2026-04-17 22:34:51 IST] [INFO] [SYSTEM] Settings updated: ['api_key', 'client_id', 'pin', 'totp_secret', 'ema_fast', 'ema_slow', 'stop_loss_pct', 'target_pct', 'max_trades_per_day', 'square_off_time', 'lot_size', 'trading_mode', 'paper_capital', 'rsi_period', 'rsi_overbought', 'rsi_oversold', 'rsi_bull_threshold', 'rsi_bear_threshold', 'pullback_threshold', 'crossover_window', 'data_source', 'playback_file', 'playback_speed']
+[2026-04-17 22:34:53 IST] [INFO] [SYSTEM] Bot STARTED
+[2026-04-17 22:34:53 IST] [INFO] [SYSTEM] Seeding simulation with 50 historical candles
+[2026-04-17 22:34:53 IST] [INFO] [SYSTEM] Starting simulated live price updates
+[2026-04-17 22:34:53 IST] [INFO] [SYSTEM] Bot STARTED | Market status: After market hours (closed at 15:30 IST)
+[2026-04-17 22:35:00 IST] [INFO] [SYSTEM] Bot STOPPED
+[2026-04-17 22:35:05 IST] [INFO] [SYSTEM] Settings updated: ['trading_mode']
+[2026-04-17 22:35:06 IST] [INFO] [SYSTEM] Bot STARTED
+[2026-04-17 22:35:06 IST] [ERROR] [ERROR] TOTP generation failed: Non-base32 digit found
+[2026-04-17 22:35:06 IST] [ERROR] [ERROR] Failed to initialize live Angel One session. Trading might not be possible.
+[2026-04-17 22:35:06 IST] [INFO] [SYSTEM] Seeding simulation with 50 historical candles
+[2026-04-17 22:35:06 IST] [INFO] [SYSTEM] Starting simulated live price updates
+[2026-04-17 22:35:06 IST] [INFO] [SYSTEM] Bot STARTED | Market status: After market hours (closed at 15:30 IST)
+[2026-04-17 22:36:30 IST] [INFO] [SYSTEM] Bot STARTED
+[2026-04-17 22:36:30 IST] [ERROR] [ERROR] Angel One login failed: Invalid API Key or App not found
+[2026-04-17 22:36:30 IST] [ERROR] [ERROR] Failed to initialize live Angel One session. Trading might not be possible.
+[2026-04-17 22:36:30 IST] [INFO] [SYSTEM] Starting CSV playback from /Users/shreyasms/Documents/TradingWebsite/trading-app/bot/data/nifty_sample.csv
+[2026-04-17 22:36:30 IST] [INFO] [SYSTEM] Bot STARTED | Market status: After market hours (closed at 15:30 IST)
+[2026-04-17 22:36:35 IST] [INFO] [SYSTEM] Bot STOPPED
+[2026-04-17 22:36:35 IST] [INFO] [SYSTEM] CSV playback completed
+[2026-04-17 22:36:44 IST] [INFO] [SYSTEM] Settings updated: ['api_key', 'client_id', 'pin', 'totp_secret', 'ema_fast', 'ema_slow', 'stop_loss_pct', 'target_pct', 'max_trades_per_day', 'square_off_time', 'lot_size', 'trading_mode', 'paper_capital', 'rsi_period', 'rsi_overbought', 'rsi_oversold', 'rsi_bull_threshold', 'rsi_bear_threshold', 'pullback_threshold', 'crossover_window', 'data_source', 'playback_file', 'playback_speed']
+[2026-04-17 22:36:49 IST] [INFO] [SYSTEM] Bot STARTED
+[2026-04-17 22:36:49 IST] [ERROR] [ERROR] Angel One login failed: Invalid API Key or App not found
+[2026-04-17 22:36:49 IST] [ERROR] [ERROR] Failed to initialize live Angel One session. Trading might not be possible.
+[2026-04-17 22:36:49 IST] [INFO] [SYSTEM] Starting CSV playback from /Users/shreyasms/Documents/TradingWebsite/trading-app/bot/data/nifty_sample.csv
+[2026-04-17 22:36:49 IST] [INFO] [SYSTEM] Bot STARTED | Market status: After market hours (closed at 15:30 IST)
+[2026-04-17 22:37:03 IST] [INFO] [SYSTEM] Settings updated: ['api_key', 'client_id', 'pin', 'totp_secret', 'ema_fast', 'ema_slow', 'stop_loss_pct', 'target_pct', 'max_trades_per_day', 'square_off_time', 'lot_size', 'trading_mode', 'paper_capital', 'rsi_period', 'rsi_overbought', 'rsi_oversold', 'rsi_bull_threshold', 'rsi_bear_threshold', 'pullback_threshold', 'crossover_window', 'data_source', 'playback_file', 'playback_speed']
+[2026-04-17 22:37:05 IST] [INFO] [SYSTEM] Bot STARTED
+[2026-04-17 22:37:05 IST] [ERROR] [ERROR] Angel One login failed: Invalid API Key or App not found
+[2026-04-17 22:37:05 IST] [ERROR] [ERROR] Failed to initialize live Angel One session. Trading might not be possible.
+[2026-04-17 22:37:05 IST] [INFO] [SYSTEM] Seeding simulation with 50 historical candles
+[2026-04-17 22:37:05 IST] [INFO] [SYSTEM] Starting simulated live price updates
+[2026-04-17 22:37:05 IST] [INFO] [SYSTEM] Bot STARTED | Market status: After market hours (closed at 15:30 IST)
+[2026-04-17 22:37:20 IST] [INFO] [SYSTEM] Bot STOPPED
+[2026-04-17 22:39:53 IST] [INFO] [SYSTEM] Bot STARTED
+[2026-04-17 22:39:54 IST] [ERROR] [ERROR] Angel One login failed: Invalid API Key or App not found
+[2026-04-17 22:39:54 IST] [ERROR] [ERROR] Failed to initialize live Angel One session. Trading might not be possible.
+[2026-04-17 22:39:54 IST] [INFO] [SYSTEM] Seeding simulation with 50 historical candles
+[2026-04-17 22:39:54 IST] [INFO] [SYSTEM] Starting simulated live price updates
+[2026-04-17 22:39:54 IST] [INFO] [SYSTEM] Bot STARTED | Market status: After market hours (closed at 15:30 IST)
+[2026-04-17 22:39:57 IST] [INFO] [SYSTEM] Bot STOPPED
+[2026-04-17 22:40:25 IST] [INFO] [SYSTEM] Settings updated: ['trading_mode']
+[2026-04-17 22:40:49 IST] [INFO] [SYSTEM] Settings updated: ['api_key', 'client_id', 'pin', 'totp_secret', 'ema_fast', 'ema_slow', 'stop_loss_pct', 'target_pct', 'max_trades_per_day', 'square_off_time', 'lot_size', 'trading_mode', 'paper_capital', 'rsi_period', 'rsi_overbought', 'rsi_oversold', 'rsi_bull_threshold', 'rsi_bear_threshold', 'pullback_threshold', 'crossover_window', 'data_source', 'playback_file', 'playback_speed']
+[2026-04-17 22:40:51 IST] [INFO] [SYSTEM] Bot STARTED
+[2026-04-17 22:40:51 IST] [INFO] [SYSTEM] Seeding simulation with 50 historical candles
+[2026-04-17 22:40:51 IST] [INFO] [SYSTEM] Starting simulated live price updates
+[2026-04-17 22:40:51 IST] [INFO] [SYSTEM] Bot STARTED | Market status: After market hours (closed at 15:30 IST)
+[2026-04-17 22:41:12 IST] [INFO] [SYSTEM] Settings updated: ['api_key', 'client_id', 'pin', 'totp_secret', 'ema_fast', 'ema_slow', 'stop_loss_pct', 'target_pct', 'max_trades_per_day', 'square_off_time', 'lot_size', 'trading_mode', 'paper_capital', 'rsi_period', 'rsi_overbought', 'rsi_oversold', 'rsi_bull_threshold', 'rsi_bear_threshold', 'pullback_threshold', 'crossover_window', 'data_source', 'playback_file', 'playback_speed']
+[2026-04-17 22:41:15 IST] [INFO] [SYSTEM] Bot STARTED
+[2026-04-17 22:41:15 IST] [INFO] [SYSTEM] Seeding simulation with 50 historical candles
+[2026-04-17 22:41:15 IST] [INFO] [SYSTEM] Starting simulated live price updates
+[2026-04-17 22:41:15 IST] [INFO] [SYSTEM] Bot STARTED | Market status: After market hours (closed at 15:30 IST)
+[2026-04-17 22:41:21 IST] [INFO] [SYSTEM] Bot STOPPED
+[2026-04-17 22:41:31 IST] [INFO] [SYSTEM] Settings updated: ['api_key', 'client_id', 'pin', 'totp_secret', 'ema_fast', 'ema_slow', 'stop_loss_pct', 'target_pct', 'max_trades_per_day', 'square_off_time', 'lot_size', 'trading_mode', 'paper_capital', 'rsi_period', 'rsi_overbought', 'rsi_oversold', 'rsi_bull_threshold', 'rsi_bear_threshold', 'pullback_threshold', 'crossover_window', 'data_source', 'playback_file', 'playback_speed']
+[2026-04-17 22:41:33 IST] [INFO] [SYSTEM] Bot STARTED
+[2026-04-17 22:41:33 IST] [INFO] [SYSTEM] Seeding simulation with 50 historical candles
+[2026-04-17 22:41:33 IST] [INFO] [SYSTEM] Starting simulated live price updates
+[2026-04-17 22:41:33 IST] [INFO] [SYSTEM] Bot STARTED | Market status: After market hours (closed at 15:30 IST)
+[2026-04-17 22:41:52 IST] [INFO] [SYSTEM] Bot STARTED
+[2026-04-17 22:41:52 IST] [INFO] [SYSTEM] Starting CSV playback from /Users/shreyasms/Documents/TradingWebsite/trading-app/bot/data/nifty_sample.csv
+[2026-04-17 22:41:52 IST] [INFO] [SYSTEM] Bot STARTED | Market status: After market hours (closed at 15:30 IST)
+[2026-04-17 22:45:22 IST] [INFO] [SIGNAL] [2015-03-12 10:01:00] BUY_CE | EMA9=8759.43 vs EMA21=8744.29 | VWAP=8726.62 | RSI=65.61 | Price=8768.00
+[2026-04-17 22:45:22 IST] [INFO] [SYSTEM] Using estimated premium for CE: 131.52
+[2026-04-17 22:45:22 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8548.80 | PASS
+[2026-04-17 22:45:22 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8750CE at 131.52
+[2026-04-17 22:45:22 IST] [INFO] [ORDER] BUY CE | Strike=8750 | Price=131.52 | Qty=65 | Mode=paper
+[2026-04-17 22:45:22 IST] [INFO] [ORDER] [2015-03-12 10:01:00] BUY CE | Strike=8750 | Price=131.52 | Qty=65 | Mode=paper
+[2026-04-17 22:45:22 IST] [INFO] [SYSTEM] Trade opened: {'trade_id': 1, 'type': 'CE', 'strike': 8750, 'symbol': 'NIFTY8750CE', 'entry_price': 131.52, 'quantity': 65, 'stop_loss': 111.79, 'target': 157.82, 'mode': 'paper', 'expiry': '2026-04-23'}
+[2026-04-17 22:50:36 IST] [INFO] [ORDER] EXIT | Reason=squareoff | P&L=+357.50
+[2026-04-17 22:50:36 IST] [INFO] [SYSTEM] Auto square-off executed at 3:15 PM IST
+[2026-04-17 22:51:43 IST] [INFO] [SIGNAL] [2015-03-13 10:26:00] BUY_PE | EMA9=8763.93 vs EMA21=8771.45 | VWAP=8750.05 | RSI=39.52 | Price=8743.55
+[2026-04-17 22:51:43 IST] [INFO] [SYSTEM] Using estimated premium for PE: 131.15
+[2026-04-17 22:51:43 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8524.75 | PASS
+[2026-04-17 22:51:43 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8750PE at 131.15
+[2026-04-17 22:51:43 IST] [INFO] [ORDER] BUY PE | Strike=8750 | Price=131.15 | Qty=65 | Mode=paper
+[2026-04-17 22:51:43 IST] [INFO] [ORDER] [2015-03-13 10:26:00] BUY PE | Strike=8750 | Price=131.15 | Qty=65 | Mode=paper
+[2026-04-17 22:51:43 IST] [INFO] [SYSTEM] Trade opened: {'trade_id': 2, 'type': 'PE', 'strike': 8750, 'symbol': 'NIFTY8750PE', 'entry_price': 131.15, 'quantity': 65, 'stop_loss': 111.48, 'target': 157.38, 'mode': 'paper', 'expiry': '2026-04-23'}
+[2026-04-17 22:52:54 IST] [INFO] [ORDER] [2015-03-13 11:37:00] EXIT | Reason=target | P&L=+1829.75
+[2026-04-17 22:59:23 IST] [INFO] [SIGNAL] [2015-03-16 12:10:00] BUY_PE | EMA9=8638.67 vs EMA21=8639.45 | VWAP=8715.79 | RSI=43.12 | Price=8632.20
+[2026-04-17 22:59:23 IST] [INFO] [SYSTEM] Using estimated premium for PE: 129.48
+[2026-04-17 22:59:23 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8416.20 | PASS
+[2026-04-17 22:59:23 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8650PE at 129.48
+[2026-04-17 22:59:23 IST] [INFO] [ORDER] BUY PE | Strike=8650 | Price=129.48 | Qty=65 | Mode=paper
+[2026-04-17 22:59:23 IST] [INFO] [ORDER] [2015-03-16 12:10:00] BUY PE | Strike=8650 | Price=129.48 | Qty=65 | Mode=paper
+[2026-04-17 22:59:23 IST] [INFO] [SYSTEM] Trade opened: {'trade_id': 3, 'type': 'PE', 'strike': 8650, 'symbol': 'NIFTY8650PE', 'entry_price': 129.48, 'quantity': 65, 'stop_loss': 110.06, 'target': 155.38, 'mode': 'paper', 'expiry': '2026-04-23'}
+[2026-04-17 23:02:30 IST] [INFO] [ORDER] EXIT | Reason=squareoff | P&L=-29.25
+[2026-04-17 23:02:30 IST] [INFO] [SYSTEM] Auto square-off executed at 3:15 PM IST
+[2026-04-17 23:03:30 IST] [INFO] [SIGNAL] [2015-03-17 10:00:00] BUY_CE | EMA9=8681.07 vs EMA21=8664.95 | VWAP=8701.60 | RSI=73.19 | Price=8704.05
+[2026-04-17 23:03:30 IST] [INFO] [SYSTEM] Using estimated premium for CE: 130.56
+[2026-04-17 23:03:30 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8486.40 | PASS
+[2026-04-17 23:03:30 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8700CE at 130.56
+[2026-04-17 23:03:30 IST] [INFO] [ORDER] BUY CE | Strike=8700 | Price=130.56 | Qty=65 | Mode=paper
+[2026-04-17 23:03:30 IST] [INFO] [ORDER] [2015-03-17 10:00:00] BUY CE | Strike=8700 | Price=130.56 | Qty=65 | Mode=paper
+[2026-04-17 23:03:30 IST] [INFO] [SYSTEM] Trade opened: {'trade_id': 4, 'type': 'CE', 'strike': 8700, 'symbol': 'NIFTY8700CE', 'entry_price': 130.56, 'quantity': 65, 'stop_loss': 110.98, 'target': 156.67, 'mode': 'paper', 'expiry': '2026-04-23'}
+[2026-04-17 23:06:28 IST] [INFO] [ORDER] [2015-03-17 12:57:00] EXIT | Reason=stoploss | P&L=-1478.75
+[2026-04-17 23:09:19 IST] [INFO] [SIGNAL] [2015-03-18 09:32:00] BUY_CE | EMA9=8713.13 vs EMA21=8696.55 | VWAP=8699.32 | RSI=62.82 | Price=8717.55
+[2026-04-17 23:09:19 IST] [INFO] [SYSTEM] Using estimated premium for CE: 130.76
+[2026-04-17 23:09:19 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8499.40 | PASS
+[2026-04-17 23:09:19 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8700CE at 130.76
+[2026-04-17 23:09:19 IST] [INFO] [ORDER] BUY CE | Strike=8700 | Price=130.76 | Qty=65 | Mode=paper
+[2026-04-17 23:09:19 IST] [INFO] [ORDER] [2015-03-18 09:32:00] BUY CE | Strike=8700 | Price=130.76 | Qty=65 | Mode=paper
+[2026-04-17 23:09:19 IST] [INFO] [SYSTEM] Trade opened: {'trade_id': 5, 'type': 'CE', 'strike': 8700, 'symbol': 'NIFTY8700CE', 'entry_price': 130.76, 'quantity': 65, 'stop_loss': 111.15, 'target': 156.91, 'mode': 'paper', 'expiry': '2026-04-23'}
+[2026-04-17 23:13:41 IST] [INFO] [ORDER] [2015-03-18 13:53:00] EXIT | Reason=stoploss | P&L=-1303.25
+[2026-04-17 23:13:51 IST] [INFO] [SIGNAL] [2015-03-18 14:02:00] BUY_PE | EMA9=8694.22 vs EMA21=8702.35 | VWAP=8700.16 | RSI=37.44 | Price=8687.00
+[2026-04-17 23:13:51 IST] [INFO] [SYSTEM] Using estimated premium for PE: 130.31
+[2026-04-17 23:13:51 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8470.15 | PASS
+[2026-04-17 23:13:51 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8700PE at 130.31
+[2026-04-17 23:13:51 IST] [INFO] [ORDER] BUY PE | Strike=8700 | Price=130.31 | Qty=65 | Mode=paper
+[2026-04-17 23:13:51 IST] [INFO] [ORDER] [2015-03-18 14:02:00] BUY PE | Strike=8700 | Price=130.31 | Qty=65 | Mode=paper
+[2026-04-17 23:13:51 IST] [INFO] [SYSTEM] Trade opened: {'trade_id': 6, 'type': 'PE', 'strike': 8700, 'symbol': 'NIFTY8700PE', 'entry_price': 130.31, 'quantity': 65, 'stop_loss': 110.76, 'target': 156.37, 'mode': 'paper', 'expiry': '2026-04-23'}
+[2026-04-17 23:15:04 IST] [INFO] [ORDER] EXIT | Reason=squareoff | P&L=-17.55
+[2026-04-17 23:15:04 IST] [INFO] [SYSTEM] Auto square-off executed at 3:15 PM IST
+[2026-04-17 23:18:40 IST] [INFO] [SIGNAL] [2015-03-19 12:35:00] BUY_CE | EMA9=8745.67 vs EMA21=8745.16 | VWAP=8704.66 | RSI=56.86 | Price=8751.75
+[2026-04-17 23:18:40 IST] [INFO] [SYSTEM] Using estimated premium for CE: 131.28
+[2026-04-17 23:18:40 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8533.20 | PASS
+[2026-04-17 23:18:40 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8750CE at 131.28
+[2026-04-17 23:18:40 IST] [INFO] [ORDER] BUY CE | Strike=8750 | Price=131.28 | Qty=65 | Mode=paper
+[2026-04-17 23:18:40 IST] [INFO] [ORDER] [2015-03-19 12:35:00] BUY CE | Strike=8750 | Price=131.28 | Qty=65 | Mode=paper
+[2026-04-17 23:18:40 IST] [INFO] [SYSTEM] Trade opened: {'trade_id': 7, 'type': 'CE', 'strike': 8750, 'symbol': 'NIFTY8750CE', 'entry_price': 131.28, 'quantity': 65, 'stop_loss': 111.59, 'target': 157.54, 'mode': 'paper', 'expiry': '2026-04-23'}
+[2026-04-17 23:20:34 IST] [INFO] [ORDER] [2015-03-19 14:28:00] EXIT | Reason=stoploss | P&L=-1290.25
+[2026-04-17 23:20:35 IST] [INFO] [SIGNAL] [2015-03-19 14:29:00] BUY_PE | EMA9=8735.41 vs EMA21=8739.70 | VWAP=8706.48 | RSI=28.57 | Price=8705.25
+[2026-04-17 23:20:35 IST] [INFO] [SYSTEM] Using estimated premium for PE: 130.58
+[2026-04-17 23:20:35 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8487.70 | PASS
+[2026-04-17 23:20:35 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8700PE at 130.58
+[2026-04-17 23:20:35 IST] [INFO] [ORDER] BUY PE | Strike=8700 | Price=130.58 | Qty=65 | Mode=paper
+[2026-04-17 23:20:35 IST] [INFO] [ORDER] [2015-03-19 14:29:00] BUY PE | Strike=8700 | Price=130.58 | Qty=65 | Mode=paper
+[2026-04-17 23:20:35 IST] [INFO] [SYSTEM] Trade opened: {'trade_id': 8, 'type': 'PE', 'strike': 8700, 'symbol': 'NIFTY8700PE', 'entry_price': 130.58, 'quantity': 65, 'stop_loss': 110.99, 'target': 156.7, 'mode': 'paper', 'expiry': '2026-04-23'}
+[2026-04-17 23:21:11 IST] [INFO] [ORDER] [2015-03-19 15:04:00] EXIT | Reason=target | P&L=+1740.05
+[2026-04-17 23:26:37 IST] [INFO] [SIGNAL] [2015-03-20 14:14:00] BUY_PE | EMA9=8589.52 vs EMA21=8590.51 | VWAP=8691.24 | RSI=43.37 | Price=8582.55
+[2026-04-17 23:26:37 IST] [INFO] [SYSTEM] Using estimated premium for PE: 128.74
+[2026-04-17 23:26:37 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8368.10 | PASS
+[2026-04-17 23:26:37 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8600PE at 128.74
+[2026-04-17 23:26:37 IST] [INFO] [ORDER] BUY PE | Strike=8600 | Price=128.74 | Qty=65 | Mode=paper
+[2026-04-17 23:26:37 IST] [INFO] [ORDER] [2015-03-20 14:14:00] BUY PE | Strike=8600 | Price=128.74 | Qty=65 | Mode=paper
+[2026-04-17 23:26:37 IST] [INFO] [SYSTEM] Trade opened: {'trade_id': 9, 'type': 'PE', 'strike': 8600, 'symbol': 'NIFTY8600PE', 'entry_price': 128.74, 'quantity': 65, 'stop_loss': 109.43, 'target': 154.49, 'mode': 'paper', 'expiry': '2026-04-23'}
+[2026-04-17 23:27:38 IST] [INFO] [ORDER] EXIT | Reason=squareoff | P&L=+550.55
+[2026-04-17 23:27:38 IST] [INFO] [SYSTEM] Auto square-off executed at 3:15 PM IST
+[2026-04-17 23:28:22 IST] [INFO] [SIGNAL] [2015-03-23 09:43:00] BUY_PE | EMA9=8581.73 vs EMA21=8582.52 | VWAP=8683.67 | RSI=44.37 | Price=8573.45
+[2026-04-17 23:28:22 IST] [INFO] [SYSTEM] Using estimated premium for PE: 128.6
+[2026-04-17 23:28:22 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8359.00 | PASS
+[2026-04-17 23:28:22 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8550PE at 128.6
+[2026-04-17 23:28:22 IST] [INFO] [ORDER] BUY PE | Strike=8550 | Price=128.60 | Qty=65 | Mode=paper
+[2026-04-17 23:28:22 IST] [INFO] [ORDER] [2015-03-23 09:43:00] BUY PE | Strike=8550 | Price=128.60 | Qty=65 | Mode=paper
+[2026-04-17 23:28:22 IST] [INFO] [SYSTEM] Trade opened: {'trade_id': 10, 'type': 'PE', 'strike': 8550, 'symbol': 'NIFTY8550PE', 'entry_price': 128.6, 'quantity': 65, 'stop_loss': 109.31, 'target': 154.32, 'mode': 'paper', 'expiry': '2026-04-23'}
+[2026-04-17 23:33:55 IST] [INFO] [ORDER] EXIT | Reason=squareoff | P&L=+724.75
+[2026-04-17 23:33:55 IST] [INFO] [SYSTEM] Auto square-off executed at 3:15 PM IST
