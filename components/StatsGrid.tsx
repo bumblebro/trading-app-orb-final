@@ -8,10 +8,15 @@ interface StatsGridProps {
   winRate: number;
   wins: number;
   losses: number;
+  totalAllTimePnl: number;
+  totalAllTimeTrades: number;
   mode: string;
 }
 
-export default function StatsGrid({ todayPnl, totalTrades, winRate, wins, losses, mode }: StatsGridProps) {
+export default function StatsGrid({ 
+  todayPnl, totalTrades, winRate, wins, losses, 
+  totalAllTimePnl, totalAllTimeTrades, mode 
+}: StatsGridProps) {
   return (
     <div className="stats-grid">
       <PnLCard
@@ -35,6 +40,21 @@ export default function StatsGrid({ todayPnl, totalTrades, winRate, wins, losses
         icon="🎯"
         type={winRate >= 50 ? 'profit' : winRate > 0 ? 'loss' : 'neutral'}
         subValue={totalTrades > 0 ? `${wins} of ${wins + losses} trades` : 'No closed trades'}
+      />
+      <PnLCard
+        label="Total All-Time P&L"
+        value={totalAllTimePnl}
+        icon="💎"
+        type="auto"
+        numericValue={totalAllTimePnl}
+        subValue="Lifetime Returns"
+      />
+      <PnLCard
+        label="Total Trades"
+        value={String(totalAllTimeTrades)}
+        icon="📋"
+        type="neutral"
+        subValue="Lifetime Trades"
       />
     </div>
   );

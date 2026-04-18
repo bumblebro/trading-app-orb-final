@@ -8,6 +8,7 @@ import StatsGrid from '@/components/StatsGrid';
 import ConnectionStatus from '@/components/ConnectionStatus';
 import LogViewer from '@/components/LogViewer';
 import TradeModeToggle from '@/components/TradeModeToggle';
+import TradeCard from '@/components/TradeCard';
 import { api } from '@/lib/api';
 import type { BotStatus, ChartData } from '@/lib/types';
 
@@ -87,6 +88,8 @@ export default function DashboardPage() {
                   winRate={status?.win_rate || 0}
                   wins={status?.wins || 0}
                   losses={status?.losses || 0}
+                  totalAllTimePnl={status?.total_pnl || 0}
+                  totalAllTimeTrades={status?.total_trades || 0}
                   mode={mode}
                 />
               </div>
@@ -99,6 +102,12 @@ export default function DashboardPage() {
                   changePct={(priceInfo as { change_pct?: number }).change_pct || 0}
                   connected={(priceInfo as { connected?: boolean }).connected || false}
                   simulation={(priceInfo as { simulation?: boolean }).simulation || true}
+                />
+
+                {/* Active Trade */}
+                <TradeCard 
+                  trade={status?.active_trade || null} 
+                  currentPrice={(priceInfo as { price?: number }).price} 
                 />
 
                 {/* Signal */}

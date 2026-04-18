@@ -1,68 +1,122 @@
 """
 Technical indicators module.
-Calculates EMA, VWAP, and RSI for trading signals.
+Calculates ORB, Supertrend, and RSI for trading signals.
 """
 
 import numpy as np
-from typing import List, Optional
+import pandas as pd
+from typing import List, Optional, Dict
 
 
-def calculate_ema(prices: List[float], period: int) -> List[float]:
+def calculate_orb(candles: List[dict], start_time: str = "09:15", end_time: str = "09:30") -> dict:
     """
-    Calculate Exponential Moving Average.
-    Returns list of EMA values (same length as prices, with NaN for insufficient data).
+    Calculate the Opening Range Breakout levels.
+    Finds the high and low between the specified start and end time (IST).
+    
+    candles: List of 1-minute OHLCV dicts.
+    Returns: {orb_high, orb_low, orb_range, orb_status}
     """
-    if len(prices) < period:
-        return [float('nan')] * len(prices)
+    if not candles:
+        return {"orb_high": None, "orb_low": None, "orb_range": None, "orb_status": "BUILDING"}
 
-    ema_values = [float('nan')] * (period - 1)
+    # Filter candles within the window
+    window_candles = []
+    for c in candles:
+        # Assuming c['time'] is 'HH:MM' or contains it
+        # DataFeed format for time is typically 'HH:MM:SS'
+        time_part = c.get("time_str", "") or ""
+        if not time_part:
+            # Fallback to parsing from datetime if available
+            pass 
+        
+        # Simplified for now: assuming candles are 1-min and sorted
+        # We find candles where time >= start_time and time < end_time
+        if start_time <= time_part < end_time:
+            window_candles.append(c)
 
-    # First EMA = SMA of first 'period' values
-    sma = sum(prices[:period]) / period
-    ema_values.append(sma)
+    if not window_candles:
+        return {"orb_high": None, "orb_low": None, "orb_range": None, "orb_status": "BUILDING"}
 
-    # Multiplier
-    multiplier = 2 / (period + 1)
+    highs = [c["high"] for c in window_candles]
+    lows = [c["low"] for c in window_candles]
+    
+    orb_high = max(highs)
+    orb_low = min(lows)
+    orb_range = round(orb_high - orb_low, 2)
+    
+    return {
+        "orb_high": orb_high,
+        "orb_low": orb_low,
+        "orb_range": orb_range,
+        "orb_status": "READY"
+    }
 
-    # Calculate subsequent EMA values
-    for i in range(period, len(prices)):
-        ema = (prices[i] - ema_values[-1]) * multiplier + ema_values[-1]
-        ema_values.append(ema)
 
-    return ema_values
-
-
-def calculate_vwap(ohlcv_data: List[dict]) -> List[float]:
+def calculate_supertrend(ohlcv_data: List[dict], period: int = 7, multiplier: float = 3.0) -> List[dict]:
     """
-    Calculate Volume Weighted Average Price.
-    VWAP resets at the start of each trading day (9:15 AM IST).
-
-    ohlcv_data: list of dicts with keys: open, high, low, close, volume
-    Returns list of VWAP values.
+    Calculate Supertrend indicator using ATR.
+    Returns a list of dicts: {'value': float, 'direction': 'UP'|'DOWN'}
     """
-    if not ohlcv_data:
-        return []
+    if len(ohlcv_data) < period:
+        return [{"value": None, "direction": "NEUTRAL"}] * len(ohlcv_data)
 
-    vwap_values = []
-    cumulative_tp_vol = 0.0
-    cumulative_vol = 0.0
+    df = pd.DataFrame(ohlcv_data)
+    
+    # ATR calculation
+    high_low = df['high'] - df['low']
+    high_pc = (df['high'] - df['close'].shift()).abs()
+    low_pc = (df['low'] - df['close'].shift()).abs()
+    tr = pd.concat([high_low, high_pc, low_pc], axis=1).max(axis=1)
+    atr = tr.ewm(alpha=1/period, adjust=False).mean()
 
-    for candle in ohlcv_data:
-        # Typical Price = (High + Low + Close) / 3
-        typical_price = (candle["high"] + candle["low"] + candle["close"]) / 3
-        volume = candle.get("volume", 1)  # Default volume if not available
+    # Basic Upper and Lower Bands
+    hl2 = (df['high'] + df['low']) / 2
+    final_ub = hl2 + (multiplier * atr)
+    final_lb = hl2 - (multiplier * atr)
 
-        cumulative_tp_vol += typical_price * volume
-        cumulative_vol += volume
+    # Supertrend logic
+    supertrend = [0.0] * len(df)
+    direction = [1] * len(df) # 1 for UP, -1 for DOWN
 
-        if cumulative_vol > 0:
-            vwap = cumulative_tp_vol / cumulative_vol
+    for i in range(1, len(df)):
+        # Final Upper Band
+        if final_ub[i] < final_ub[i-1] or df['close'][i-1] > final_ub[i-1]:
+            final_ub.at[i] = final_ub[i]
         else:
-            vwap = typical_price
+            final_ub.at[i] = final_ub[i-1]
 
-        vwap_values.append(vwap)
+        # Final Lower Band
+        if final_lb[i] > final_lb[i-1] or df['close'][i-1] < final_lb[i-1]:
+            final_lb.at[i] = final_lb[i]
+        else:
+            final_lb.at[i] = final_lb[i-1]
 
-    return vwap_values
+        # Trend direction
+        if df['close'][i] > final_ub[i-1]:
+            direction[i] = 1
+        elif df['close'][i] < final_lb[i-1]:
+            direction[i] = -1
+        else:
+            direction[i] = direction[i-1]
+            if direction[i] == 1 and final_lb[i] < final_lb[i-1]:
+                final_lb.at[i] = final_lb[i-1]
+            if direction[i] == -1 and final_ub[i] > final_ub[i-1]:
+                final_ub.at[i] = final_ub[i-1]
+
+        # Supertrend value
+        if direction[i] == 1:
+            supertrend[i] = final_lb[i]
+        else:
+            supertrend[i] = final_ub[i]
+
+    results = []
+    for i in range(len(df)):
+        results.append({
+            "value": round(supertrend[i], 2) if supertrend[i] != 0 else None,
+            "direction": "UP" if direction[i] == 1 else "DOWN"
+        })
+    
+    return results
 
 
 def calculate_rsi(prices: List[float], period: int = 14) -> List[float]:
@@ -75,10 +129,8 @@ def calculate_rsi(prices: List[float], period: int = 14) -> List[float]:
 
     rsi_values = [float('nan')] * period
 
-    # Calculate price changes
     deltas = [prices[i] - prices[i - 1] for i in range(1, len(prices))]
 
-    # First average gain/loss
     gains = [max(d, 0) for d in deltas[:period]]
     losses = [abs(min(d, 0)) for d in deltas[:period]]
     avg_gain = sum(gains) / period
@@ -90,7 +142,6 @@ def calculate_rsi(prices: List[float], period: int = 14) -> List[float]:
         rs = avg_gain / avg_loss
         rsi_values.append(100 - (100 / (1 + rs)))
 
-    # Calculate subsequent RSI values using smoothed averages
     for i in range(period, len(deltas)):
         gain = max(deltas[i], 0)
         loss = abs(min(deltas[i], 0))
@@ -107,104 +158,31 @@ def calculate_rsi(prices: List[float], period: int = 14) -> List[float]:
     return rsi_values
 
 
-def find_recent_crossover(ema_fast: List[float], ema_slow: List[float], window: int = 10) -> dict:
+def get_latest_indicators(candles: List[dict], settings: dict) -> dict:
     """
-    Find the most recent crossover within the specified lookback window.
-    Returns dict: {'type': 'bullish'|'bearish'|None, 'bars_ago': int|None}
+    Calculate all indicators for the ORB + Supertrend + RSI strategy.
     """
-    if len(ema_fast) < 2 or len(ema_slow) < 2:
-        return {"type": None, "bars_ago": None}
+    if not candles:
+        return {"ready": False}
 
-    # Look back from the latest candle
-    for i in range(1, min(window + 1, len(ema_fast))):
-        idx = -i
-        prev_idx = -i - 1
-        
-        # Avoid index error at start of list
-        if abs(prev_idx) > len(ema_fast):
-            break
+    # Extract parameters from settings
+    st_period = int(settings.get("supertrend_period", 7))
+    st_multiplier = float(settings.get("supertrend_multiplier", 3.0))
+    rsi_period = int(settings.get("rsi_period", 14))
 
-        prev_f, prev_s = ema_fast[prev_idx], ema_slow[prev_idx]
-        curr_f, curr_s = ema_fast[idx], ema_slow[idx]
-
-        if any(np.isnan(x) for x in [prev_f, prev_s, curr_f, curr_s]):
-            continue
-
-        # Bullish
-        if prev_f <= prev_s and curr_f > curr_s:
-            return {"type": "bullish", "bars_ago": i - 1}
-        # Bearish
-        if prev_f >= prev_s and curr_f < curr_s:
-            return {"type": "bearish", "bars_ago": i - 1}
-
-    return {"type": None, "bars_ago": None}
-
-
-def ema_crossover(ema_fast: List[float], ema_slow: List[float]) -> Optional[str]:
-    """
-    Check for EMA crossover between the last two data points.
-    Returns 'bullish' if fast crosses above slow, 'bearish' if fast crosses below slow, None otherwise.
-    """
-    if len(ema_fast) < 2 or len(ema_slow) < 2:
-        return None
-
-    # Check last two values for crossover
-    prev_fast = ema_fast[-2]
-    prev_slow = ema_slow[-2]
-    curr_fast = ema_fast[-1]
-    curr_slow = ema_slow[-1]
-
-    # Skip if any value is NaN
-    if any(np.isnan(x) for x in [prev_fast, prev_slow, curr_fast, curr_slow]):
-        return None
-
-    # Bullish crossover: fast was below slow, now above
-    if prev_fast <= prev_slow and curr_fast > curr_slow:
-        return "bullish"
-
-    # Bearish crossover: fast was above slow, now below
-    if prev_fast >= prev_slow and curr_fast < curr_slow:
-        return "bearish"
-
-    return None
-
-
-def get_latest_indicators(candles: List[dict], ema_fast_period: int = 9,
-                          ema_slow_period: int = 21, rsi_period: int = 14) -> dict:
-    """
-    Calculate all indicators from candle data and return the latest values.
-    """
-    if not candles or len(candles) < max(ema_fast_period, ema_slow_period, rsi_period) + 1:
-        return {
-            "ema_fast": None,
-            "ema_slow": None,
-            "vwap": None,
-            "rsi": None,
-            "crossover": None,
-            "ready": False
-        }
-
+    # We need 1-min candles for ORB, and can use them for Supertrend/RSI too
+    # Assuming 'candles' passed here are the ones used for strategy checks (typically 5-min or 1-min)
     close_prices = [c["close"] for c in candles]
-
-    ema_fast = calculate_ema(close_prices, ema_fast_period)
-    ema_slow = calculate_ema(close_prices, ema_slow_period)
-    vwap = calculate_vwap(candles)
-    rsi = calculate_rsi(close_prices, rsi_period)
     
-    # Standard crossover (latest candle)
-    crossover = ema_crossover(ema_fast, ema_slow)
+    supertrend_data = calculate_supertrend(candles, st_period, st_multiplier)
+    rsi_data = calculate_rsi(close_prices, rsi_period)
     
-    # Recent crossover (last 20 candles lookback)
-    recent_cross = find_recent_crossover(ema_fast, ema_slow, window=20)
+    latest_st = supertrend_data[-1]
+    latest_rsi = rsi_data[-1]
 
     return {
-        "ema_fast": round(ema_fast[-1], 2) if not np.isnan(ema_fast[-1]) else None,
-        "ema_slow": round(ema_slow[-1], 2) if not np.isnan(ema_slow[-1]) else None,
-        "vwap": round(vwap[-1], 2) if vwap else None,
-        "rsi": round(rsi[-1], 2) if not np.isnan(rsi[-1]) else None,
-        "rsi_prev": round(rsi[-2], 2) if len(rsi) >= 2 and not np.isnan(rsi[-2]) else None,
-        "crossover": crossover,
-        "recent_cross_type": recent_cross["type"],
-        "recent_cross_bars": recent_cross["bars_ago"],
-        "ready": True
+        "supertrend_value": latest_st["value"],
+        "supertrend_direction": latest_st["direction"],
+        "rsi": round(latest_rsi, 2) if not np.isnan(latest_rsi) else None,
+        "ready": len(candles) >= max(st_period, rsi_period)
     }

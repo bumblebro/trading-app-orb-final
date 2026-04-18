@@ -7,12 +7,17 @@ export interface PriceInfo {
   connected: boolean;
   simulation: boolean;
   indicators: {
-    ema_fast: number | null;
-    ema_slow: number | null;
-    vwap: number | null;
+  indicators: {
+    orb_high: number | null;
+    orb_low: number | null;
+    orb_range: number | null;
+    orb_status: string | null;
+    supertrend_value: number | null;
+    supertrend_direction: 'UP' | 'DOWN' | 'NEUTRAL';
     rsi: number | null;
-    crossover: string | null;
+    phase: string;
     ready: boolean;
+  };
   };
 }
 
@@ -39,6 +44,7 @@ export interface Trade {
   mode: 'paper' | 'live';
   stop_loss: number | null;
   target: number | null;
+  trailing_sl: number | null;
   current_price?: number;
   live_pnl?: number;
 }
@@ -63,8 +69,10 @@ export interface BotStatus {
   wins: number;
   losses: number;
   win_rate: number;
+  total_pnl: number;
+  total_trades: number;
   consecutive_losses: number;
-  mode: string;
+  mode: 'paper' | 'live';
   market_status: string;
   market_open: boolean;
   is_trading_day: boolean;
@@ -85,9 +93,9 @@ export interface LineData {
 
 export interface ChartData {
   candles: CandleData[];
-  ema_fast: LineData[];
-  ema_slow: LineData[];
-  vwap: LineData[];
+  supertrend: (LineData & { color?: string })[];
+  orb_high: LineData[];
+  orb_low: LineData[];
 }
 
 export interface Settings {
@@ -95,22 +103,27 @@ export interface Settings {
   client_id: string;
   pin: string;
   totp_secret: string;
-  ema_fast: string;
-  ema_slow: string;
-  stop_loss_pct: string;
-  target_pct: string;
+  orb_duration: string;
+  min_orb_range: string;
+  max_orb_range: string;
+  supertrend_period: string;
+  supertrend_multiplier: string;
+  rsi_period: string;
+  rsi_buy_level: string;
+  rsi_sell_level: string;
+  target_multiplier: string;
+  sl_multiplier: string;
+  option_target_pct: string;
+  option_sl_pct: string;
+  trailing_sl_enabled: string;
+  trailing_sl_pct: string;
   max_trades_per_day: string;
   square_off_time: string;
+  signal_cutoff_time: string;
   lot_size: string;
+  max_capital_risk_pct: string;
   trading_mode: string;
   paper_capital: string;
-  rsi_period: string;
-  rsi_overbought: string;
-  rsi_oversold: string;
-  rsi_bull_threshold: string;
-  rsi_bear_threshold: string;
-  pullback_threshold: string;
-  crossover_window: string;
   data_source: string;
   playback_file: string;
   playback_speed: string;

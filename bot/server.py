@@ -124,11 +124,14 @@ async def get_price():
     return {
         **price_info,
         "indicators": {
-            "ema_fast": indicators.get("ema_fast"),
-            "ema_slow": indicators.get("ema_slow"),
-            "vwap": indicators.get("vwap"),
+            "orb_high": indicators.get("orb_high"),
+            "orb_low": indicators.get("orb_low"),
+            "orb_range": indicators.get("orb_range"),
+            "orb_status": indicators.get("orb_status"),
+            "supertrend_value": indicators.get("supertrend_value"),
+            "supertrend_direction": indicators.get("supertrend_direction"),
             "rsi": indicators.get("rsi"),
-            "crossover": indicators.get("crossover"),
+            "phase": indicators.get("phase", "WATCHING"),
             "ready": indicators.get("ready", False)
         }
     }
@@ -136,11 +139,47 @@ async def get_price():
 
 @app.get("/signal")
 async def get_signal():
-    """Get current trade signal."""
+    """Get current trade signal with breakout checklist."""
     bot = get_bot()
+    indicators = bot.indicators
+    
+    current_price = bot.data_feed.current_price if bot.data_feed else 0
+    orb_high = indicators.get("orb_high")
+    orb_low = indicators.get("orb_low")
+    
+    breakout_dir = "NONE"
+    orb_breakout = False
+    if orb_high and current_price > orb_high:
+        breakout_dir = "UP"
+        orb_breakout = True
+    elif orb_low and current_price < orb_low:
+        breakout_dir = "DOWN"
+        orb_breakout = True
+
+    st_direction = indicators.get("supertrend_direction")
+    rsi = indicators.get("rsi")
+    rsi_buy = float(get_all_settings().get("rsi_buy_level", "55"))
+    rsi_sell = float(get_all_settings().get("rsi_sell_level", "45"))
+
+    st_confirms = (breakout_dir == st_direction)
+    rsi_confirms = False
+    if breakout_dir == "UP" and rsi and rsi > rsi_buy:
+        rsi_confirms = True
+    elif breakout_dir == "DOWN" and rsi and rsi < rsi_sell:
+        rsi_confirms = True
+
     return {
         "signal": bot.current_signal,
-        "indicators": bot.indicators,
+        "phase": indicators.get("phase"),
+        "orb_status": indicators.get("orb_status"),
+        "orb_high": orb_high,
+        "orb_low": orb_low,
+        "breakout_direction": breakout_dir,
+        "conditions": {
+            "orb_breakout": orb_breakout,
+            "supertrend_confirms": st_confirms,
+            "rsi_confirms": rsi_confirms
+        },
         "timestamp": get_ist_now().isoformat()
     }
 
@@ -153,7 +192,6 @@ async def get_candles():
 
     if feed:
         candles = feed.get_all_candles()
-        # Format for lightweight-charts
         chart_candles = [
             {
                 "time": c["time"],
@@ -166,41 +204,45 @@ async def get_candles():
             if "time" in c
         ]
 
-        # Add indicator lines
-        from indicators import calculate_ema, calculate_vwap
-        close_prices = [c["close"] for c in candles]
+        # Add indicator lines: ORB and Supertrend
+        from indicators import calculate_supertrend
+        settings = get_all_settings()
+        st_vals = calculate_supertrend(candles, 
+                                      int(settings.get("supertrend_period", 7)), 
+                                      float(settings.get("supertrend_multiplier", 3.0)))
 
-        ema_fast_period = int(get_all_settings().get("ema_fast", "9"))
-        ema_slow_period = int(get_all_settings().get("ema_slow", "21"))
+        indicators = bot.indicators
+        orb_high = indicators.get("orb_high")
+        orb_low = indicators.get("orb_low")
 
-        ema_fast_vals = calculate_ema(close_prices, ema_fast_period)
-        ema_slow_vals = calculate_ema(close_prices, ema_slow_period)
-        vwap_vals = calculate_vwap(candles)
-
-        ema_fast_line = []
-        ema_slow_line = []
-        vwap_line = []
+        supertrend_line = []
+        orb_high_line = []
+        orb_low_line = []
 
         for i, c in enumerate(candles):
             if "time" not in c:
                 continue
             t = c["time"]
-            import math
-            if i < len(ema_fast_vals) and not math.isnan(ema_fast_vals[i]):
-                ema_fast_line.append({"time": t, "value": round(ema_fast_vals[i], 2)})
-            if i < len(ema_slow_vals) and not math.isnan(ema_slow_vals[i]):
-                ema_slow_line.append({"time": t, "value": round(ema_slow_vals[i], 2)})
-            if i < len(vwap_vals):
-                vwap_line.append({"time": t, "value": round(vwap_vals[i], 2)})
+            
+            if i < len(st_vals) and st_vals[i]["value"]:
+                supertrend_line.append({
+                    "time": t, 
+                    "value": st_vals[i]["value"],
+                    "color": "#22c55e" if st_vals[i]["direction"] == "UP" else "#ef4444"
+                })
+            
+            if orb_high and orb_low:
+                orb_high_line.append({"time": t, "value": orb_high})
+                orb_low_line.append({"time": t, "value": orb_low})
 
         return {
             "candles": chart_candles,
-            "ema_fast": ema_fast_line,
-            "ema_slow": ema_slow_line,
-            "vwap": vwap_line
+            "supertrend": supertrend_line,
+            "orb_high": orb_high_line,
+            "orb_low": orb_low_line
         }
     else:
-        return {"candles": [], "ema_fast": [], "ema_slow": [], "vwap": []}
+        return {"candles": [], "supertrend": [], "orb_high": [], "orb_low": []}
 
 
 @app.get("/trades")

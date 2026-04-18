@@ -48,9 +48,15 @@ def init_db(db_path: str = None):
             mode TEXT NOT NULL DEFAULT 'paper' CHECK(mode IN ('paper', 'live')),
             stop_loss REAL,
             target REAL,
+            trailing_sl REAL,
             underlying_entry_price REAL,
             token TEXT,
             entry_quality REAL,
+            orb_high REAL,
+            orb_low REAL,
+            orb_range REAL,
+            supertrend_at_entry TEXT,
+            rsi_at_entry REAL,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
     """)
@@ -74,7 +80,17 @@ def init_db(db_path: str = None):
     """)
 
     # Migration: Add underlying_entry_price and token columns if they don't exist
-    for column, col_type in [("underlying_entry_price", "REAL"), ("token", "TEXT"), ("entry_quality", "REAL")]:
+    for column, col_type in [
+        ("underlying_entry_price", "REAL"), 
+        ("token", "TEXT"), 
+        ("entry_quality", "REAL"),
+        ("orb_high", "REAL"),
+        ("orb_low", "REAL"),
+        ("orb_range", "REAL"),
+        ("supertrend_at_entry", "TEXT"),
+        ("rsi_at_entry", "REAL"),
+        ("trailing_sl", "REAL")
+    ]:
         try:
             conn.execute(f"ALTER TABLE trades ADD COLUMN {column} {col_type}")
         except sqlite3.OperationalError:
@@ -92,8 +108,9 @@ def insert_trade(trade: Dict[str, Any], timestamp: datetime = None, db_path: str
     now = timestamp or get_ist_now()
     cursor = conn.execute("""
         INSERT INTO trades (date, time, type, strike_price, trading_symbol, entry_price,
-                          quantity, lot_size, status, mode, stop_loss, target, underlying_entry_price, token, entry_quality)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'open', ?, ?, ?, ?, ?, ?)
+                          quantity, lot_size, status, mode, stop_loss, target, underlying_entry_price, 
+                          token, entry_quality, orb_high, orb_low, orb_range, supertrend_at_entry, rsi_at_entry)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'open', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         now.strftime("%Y-%m-%d"),
         now.strftime("%H:%M:%S"),
@@ -108,7 +125,12 @@ def insert_trade(trade: Dict[str, Any], timestamp: datetime = None, db_path: str
         trade.get("target"),
         trade.get("underlying_entry_price"),
         trade.get("token"),
-        trade.get("entry_quality")
+        trade.get("entry_quality"),
+        trade.get("orb_high"),
+        trade.get("orb_low"),
+        trade.get("orb_range"),
+        trade.get("supertrend_at_entry"),
+        trade.get("rsi_at_entry")
     ))
     trade_id = cursor.lastrowid
     conn.commit()
@@ -209,6 +231,26 @@ def get_today_pnl(mode: str = None, date_override: str = None, db_path: str = No
     }
 
 
+def get_all_time_pnl(mode: str = None, db_path: str = None) -> Dict:
+    """Get all-time P&L summary."""
+    conn = get_connection(db_path)
+    # Only fetch closed/win/loss trades for PnL calculation
+    query = "SELECT SUM(pnl) as total_pnl, COUNT(*) as total_trades FROM trades WHERE status != 'open'"
+    params = []
+    
+    if mode:
+        query += " AND mode = ?"
+        params.append(mode)
+        
+    row = conn.execute(query, params).fetchone()
+    conn.close()
+    
+    return {
+        "all_time_pnl": round(row["total_pnl"] or 0, 2),
+        "all_time_trades": row["total_trades"] or 0
+    }
+
+
 def get_today_trade_count(date_override: str = None, db_path: str = None) -> int:
     """Get count of trades placed on a specific date (defaults to today)."""
     target_date = date_override or get_ist_now().strftime("%Y-%m-%d")
@@ -244,25 +286,43 @@ DEFAULT_SETTINGS = {
     "client_id": "",
     "pin": "",
     "totp_secret": "",
-    "ema_fast": "9",
-    "ema_slow": "21",
-    "stop_loss_pct": "0.5",
-    "target_pct": "1.0",
+    # ORB Strategy
+    "orb_duration": "15",
+    "min_orb_range": "30",
+    "max_orb_range": "300",
+    "supertrend_period": "7",
+    "supertrend_multiplier": "3.0",
+    "rsi_period": "14",
+    "rsi_buy_level": "55",
+    "rsi_sell_level": "45",
+    # Trade Management
+    "target_multiplier": "2.0",
+    "sl_multiplier": "1.0",
+    "option_target_pct": "50",
+    "option_sl_pct": "25",
+    "trailing_sl_enabled": "false",
+    "trailing_sl_pct": "15",
+    # Risk Management
     "max_trades_per_day": "3",
+    "signal_cutoff_time": "14:30",
     "square_off_time": "15:15",
     "lot_size": "65",
+    "max_capital_risk_pct": "1",
     "trading_mode": "paper",
     "paper_capital": "100000",
-    "rsi_period": "14",
-    "rsi_overbought": "55",
-    "rsi_oversold": "45",
-    "rsi_bull_threshold": "55",
-    "rsi_bear_threshold": "45",
-    "pullback_threshold": "0.001",
-    "crossover_window": "10",
-    "data_source": "auto",
+    "data_source": "smartapi",
     "playback_file": "bot/data/nifty_sample.csv",
     "playback_speed": "1",
+    "orb_duration": "15",
+    "min_orb_range": "30",
+    "max_orb_range": "300",
+    "supertrend_period": "7",
+    "supertrend_multiplier": "3.0",
+    "rsi_buy_level": "55",
+    "rsi_sell_level": "45",
+    "target_multiplier": "2.0",
+    "sl_multiplier": "1.0",
+    "signal_cutoff_time": "14:30"
 }
 
 

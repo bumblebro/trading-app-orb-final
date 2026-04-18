@@ -8,11 +8,12 @@ import type { Settings } from '@/lib/types';
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Settings>({
     api_key: '', client_id: '', pin: '', totp_secret: '',
-    ema_fast: '9', ema_slow: '21', stop_loss_pct: '0.5', target_pct: '1.0',
-    max_trades_per_day: '3', square_off_time: '15:15', lot_size: '65',
-    trading_mode: 'paper', paper_capital: '100000',
-    rsi_period: '14', rsi_overbought: '55', rsi_oversold: '45',
-    rsi_bull_threshold: '55', rsi_bear_threshold: '45', pullback_threshold: '0.001', crossover_window: '10',
+    orb_duration: '15', min_orb_range: '30', max_orb_range: '300',
+    supertrend_period: '7', supertrend_multiplier: '3.0',
+    rsi_period: '14', rsi_buy_level: '55', rsi_sell_level: '45',
+    target_multiplier: '2.0', sl_multiplier: '1.0',
+    max_trades_per_day: '3', square_off_time: '15:15', signal_cutoff_time: '14:30',
+    lot_size: '65', trading_mode: 'paper', paper_capital: '100000',
     data_source: 'auto', playback_file: 'bot/data/nifty_sample.csv', playback_speed: '1',
   });
   const [loading, setLoading] = useState(true);
@@ -106,8 +107,7 @@ export default function SettingsPage() {
               value={settings.data_source}
               onChange={(e) => handleChange('data_source', e.target.value)}
             >
-              <option value="auto">Auto (SmartAPI or Simulated)</option>
-              <option value="simulated">Forced Simulated (Random Walk)</option>
+              <option value="smartapi">Angel One SmartAPI</option>
               <option value="playback">CSV Playback (Historical Data)</option>
             </select>
           </div>
@@ -191,24 +191,52 @@ export default function SettingsPage() {
 
       {/* Strategy Parameters */}
       <div className="settings-section">
-        <h3>📐 Strategy Parameters</h3>
+        <h3>📊 Strategy Parameters (ORB + ST + RSI)</h3>
         <div className="form-grid">
           <div className="form-group">
-            <label className="form-label">EMA Fast Period</label>
+            <label className="form-label">ORB Duration (mins)</label>
             <input
               type="number"
               className="form-input"
-              value={settings.ema_fast}
-              onChange={(e) => handleChange('ema_fast', e.target.value)}
+              value={settings.orb_duration}
+              onChange={(e) => handleChange('orb_duration', e.target.value)}
             />
           </div>
           <div className="form-group">
-            <label className="form-label">EMA Slow Period</label>
+            <label className="form-label">Min ORB Range (pts)</label>
             <input
               type="number"
               className="form-input"
-              value={settings.ema_slow}
-              onChange={(e) => handleChange('ema_slow', e.target.value)}
+              value={settings.min_orb_range}
+              onChange={(e) => handleChange('min_orb_range', e.target.value)}
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Max ORB Range (pts)</label>
+            <input
+              type="number"
+              className="form-input"
+              value={settings.max_orb_range}
+              onChange={(e) => handleChange('max_orb_range', e.target.value)}
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Supertrend Period</label>
+            <input
+              type="number"
+              className="form-input"
+              value={settings.supertrend_period}
+              onChange={(e) => handleChange('supertrend_period', e.target.value)}
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Supertrend Multiplier</label>
+            <input
+              type="number"
+              step="0.1"
+              className="form-input"
+              value={settings.supertrend_multiplier}
+              onChange={(e) => handleChange('supertrend_multiplier', e.target.value)}
             />
           </div>
           <div className="form-group">
@@ -221,81 +249,95 @@ export default function SettingsPage() {
             />
           </div>
           <div className="form-group">
-            <label className="form-label">RSI Overbought (CE Signal)</label>
+            <label className="form-label">RSI Buy Level (CE)</label>
             <input
               type="number"
               className="form-input"
-              value={settings.rsi_overbought}
-              onChange={(e) => handleChange('rsi_overbought', e.target.value)}
+              value={settings.rsi_buy_level}
+              onChange={(e) => handleChange('rsi_buy_level', e.target.value)}
             />
           </div>
           <div className="form-group">
-            <label className="form-label">RSI Oversold (PE Signal)</label>
+            <label className="form-label">RSI Sell Level (PE)</label>
             <input
               type="number"
               className="form-input"
-              value={settings.rsi_oversold}
-              onChange={(e) => handleChange('rsi_oversold', e.target.value)}
+              value={settings.rsi_sell_level}
+              onChange={(e) => handleChange('rsi_sell_level', e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Trade Management */}
+      <div className="settings-section">
+        <h3>🛡️ Trade Management</h3>
+        <div className="form-grid">
+          <div className="form-group">
+            <label className="form-label">Target Multiplier (x Range)</label>
+            <input
+              type="number"
+              step="0.5"
+              className="form-input"
+              value={settings.target_multiplier}
+              onChange={(e) => handleChange('target_multiplier', e.target.value)}
             />
           </div>
           <div className="form-group">
-            <label className="form-label">RSI Bull Threshold (Rising)</label>
+            <label className="form-label">SL Multiplier (x Range)</label>
             <input
               type="number"
+              step="0.5"
               className="form-input"
-              value={settings.rsi_bull_threshold}
-              onChange={(e) => handleChange('rsi_bull_threshold', e.target.value)}
+              value={settings.sl_multiplier}
+              onChange={(e) => handleChange('sl_multiplier', e.target.value)}
             />
           </div>
           <div className="form-group">
-            <label className="form-label">RSI Bear Threshold (Falling)</label>
+            <label className="form-label">Option Target %</label>
             <input
               type="number"
               className="form-input"
-              value={settings.rsi_bear_threshold}
-              onChange={(e) => handleChange('rsi_bear_threshold', e.target.value)}
+              value={settings.option_target_pct}
+              onChange={(e) => handleChange('option_target_pct', e.target.value)}
             />
           </div>
           <div className="form-group">
-            <label className="form-label">Pullback Threshold (Decimal %)</label>
+            <label className="form-label">Option SL %</label>
             <input
               type="number"
-              step="0.0001"
               className="form-input"
-              value={settings.pullback_threshold}
-              onChange={(e) => handleChange('pullback_threshold', e.target.value)}
-              placeholder="e.g., 0.001 for 0.1%"
+              value={settings.option_sl_pct}
+              onChange={(e) => handleChange('option_sl_pct', e.target.value)}
             />
           </div>
           <div className="form-group">
-            <label className="form-label">Crossover Window (Candles)</label>
-            <input
-              type="number"
-              className="form-input"
-              value={settings.crossover_window}
-              onChange={(e) => handleChange('crossover_window', e.target.value)}
-            />
+            <label className="form-label">Trailing SL</label>
+            <select 
+              className="form-input" 
+              value={settings.trailing_sl_enabled}
+              onChange={(e) => handleChange('trailing_sl_enabled', e.target.value)}
+            >
+              <option value="false">OFF</option>
+              <option value="true">ON</option>
+            </select>
           </div>
           <div className="form-group">
-            <label className="form-label">Stop Loss %</label>
+            <label className="form-label">Trailing SL %</label>
             <input
               type="number"
-              step="0.1"
               className="form-input"
-              value={settings.stop_loss_pct}
-              onChange={(e) => handleChange('stop_loss_pct', e.target.value)}
+              value={settings.trailing_sl_pct}
+              onChange={(e) => handleChange('trailing_sl_pct', e.target.value)}
             />
           </div>
-          <div className="form-group">
-            <label className="form-label">Target %</label>
-            <input
-              type="number"
-              step="0.1"
-              className="form-input"
-              value={settings.target_pct}
-              onChange={(e) => handleChange('target_pct', e.target.value)}
-            />
-          </div>
+        </div>
+      </div>
+
+      {/* Risk Management */}
+      <div className="settings-section">
+        <h3>⚠️ Risk Management</h3>
+        <div className="form-grid">
           <div className="form-group">
             <label className="form-label">Max Trades Per Day</label>
             <input
@@ -303,6 +345,15 @@ export default function SettingsPage() {
               className="form-input"
               value={settings.max_trades_per_day}
               onChange={(e) => handleChange('max_trades_per_day', e.target.value)}
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Signal Cutoff Time</label>
+            <input
+              type="time"
+              className="form-input"
+              value={settings.signal_cutoff_time}
+              onChange={(e) => handleChange('signal_cutoff_time', e.target.value)}
             />
           </div>
           <div className="form-group">
@@ -323,7 +374,18 @@ export default function SettingsPage() {
               onChange={(e) => handleChange('lot_size', e.target.value)}
             />
           </div>
+          <div className="form-group">
+            <label className="form-label">Max Capital Risk %</label>
+            <input
+              type="number"
+              step="0.1"
+              className="form-input"
+              value={settings.max_capital_risk_pct}
+              onChange={(e) => handleChange('max_capital_risk_pct', e.target.value)}
+            />
+          </div>
         </div>
+
       </div>
 
       {/* Save Button */}

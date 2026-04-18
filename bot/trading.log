@@ -839,3 +839,932 @@
 [2026-04-17 23:28:22 IST] [INFO] [SYSTEM] Trade opened: {'trade_id': 10, 'type': 'PE', 'strike': 8550, 'symbol': 'NIFTY8550PE', 'entry_price': 128.6, 'quantity': 65, 'stop_loss': 109.31, 'target': 154.32, 'mode': 'paper', 'expiry': '2026-04-23'}
 [2026-04-17 23:33:55 IST] [INFO] [ORDER] EXIT | Reason=squareoff | P&L=+724.75
 [2026-04-17 23:33:55 IST] [INFO] [SYSTEM] Auto square-off executed at 3:15 PM IST
+[2026-04-17 23:56:44 IST] [INFO] [SYSTEM] Settings updated: ['api_key', 'client_id', 'pin', 'totp_secret', 'orb_duration', 'min_orb_range', 'max_orb_range', 'supertrend_period', 'supertrend_multiplier', 'rsi_period', 'rsi_buy_level', 'rsi_sell_level', 'target_multiplier', 'sl_multiplier', 'max_trades_per_day', 'square_off_time', 'signal_cutoff_time', 'lot_size', 'trading_mode', 'paper_capital', 'data_source', 'playback_file', 'playback_speed', 'ema_fast', 'ema_slow', 'stop_loss_pct', 'target_pct', 'rsi_overbought', 'rsi_oversold', 'rsi_bull_threshold', 'rsi_bear_threshold', 'pullback_threshold', 'crossover_window']
+[2026-04-17 23:56:51 IST] [INFO] [SYSTEM] Settings updated: ['api_key', 'client_id', 'pin', 'totp_secret', 'orb_duration', 'min_orb_range', 'max_orb_range', 'supertrend_period', 'supertrend_multiplier', 'rsi_period', 'rsi_buy_level', 'rsi_sell_level', 'target_multiplier', 'sl_multiplier', 'max_trades_per_day', 'square_off_time', 'signal_cutoff_time', 'lot_size', 'trading_mode', 'paper_capital', 'data_source', 'playback_file', 'playback_speed', 'ema_fast', 'ema_slow', 'stop_loss_pct', 'target_pct', 'rsi_overbought', 'rsi_oversold', 'rsi_bull_threshold', 'rsi_bear_threshold', 'pullback_threshold', 'crossover_window']
+[2026-04-17 23:56:53 IST] [INFO] [SYSTEM] Bot STARTED
+[2026-04-17 23:56:53 IST] [INFO] [SYSTEM] Starting CSV playback from /Users/shreyasms/Documents/TradingWebsite/trading-app/bot/data/nifty_sample.csv
+[2026-04-17 23:56:53 IST] [INFO] [SYSTEM] Bot STARTED | Market status: After market hours (closed at 15:30 IST)
+[2026-04-18 00:00:31 IST] [INFO] [SYSTEM] Settings updated: ['api_key', 'client_id', 'pin', 'totp_secret', 'orb_duration', 'min_orb_range', 'max_orb_range', 'supertrend_period', 'supertrend_multiplier', 'rsi_period', 'rsi_buy_level', 'rsi_sell_level', 'target_multiplier', 'sl_multiplier', 'max_trades_per_day', 'square_off_time', 'signal_cutoff_time', 'lot_size', 'trading_mode', 'paper_capital', 'data_source', 'playback_file', 'playback_speed', 'ema_fast', 'ema_slow', 'stop_loss_pct', 'target_pct', 'rsi_overbought', 'rsi_oversold', 'rsi_bull_threshold', 'rsi_bear_threshold', 'pullback_threshold', 'crossover_window']
+[2026-04-18 00:00:33 IST] [INFO] [SYSTEM] Bot STARTED
+[2026-04-18 00:00:33 IST] [INFO] [SYSTEM] Starting CSV playback from /Users/shreyasms/Documents/TradingWebsite/trading-app/bot/data/nifty_sample.csv
+[2026-04-18 00:00:33 IST] [INFO] [SYSTEM] Bot STARTED | Market status: Market closed: Saturday (weekend)
+[2026-04-18 00:00:34 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 00:00:48 IST] [ERROR] [ERROR] Bot tick error | DataFeed.get_all_candles() got an unexpected keyword argument 'interval'
+[2026-04-18 00:00:49 IST] [ERROR] [ERROR] Bot tick error | DataFeed.get_all_candles() got an unexpected keyword argument 'interval'
+[2026-04-18 00:00:50 IST] [ERROR] [ERROR] Bot tick error | DataFeed.get_all_candles() got an unexpected keyword argument 'interval'
+[2026-04-18 00:00:51 IST] [ERROR] [ERROR] Bot tick error | DataFeed.get_all_candles() got an unexpected keyword argument 'interval'
+[2026-04-18 00:00:52 IST] [ERROR] [ERROR] Bot tick error | DataFeed.get_all_candles() got an unexpected keyword argument 'interval'
+[2026-04-18 00:00:53 IST] [ERROR] [ERROR] Bot tick error | DataFeed.get_all_candles() got an unexpected keyword argument 'interval'
+[2026-04-18 00:00:54 IST] [ERROR] [ERROR] Bot tick error | DataFeed.get_all_candles() got an unexpected keyword argument 'interval'
+[2026-04-18 00:00:55 IST] [ERROR] [ERROR] Bot tick error | DataFeed.get_all_candles() got an unexpected keyword argument 'interval'
+[2026-04-18 00:00:56 IST] [ERROR] [ERROR] Bot tick error | DataFeed.get_all_candles() got an unexpected keyword argument 'interval'
+[2026-04-18 00:00:57 IST] [ERROR] [ERROR] Bot tick error | DataFeed.get_all_candles() got an unexpected keyword argument 'interval'
+[2026-04-18 00:00:59 IST] [ERROR] [ERROR] Bot tick error | DataFeed.get_all_candles() got an unexpected keyword argument 'interval'
+[2026-04-18 00:01:00 IST] [ERROR] [ERROR] Bot tick error | DataFeed.get_all_candles() got an unexpected keyword argument 'interval'
+[2026-04-18 00:01:01 IST] [ERROR] [ERROR] Bot tick error | DataFeed.get_all_candles() got an unexpected keyword argument 'interval'
+[2026-04-18 00:01:02 IST] [ERROR] [ERROR] Bot tick error | DataFeed.get_all_candles() got an unexpected keyword argument 'interval'
+[2026-04-18 00:01:03 IST] [ERROR] [ERROR] Bot tick error | DataFeed.get_all_candles() got an unexpected keyword argument 'interval'
+[2026-04-18 00:01:04 IST] [ERROR] [ERROR] Bot tick error | DataFeed.get_all_candles() got an unexpected keyword argument 'interval'
+[2026-04-18 00:01:05 IST] [ERROR] [ERROR] Bot tick error | DataFeed.get_all_candles() got an unexpected keyword argument 'interval'
+[2026-04-18 00:01:06 IST] [ERROR] [ERROR] Bot tick error | DataFeed.get_all_candles() got an unexpected keyword argument 'interval'
+[2026-04-18 00:01:07 IST] [ERROR] [ERROR] Bot tick error | DataFeed.get_all_candles() got an unexpected keyword argument 'interval'
+[2026-04-18 00:05:32 IST] [INFO] [SYSTEM] Settings updated: ['api_key', 'client_id', 'pin', 'totp_secret', 'orb_duration', 'min_orb_range', 'max_orb_range', 'supertrend_period', 'supertrend_multiplier', 'rsi_period', 'rsi_buy_level', 'rsi_sell_level', 'target_multiplier', 'sl_multiplier', 'max_trades_per_day', 'square_off_time', 'signal_cutoff_time', 'lot_size', 'trading_mode', 'paper_capital', 'data_source', 'playback_file', 'playback_speed', 'ema_fast', 'ema_slow', 'stop_loss_pct', 'target_pct', 'rsi_overbought', 'rsi_oversold', 'rsi_bull_threshold', 'rsi_bear_threshold', 'pullback_threshold', 'crossover_window']
+[2026-04-18 00:05:35 IST] [INFO] [SYSTEM] Bot STARTED
+[2026-04-18 00:05:35 IST] [INFO] [SYSTEM] Starting CSV playback from /Users/shreyasms/Documents/TradingWebsite/trading-app/bot/data/nifty_sample.csv
+[2026-04-18 00:05:35 IST] [INFO] [SYSTEM] Bot STARTED | Market status: Market closed: Saturday (weekend)
+[2026-04-18 00:05:36 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 00:05:51 IST] [INFO] [SYSTEM] ORB calculated: High=8772.85 Low=8733.5 Range=39.35
+[2026-04-18 00:05:51 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 00:11:52 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 00:12:06 IST] [INFO] [SYSTEM] ORB calculated: High=8844.05 Low=8733.5 Range=110.55
+[2026-04-18 00:12:06 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 00:13:01 IST] [INFO] [SYSTEM] Using estimated premium for PE: 130.87
+[2026-04-18 00:13:01 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8506.55 | PASS
+[2026-04-18 00:13:01 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8700PE at 130.87
+[2026-04-18 00:13:01 IST] [INFO] [ORDER] BUY PE | Strike=8700 | Price=130.87 | Qty=65 | Mode=paper
+[2026-04-18 00:13:01 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 130.87. Target: 241.42, SL: 75.59
+[2026-04-18 00:17:34 IST] [INFO] [ORDER] [2015-03-13 15:15:00] EXIT | Reason=squareoff | P&L=+2821.00
+[2026-04-18 00:17:34 IST] [INFO] [SYSTEM] Auto square-off executed at 3:15 PM IST
+[2026-04-18 00:17:49 IST] [INFO] [SYSTEM] Using estimated premium for PE: 129.62
+[2026-04-18 00:17:49 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8425.30 | PASS
+[2026-04-18 00:17:49 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8650PE at 129.62
+[2026-04-18 00:17:49 IST] [INFO] [ORDER] BUY PE | Strike=8650 | Price=129.62 | Qty=65 | Mode=paper
+[2026-04-18 00:17:49 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 129.62. Target: 240.17, SL: 74.34
+[2026-04-18 00:22:40 IST] [INFO] [SYSTEM] Supertrend flipped to UP → Early exit triggered
+[2026-04-18 00:22:40 IST] [INFO] [ORDER] [2015-03-16 14:24:00] EXIT | Reason=manual | P&L=-174.20
+[2026-04-18 00:23:46 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 00:24:02 IST] [INFO] [SYSTEM] ORB calculated: High=8691.2 Low=8668.15 Range=23.05
+[2026-04-18 00:24:02 IST] [WARNING] [SYSTEM] ORB status: TOO_FLAT (range=23.05), skipping today
+[2026-04-18 00:30:03 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 00:30:18 IST] [INFO] [SYSTEM] ORB calculated: High=8746.4 Low=8668.15 Range=78.25
+[2026-04-18 00:30:18 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 00:36:21 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 00:36:35 IST] [INFO] [SYSTEM] ORB calculated: High=8752.65 Low=8701.3 Range=51.35
+[2026-04-18 00:36:35 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 00:36:39 IST] [INFO] [SYSTEM] Using estimated premium for CE: 131.5
+[2026-04-18 00:36:39 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8547.50 | PASS
+[2026-04-18 00:36:39 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8750CE at 131.5
+[2026-04-18 00:36:39 IST] [INFO] [ORDER] BUY CE | Strike=8750 | Price=131.50 | Qty=65 | Mode=paper
+[2026-04-18 00:36:39 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_CE at 131.5. Target: 182.85, SL: 105.83
+[2026-04-18 00:38:04 IST] [INFO] [SYSTEM] Supertrend flipped to DOWN → Early exit triggered
+[2026-04-18 00:38:04 IST] [INFO] [ORDER] [2015-03-19 10:58:00] EXIT | Reason=manual | P&L=-674.70
+[2026-04-18 00:42:37 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 00:42:51 IST] [INFO] [SYSTEM] ORB calculated: High=8752.65 Low=8589.85 Range=162.8
+[2026-04-18 00:42:51 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 00:44:07 IST] [INFO] [SYSTEM] Using estimated premium for PE: 128.83
+[2026-04-18 00:44:07 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8373.95 | PASS
+[2026-04-18 00:44:07 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8600PE at 128.83
+[2026-04-18 00:44:07 IST] [INFO] [ORDER] BUY PE | Strike=8600 | Price=128.83 | Qty=65 | Mode=paper
+[2026-04-18 00:44:07 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 128.83. Target: 291.63, SL: 47.43
+[2026-04-18 00:44:58 IST] [INFO] [SYSTEM] Supertrend flipped to UP → Early exit triggered
+[2026-04-18 00:44:58 IST] [INFO] [ORDER] [2015-03-20 11:36:00] EXIT | Reason=manual | P&L=-908.05
+[2026-04-18 00:45:27 IST] [INFO] [SYSTEM] Using estimated premium for PE: 128.81
+[2026-04-18 00:45:27 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8372.65 | PASS
+[2026-04-18 00:45:27 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8600PE at 128.81
+[2026-04-18 00:45:27 IST] [INFO] [ORDER] BUY PE | Strike=8600 | Price=128.81 | Qty=65 | Mode=paper
+[2026-04-18 00:45:27 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 128.81. Target: 291.61, SL: 47.41
+[2026-04-18 00:47:10 IST] [INFO] [SYSTEM] Settings updated: ['api_key', 'client_id', 'pin', 'totp_secret', 'orb_duration', 'min_orb_range', 'max_orb_range', 'supertrend_period', 'supertrend_multiplier', 'rsi_period', 'rsi_buy_level', 'rsi_sell_level', 'target_multiplier', 'sl_multiplier', 'max_trades_per_day', 'square_off_time', 'signal_cutoff_time', 'lot_size', 'trading_mode', 'paper_capital', 'data_source', 'playback_file', 'playback_speed', 'ema_fast', 'ema_slow', 'stop_loss_pct', 'target_pct', 'rsi_overbought', 'rsi_oversold', 'rsi_bull_threshold', 'rsi_bear_threshold', 'pullback_threshold', 'crossover_window']
+[2026-04-18 00:47:12 IST] [INFO] [SYSTEM] Bot STARTED
+[2026-04-18 00:47:12 IST] [INFO] [SYSTEM] Starting CSV playback from /Users/shreyasms/Documents/TradingWebsite/trading-app/bot/data/nifty_sample.csv
+[2026-04-18 00:47:12 IST] [INFO] [SYSTEM] Bot STARTED | Market status: Market closed: Saturday (weekend)
+[2026-04-18 00:47:13 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 00:47:27 IST] [INFO] [SYSTEM] ORB calculated: High=8772.85 Low=8733.5 Range=39.35
+[2026-04-18 00:47:27 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 00:53:29 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 00:53:43 IST] [INFO] [SYSTEM] ORB calculated: High=8844.05 Low=8733.5 Range=110.55
+[2026-04-18 00:53:43 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 00:54:28 IST] [INFO] [SYSTEM] Using estimated premium for PE: 130.87
+[2026-04-18 00:54:28 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8506.55 | PASS
+[2026-04-18 00:54:28 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8700PE at 130.87
+[2026-04-18 00:54:28 IST] [INFO] [ORDER] BUY PE | Strike=8700 | Price=130.87 | Qty=65 | Mode=paper
+[2026-04-18 00:54:28 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 130.87. Target: 241.42, SL: 75.59
+[2026-04-18 00:56:47 IST] [INFO] [SYSTEM] Settings updated: ['api_key', 'client_id', 'pin', 'totp_secret', 'orb_duration', 'min_orb_range', 'max_orb_range', 'supertrend_period', 'supertrend_multiplier', 'rsi_period', 'rsi_buy_level', 'rsi_sell_level', 'target_multiplier', 'sl_multiplier', 'max_trades_per_day', 'square_off_time', 'signal_cutoff_time', 'lot_size', 'trading_mode', 'paper_capital', 'data_source', 'playback_file', 'playback_speed', 'ema_fast', 'ema_slow', 'stop_loss_pct', 'target_pct', 'rsi_overbought', 'rsi_oversold', 'rsi_bull_threshold', 'rsi_bear_threshold', 'pullback_threshold', 'crossover_window']
+[2026-04-18 00:56:56 IST] [INFO] [SYSTEM] Bot STARTED
+[2026-04-18 00:56:56 IST] [INFO] [SYSTEM] Starting CSV playback from /Users/shreyasms/Documents/TradingWebsite/trading-app/bot/data/nifty_sample.csv
+[2026-04-18 00:56:56 IST] [INFO] [SYSTEM] Bot STARTED | Market status: Market closed: Saturday (weekend)
+[2026-04-18 00:56:57 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 00:57:11 IST] [INFO] [SYSTEM] ORB calculated: High=8772.85 Low=8733.5 Range=39.35
+[2026-04-18 00:57:11 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 01:03:13 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 01:03:27 IST] [INFO] [SYSTEM] ORB calculated: High=8844.05 Low=8733.5 Range=110.55
+[2026-04-18 01:03:27 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 01:04:11 IST] [INFO] [SYSTEM] Using estimated premium for PE: 130.87
+[2026-04-18 01:04:11 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8506.55 | PASS
+[2026-04-18 01:04:11 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8700PE at 130.87
+[2026-04-18 01:04:11 IST] [INFO] [ORDER] BUY PE | Strike=8700 | Price=130.87 | Qty=65 | Mode=paper
+[2026-04-18 01:04:11 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 130.87. Target: 241.42, SL: 75.59
+[2026-04-18 01:13:07 IST] [INFO] [SYSTEM] Settings updated: ['api_key', 'client_id', 'pin', 'totp_secret', 'orb_duration', 'min_orb_range', 'max_orb_range', 'supertrend_period', 'supertrend_multiplier', 'rsi_period', 'rsi_buy_level', 'rsi_sell_level', 'target_multiplier', 'sl_multiplier', 'max_trades_per_day', 'square_off_time', 'signal_cutoff_time', 'lot_size', 'trading_mode', 'paper_capital', 'data_source', 'playback_file', 'playback_speed', 'option_target_pct', 'option_sl_pct', 'trailing_sl_enabled', 'trailing_sl_pct', 'max_capital_risk_pct']
+[2026-04-18 01:13:10 IST] [INFO] [SYSTEM] Bot STARTED
+[2026-04-18 01:13:10 IST] [INFO] [SYSTEM] Starting CSV playback from /Users/shreyasms/Documents/TradingWebsite/trading-app/bot/data/nifty_sample.csv
+[2026-04-18 01:13:10 IST] [INFO] [SYSTEM] Bot STARTED | Market status: Market closed: Saturday (weekend)
+[2026-04-18 01:13:11 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 01:13:24 IST] [INFO] [SYSTEM] ORB calculated: High=8844.05 Low=8808.9 Range=35.15
+[2026-04-18 01:13:24 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 01:14:11 IST] [INFO] [SYSTEM] Using estimated premium for PE: 131.01
+[2026-04-18 01:14:11 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8515.65 | PASS
+[2026-04-18 01:14:11 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8750PE at 131.01
+[2026-04-18 01:14:11 IST] [INFO] [ORDER] BUY PE | Strike=8750 | Price=131.01 | Qty=65 | Mode=paper
+[2026-04-18 01:14:11 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 131.01. Qty: 65, Target: 196.51, SL: 98.26
+[2026-04-18 01:18:52 IST] [INFO] [ORDER] [2015-03-13 15:15:00] EXIT | Reason=squareoff | P&L=+3129.75
+[2026-04-18 01:18:52 IST] [INFO] [SYSTEM] Auto square-off executed at 3:15 PM IST
+[2026-04-18 01:19:07 IST] [INFO] [SYSTEM] Using estimated premium for PE: 129.62
+[2026-04-18 01:19:07 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8425.30 | PASS
+[2026-04-18 01:19:07 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8650PE at 129.62
+[2026-04-18 01:19:07 IST] [INFO] [ORDER] BUY PE | Strike=8650 | Price=129.62 | Qty=65 | Mode=paper
+[2026-04-18 01:19:07 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 129.62. Qty: 65, Target: 194.43, SL: 97.22
+[2026-04-18 01:21:03 IST] [INFO] [ORDER] [2015-03-17 11:13:00] EXIT | Reason=stoploss | P&L=-2611.70
+[2026-04-18 01:22:02 IST] [INFO] [SYSTEM] Using estimated premium for PE: 130.06
+[2026-04-18 01:22:02 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8453.90 | PASS
+[2026-04-18 01:22:02 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8650PE at 130.06
+[2026-04-18 01:22:02 IST] [INFO] [ORDER] BUY PE | Strike=8650 | Price=130.06 | Qty=65 | Mode=paper
+[2026-04-18 01:22:02 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 130.06. Qty: 65, Target: 195.09, SL: 97.55
+[2026-04-18 01:23:28 IST] [INFO] [SYSTEM] Settings updated: ['api_key', 'client_id', 'pin', 'totp_secret', 'orb_duration', 'min_orb_range', 'max_orb_range', 'supertrend_period', 'supertrend_multiplier', 'rsi_period', 'rsi_buy_level', 'rsi_sell_level', 'target_multiplier', 'sl_multiplier', 'max_trades_per_day', 'square_off_time', 'signal_cutoff_time', 'lot_size', 'trading_mode', 'paper_capital', 'data_source', 'playback_file', 'playback_speed', 'option_target_pct', 'option_sl_pct', 'trailing_sl_enabled', 'trailing_sl_pct', 'max_capital_risk_pct']
+[2026-04-18 01:23:28 IST] [WARNING] [SYSTEM] Bot is currently running. Please STOP and START the bot for live mode changes and credentials to take effect.
+[2026-04-18 01:23:28 IST] [INFO] [SYSTEM] Trailing SL updated to 116.87 (Price: 137.49)
+[2026-04-18 01:23:29 IST] [INFO] [SYSTEM] Trailing SL updated to 117.1 (Price: 137.76)
+[2026-04-18 01:23:30 IST] [INFO] [SYSTEM] Trailing SL updated to 119.03 (Price: 140.03)
+[2026-04-18 01:23:31 IST] [INFO] [SYSTEM] Trailing SL updated to 123.26 (Price: 145.01)
+[2026-04-18 01:23:32 IST] [INFO] [SYSTEM] Trailing SL updated to 126.6 (Price: 148.94)
+[2026-04-18 01:23:35 IST] [INFO] [SYSTEM] Trailing SL updated to 126.62 (Price: 148.96)
+[2026-04-18 01:23:38 IST] [INFO] [SYSTEM] Trailing SL updated to 126.66 (Price: 149.01)
+[2026-04-18 01:24:34 IST] [INFO] [SYSTEM] Settings updated: ['api_key', 'client_id', 'pin', 'totp_secret', 'orb_duration', 'min_orb_range', 'max_orb_range', 'supertrend_period', 'supertrend_multiplier', 'rsi_period', 'rsi_buy_level', 'rsi_sell_level', 'target_multiplier', 'sl_multiplier', 'max_trades_per_day', 'square_off_time', 'signal_cutoff_time', 'lot_size', 'trading_mode', 'paper_capital', 'data_source', 'playback_file', 'playback_speed', 'option_target_pct', 'option_sl_pct', 'trailing_sl_enabled', 'trailing_sl_pct', 'max_capital_risk_pct']
+[2026-04-18 01:24:34 IST] [WARNING] [SYSTEM] Bot is currently running. Please STOP and START the bot for live mode changes and credentials to take effect.
+[2026-04-18 01:24:50 IST] [INFO] [SYSTEM] Supertrend flipped to UP → Early exit triggered
+[2026-04-18 01:24:50 IST] [INFO] [ORDER] [2015-03-17 14:58:00] EXIT | Reason=manual | P&L=-208.00
+[2026-04-18 01:25:22 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 01:25:36 IST] [INFO] [SYSTEM] ORB calculated: High=8746.4 Low=8701.3 Range=45.1
+[2026-04-18 01:25:36 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 01:29:39 IST] [INFO] [SYSTEM] Using estimated premium for PE: 130.4
+[2026-04-18 01:29:39 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8476.00 | PASS
+[2026-04-18 01:29:39 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8700PE at 130.4
+[2026-04-18 01:29:39 IST] [INFO] [ORDER] BUY PE | Strike=8700 | Price=130.40 | Qty=65 | Mode=paper
+[2026-04-18 01:29:39 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 130.4. Qty: 65, Target: 195.6, SL: 97.8
+[2026-04-18 01:29:40 IST] [INFO] [SYSTEM] Supertrend flipped to UP → Early exit triggered
+[2026-04-18 01:29:40 IST] [INFO] [ORDER] [2015-03-18 13:32:00] EXIT | Reason=manual | P&L=-118.30
+[2026-04-18 01:29:42 IST] [INFO] [SYSTEM] Using estimated premium for PE: 130.44
+[2026-04-18 01:29:42 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8478.60 | PASS
+[2026-04-18 01:29:42 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8700PE at 130.44
+[2026-04-18 01:29:42 IST] [INFO] [ORDER] BUY PE | Strike=8700 | Price=130.44 | Qty=65 | Mode=paper
+[2026-04-18 01:29:42 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 130.44. Qty: 65, Target: 195.66, SL: 97.83
+[2026-04-18 01:31:23 IST] [INFO] [ORDER] [2015-03-18 15:15:00] EXIT | Reason=squareoff | P&L=+279.50
+[2026-04-18 01:31:23 IST] [INFO] [SYSTEM] Auto square-off executed at 3:15 PM IST
+[2026-04-18 01:31:38 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 01:31:53 IST] [INFO] [SYSTEM] ORB calculated: High=8752.65 Low=8701.3 Range=51.35
+[2026-04-18 01:31:53 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 01:31:56 IST] [INFO] [SYSTEM] Using estimated premium for CE: 131.5
+[2026-04-18 01:31:56 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8547.50 | PASS
+[2026-04-18 01:31:56 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8750CE at 131.5
+[2026-04-18 01:31:56 IST] [INFO] [ORDER] BUY CE | Strike=8750 | Price=131.50 | Qty=65 | Mode=paper
+[2026-04-18 01:31:56 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_CE at 131.5. Qty: 65, Target: 197.25, SL: 98.62
+[2026-04-18 01:33:21 IST] [INFO] [SYSTEM] Supertrend flipped to DOWN → Early exit triggered
+[2026-04-18 01:33:21 IST] [INFO] [ORDER] [2015-03-19 10:58:00] EXIT | Reason=manual | P&L=-674.70
+[2026-04-18 01:37:54 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 01:38:09 IST] [INFO] [SYSTEM] ORB calculated: High=8752.65 Low=8589.85 Range=162.8
+[2026-04-18 01:38:09 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 01:39:25 IST] [INFO] [SYSTEM] Using estimated premium for PE: 128.83
+[2026-04-18 01:39:25 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8373.95 | PASS
+[2026-04-18 01:39:25 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8600PE at 128.83
+[2026-04-18 01:39:25 IST] [INFO] [ORDER] BUY PE | Strike=8600 | Price=128.83 | Qty=65 | Mode=paper
+[2026-04-18 01:39:25 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 128.83. Qty: 65, Target: 193.25, SL: 96.62
+[2026-04-18 01:40:16 IST] [INFO] [SYSTEM] Supertrend flipped to UP → Early exit triggered
+[2026-04-18 01:40:16 IST] [INFO] [ORDER] [2015-03-20 11:36:00] EXIT | Reason=manual | P&L=-908.05
+[2026-04-18 01:40:57 IST] [INFO] [SYSTEM] Settings updated: ['api_key', 'client_id', 'pin', 'totp_secret', 'orb_duration', 'min_orb_range', 'max_orb_range', 'supertrend_period', 'supertrend_multiplier', 'rsi_period', 'rsi_buy_level', 'rsi_sell_level', 'target_multiplier', 'sl_multiplier', 'max_trades_per_day', 'square_off_time', 'signal_cutoff_time', 'lot_size', 'trading_mode', 'paper_capital', 'data_source', 'playback_file', 'playback_speed', 'option_target_pct', 'option_sl_pct', 'trailing_sl_enabled', 'trailing_sl_pct', 'max_capital_risk_pct']
+[2026-04-18 01:41:37 IST] [INFO] [SYSTEM] Settings updated: ['api_key', 'client_id', 'pin', 'totp_secret', 'orb_duration', 'min_orb_range', 'max_orb_range', 'supertrend_period', 'supertrend_multiplier', 'rsi_period', 'rsi_buy_level', 'rsi_sell_level', 'target_multiplier', 'sl_multiplier', 'max_trades_per_day', 'square_off_time', 'signal_cutoff_time', 'lot_size', 'trading_mode', 'paper_capital', 'data_source', 'playback_file', 'playback_speed', 'option_target_pct', 'option_sl_pct', 'trailing_sl_enabled', 'trailing_sl_pct', 'max_capital_risk_pct']
+[2026-04-18 01:41:40 IST] [INFO] [SYSTEM] Bot STARTED
+[2026-04-18 01:41:40 IST] [INFO] [SYSTEM] Starting CSV playback from /Users/shreyasms/Documents/TradingWebsite/trading-app/bot/data/nifty_sample.csv
+[2026-04-18 01:41:40 IST] [INFO] [SYSTEM] Bot STARTED | Market status: Market closed: Saturday (weekend)
+[2026-04-18 01:41:41 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 01:41:54 IST] [INFO] [SYSTEM] ORB calculated: High=8844.05 Low=8808.9 Range=35.15
+[2026-04-18 01:41:54 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 01:42:40 IST] [INFO] [SYSTEM] Using estimated premium for PE: 131.01
+[2026-04-18 01:42:40 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8515.65 | PASS
+[2026-04-18 01:42:40 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8750PE at 131.01
+[2026-04-18 01:42:40 IST] [INFO] [ORDER] BUY PE | Strike=8750 | Price=131.01 | Qty=65 | Mode=paper
+[2026-04-18 01:42:40 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 131.01. Qty: 65, Target: 170.31, SL: 107.43
+[2026-04-18 01:42:42 IST] [INFO] [SYSTEM] Trailing SL updated to 114.01 (Price: 129.56)
+[2026-04-18 01:42:46 IST] [INFO] [SYSTEM] Trailing SL updated to 115.01 (Price: 130.69)
+[2026-04-18 01:43:01 IST] [INFO] [SYSTEM] Trailing SL updated to 115.73 (Price: 131.51)
+[2026-04-18 01:43:12 IST] [INFO] [SYSTEM] Trailing SL updated to 116.17 (Price: 132.01)
+[2026-04-18 01:43:13 IST] [INFO] [SYSTEM] Trailing SL updated to 116.93 (Price: 132.88)
+[2026-04-18 01:43:15 IST] [INFO] [SYSTEM] Trailing SL updated to 117.37 (Price: 133.38)
+[2026-04-18 01:43:36 IST] [INFO] [SYSTEM] Trailing SL updated to 124.66 (Price: 141.66)
+[2026-04-18 01:43:37 IST] [INFO] [SYSTEM] Trailing SL updated to 130.57 (Price: 148.38)
+[2026-04-18 01:43:39 IST] [INFO] [SYSTEM] Trailing SL updated to 131.29 (Price: 149.19)
+[2026-04-18 01:43:42 IST] [INFO] [SYSTEM] Trailing SL updated to 132.42 (Price: 150.48)
+[2026-04-18 01:43:43 IST] [INFO] [SYSTEM] Trailing SL updated to 135.92 (Price: 154.46)
+[2026-04-18 01:43:45 IST] [INFO] [SYSTEM] Trailing SL updated to 136.6 (Price: 155.23)
+[2026-04-18 01:43:46 IST] [INFO] [SYSTEM] Trailing SL updated to 139.55 (Price: 158.58)
+[2026-04-18 01:44:03 IST] [INFO] [SYSTEM] Trailing SL updated to 141.13 (Price: 160.38)
+[2026-04-18 01:46:08 IST] [INFO] [SYSTEM] Trailing SL updated to 148.46 (Price: 168.71)
+[2026-04-18 01:46:09 IST] [INFO] [SYSTEM] Trailing SL updated to 148.99 (Price: 169.31)
+[2026-04-18 01:46:10 IST] [INFO] [SYSTEM] Trailing SL updated to 149.99 (Price: 170.44)
+[2026-04-18 01:46:10 IST] [INFO] [ORDER] [2015-03-13 14:04:00] EXIT | Reason=target | P&L=+2562.95
+[2026-04-18 01:46:11 IST] [INFO] [SYSTEM] Using estimated premium for PE: 129.75
+[2026-04-18 01:46:11 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8433.75 | PASS
+[2026-04-18 01:46:11 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8650PE at 129.75
+[2026-04-18 01:46:11 IST] [INFO] [ORDER] BUY PE | Strike=8650 | Price=129.75 | Qty=65 | Mode=paper
+[2026-04-18 01:46:11 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 129.75. Qty: 65, Target: 168.68, SL: 106.4
+[2026-04-18 01:46:12 IST] [INFO] [SYSTEM] Trailing SL updated to 114.27 (Price: 129.85)
+[2026-04-18 01:46:13 IST] [INFO] [SYSTEM] Trailing SL updated to 114.66 (Price: 130.3)
+[2026-04-18 01:46:15 IST] [INFO] [SYSTEM] Trailing SL updated to 117.28 (Price: 133.27)
+[2026-04-18 01:47:16 IST] [INFO] [SYSTEM] Trailing SL updated to 118.96 (Price: 135.18)
+[2026-04-18 01:47:17 IST] [INFO] [SYSTEM] Trailing SL updated to 120.84 (Price: 137.32)
+[2026-04-18 01:47:18 IST] [INFO] [SYSTEM] Trailing SL updated to 121.75 (Price: 138.35)
+[2026-04-18 01:47:22 IST] [INFO] [ORDER] [2015-03-13 15:15:00] EXIT | Reason=squareoff | P&L=+403.00
+[2026-04-18 01:47:22 IST] [INFO] [SYSTEM] Auto square-off executed at 3:15 PM IST
+[2026-04-18 01:47:37 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 01:47:52 IST] [INFO] [SYSTEM] ORB calculated: High=8844.05 Low=8668.15 Range=175.9
+[2026-04-18 01:47:52 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 01:51:20 IST] [INFO] [SYSTEM] Using estimated premium for PE: 129.88
+[2026-04-18 01:51:20 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8442.20 | PASS
+[2026-04-18 01:51:20 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8650PE at 129.88
+[2026-04-18 01:51:20 IST] [INFO] [ORDER] BUY PE | Strike=8650 | Price=129.88 | Qty=65 | Mode=paper
+[2026-04-18 01:51:20 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 129.88. Qty: 65, Target: 168.84, SL: 106.5
+[2026-04-18 01:51:21 IST] [INFO] [SYSTEM] Trailing SL updated to 114.93 (Price: 130.6)
+[2026-04-18 01:51:30 IST] [INFO] [SYSTEM] Trailing SL updated to 115.5 (Price: 131.25)
+[2026-04-18 01:51:31 IST] [INFO] [SYSTEM] Trailing SL updated to 119.42 (Price: 135.7)
+[2026-04-18 01:51:32 IST] [INFO] [SYSTEM] Trailing SL updated to 120.43 (Price: 136.85)
+[2026-04-18 01:52:03 IST] [INFO] [SYSTEM] Trailing SL updated to 122.13 (Price: 138.78)
+[2026-04-18 01:52:04 IST] [INFO] [SYSTEM] Trailing SL updated to 125.58 (Price: 142.7)
+[2026-04-18 01:52:07 IST] [INFO] [SYSTEM] Trailing SL updated to 125.6 (Price: 142.73)
+[2026-04-18 01:52:10 IST] [INFO] [SYSTEM] Trailing SL updated to 125.65 (Price: 142.78)
+[2026-04-18 01:53:19 IST] [INFO] [ORDER] [2015-03-17 14:56:00] EXIT | Reason=stoploss | P&L=-331.50
+[2026-04-18 01:53:53 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 01:54:09 IST] [INFO] [SYSTEM] ORB calculated: High=8746.4 Low=8668.15 Range=78.25
+[2026-04-18 01:54:09 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 01:55:50 IST] [INFO] [SYSTEM] Settings updated: ['api_key', 'client_id', 'pin', 'totp_secret', 'orb_duration', 'min_orb_range', 'max_orb_range', 'supertrend_period', 'supertrend_multiplier', 'rsi_period', 'rsi_buy_level', 'rsi_sell_level', 'target_multiplier', 'sl_multiplier', 'max_trades_per_day', 'square_off_time', 'signal_cutoff_time', 'lot_size', 'trading_mode', 'paper_capital', 'data_source', 'playback_file', 'playback_speed', 'option_target_pct', 'option_sl_pct', 'trailing_sl_enabled', 'trailing_sl_pct', 'max_capital_risk_pct']
+[2026-04-18 01:56:22 IST] [INFO] [SYSTEM] Settings updated: ['api_key', 'client_id', 'pin', 'totp_secret', 'orb_duration', 'min_orb_range', 'max_orb_range', 'supertrend_period', 'supertrend_multiplier', 'rsi_period', 'rsi_buy_level', 'rsi_sell_level', 'target_multiplier', 'sl_multiplier', 'max_trades_per_day', 'square_off_time', 'signal_cutoff_time', 'lot_size', 'trading_mode', 'paper_capital', 'data_source', 'playback_file', 'playback_speed', 'option_target_pct', 'option_sl_pct', 'trailing_sl_enabled', 'trailing_sl_pct', 'max_capital_risk_pct']
+[2026-04-18 01:56:42 IST] [INFO] [SYSTEM] Settings updated: ['api_key', 'client_id', 'pin', 'totp_secret', 'orb_duration', 'min_orb_range', 'max_orb_range', 'supertrend_period', 'supertrend_multiplier', 'rsi_period', 'rsi_buy_level', 'rsi_sell_level', 'target_multiplier', 'sl_multiplier', 'max_trades_per_day', 'square_off_time', 'signal_cutoff_time', 'lot_size', 'trading_mode', 'paper_capital', 'data_source', 'playback_file', 'playback_speed', 'option_target_pct', 'option_sl_pct', 'trailing_sl_enabled', 'trailing_sl_pct', 'max_capital_risk_pct']
+[2026-04-18 01:56:44 IST] [INFO] [SYSTEM] Bot STARTED
+[2026-04-18 01:56:44 IST] [INFO] [SYSTEM] Starting CSV playback from /Users/shreyasms/Documents/TradingWebsite/trading-app/bot/data/nifty_sample.csv
+[2026-04-18 01:56:44 IST] [INFO] [SYSTEM] Bot STARTED | Market status: Market closed: Saturday (weekend)
+[2026-04-18 01:56:45 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 01:56:58 IST] [INFO] [SYSTEM] ORB calculated: High=8844.05 Low=8808.9 Range=35.15
+[2026-04-18 01:56:58 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 01:57:45 IST] [INFO] [SYSTEM] Using estimated premium for PE: 131.01
+[2026-04-18 01:57:45 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8515.65 | PASS
+[2026-04-18 01:57:45 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8750PE at 131.01
+[2026-04-18 01:57:45 IST] [INFO] [ORDER] BUY PE | Strike=8750 | Price=131.01 | Qty=65 | Mode=paper
+[2026-04-18 01:57:45 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 131.01. Qty: 65, Target: 170.31, SL: 107.43
+[2026-04-18 01:58:47 IST] [INFO] [SYSTEM] Index Target Hit (+1.3R): 8687.25 <= 8688.455
+[2026-04-18 01:58:47 IST] [INFO] [ORDER] [2015-03-13 11:37:00] EXIT | Reason=target | P&L=+1524.25
+[2026-04-18 01:58:48 IST] [INFO] [SYSTEM] Using estimated premium for PE: 130.42
+[2026-04-18 01:58:48 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8477.30 | PASS
+[2026-04-18 01:58:48 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8700PE at 130.42
+[2026-04-18 01:58:48 IST] [INFO] [ORDER] BUY PE | Strike=8700 | Price=130.42 | Qty=65 | Mode=paper
+[2026-04-18 01:58:48 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 130.42. Qty: 65, Target: 169.55, SL: 106.94
+[2026-04-18 02:01:54 IST] [INFO] [SYSTEM] Settings updated: ['api_key', 'client_id', 'pin', 'totp_secret', 'orb_duration', 'min_orb_range', 'max_orb_range', 'supertrend_period', 'supertrend_multiplier', 'rsi_period', 'rsi_buy_level', 'rsi_sell_level', 'target_multiplier', 'sl_multiplier', 'max_trades_per_day', 'square_off_time', 'signal_cutoff_time', 'lot_size', 'trading_mode', 'paper_capital', 'data_source', 'playback_file', 'playback_speed', 'option_target_pct', 'option_sl_pct', 'trailing_sl_enabled', 'trailing_sl_pct', 'max_capital_risk_pct']
+[2026-04-18 02:01:58 IST] [INFO] [SYSTEM] Bot STARTED
+[2026-04-18 02:01:58 IST] [INFO] [SYSTEM] Starting CSV playback from /Users/shreyasms/Documents/TradingWebsite/trading-app/bot/data/nifty_sample.csv
+[2026-04-18 02:01:58 IST] [INFO] [SYSTEM] Bot STARTED | Market status: Market closed: Saturday (weekend)
+[2026-04-18 02:01:59 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 02:02:13 IST] [INFO] [SYSTEM] ORB calculated: High=8391.6 Low=8361.75 Range=29.85
+[2026-04-18 02:02:13 IST] [WARNING] [SYSTEM] ORB status: TOO_FLAT (range=29.85), skipping today
+[2026-04-18 02:03:06 IST] [INFO] [SYSTEM] Bot STARTED
+[2026-04-18 02:03:06 IST] [INFO] [SYSTEM] Starting CSV playback from /Users/shreyasms/Documents/TradingWebsite/trading-app/bot/data/nifty_sample.csv
+[2026-04-18 02:03:06 IST] [INFO] [SYSTEM] Bot STARTED | Market status: Market closed: Saturday (weekend)
+[2026-04-18 02:03:07 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 02:03:21 IST] [INFO] [SYSTEM] ORB calculated: High=8488.75 Low=8449.25 Range=39.5
+[2026-04-18 02:03:21 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 02:04:52 IST] [INFO] [SYSTEM] Using estimated premium for CE: 127.43
+[2026-04-18 02:04:52 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8282.95 | PASS
+[2026-04-18 02:04:52 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8500CE at 127.43
+[2026-04-18 02:04:52 IST] [INFO] [ORDER] BUY CE | Strike=8500 | Price=127.43 | Qty=65 | Mode=paper
+[2026-04-18 02:04:52 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_CE at 127.43. Qty: 65, Target: 165.66, SL: 104.49
+[2026-04-18 02:07:04 IST] [INFO] [SYSTEM] Bot STARTED
+[2026-04-18 02:07:04 IST] [INFO] [SYSTEM] Starting CSV playback from /Users/shreyasms/Documents/TradingWebsite/trading-app/bot/data/nifty_sample.csv
+[2026-04-18 02:07:04 IST] [INFO] [SYSTEM] Bot STARTED | Market status: Market closed: Saturday (weekend)
+[2026-04-18 02:07:05 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 02:07:05 IST] [INFO] [SYSTEM] Index SL Hit (-0.9R): 8457.1 <= 8460.1
+[2026-04-18 02:07:05 IST] [INFO] [ORDER] [2015-07-31 09:16:00] EXIT | Reason=stoploss | P&L=-1252.55
+[2026-04-18 02:07:58 IST] [INFO] [SYSTEM] Settings updated: ['api_key', 'client_id', 'pin', 'totp_secret', 'orb_duration', 'min_orb_range', 'max_orb_range', 'supertrend_period', 'supertrend_multiplier', 'rsi_period', 'rsi_buy_level', 'rsi_sell_level', 'target_multiplier', 'sl_multiplier', 'max_trades_per_day', 'square_off_time', 'signal_cutoff_time', 'lot_size', 'trading_mode', 'paper_capital', 'data_source', 'playback_file', 'playback_speed', 'option_target_pct', 'option_sl_pct', 'trailing_sl_enabled', 'trailing_sl_pct', 'max_capital_risk_pct']
+[2026-04-18 02:08:00 IST] [INFO] [SYSTEM] Bot STARTED
+[2026-04-18 02:08:00 IST] [INFO] [SYSTEM] Starting CSV playback from /Users/shreyasms/Documents/TradingWebsite/trading-app/bot/data/nifty_sample.csv
+[2026-04-18 02:08:00 IST] [INFO] [SYSTEM] Bot STARTED | Market status: Market closed: Saturday (weekend)
+[2026-04-18 02:08:01 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 02:08:15 IST] [INFO] [SYSTEM] ORB calculated: High=8488.75 Low=8449.25 Range=39.5
+[2026-04-18 02:08:15 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 02:09:46 IST] [INFO] [SYSTEM] Using estimated premium for CE: 127.43
+[2026-04-18 02:09:46 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8282.95 | PASS
+[2026-04-18 02:09:46 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8500CE at 127.43
+[2026-04-18 02:09:46 IST] [INFO] [ORDER] BUY CE | Strike=8500 | Price=127.43 | Qty=65 | Mode=paper
+[2026-04-18 02:09:46 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_CE at 127.43. Qty: 65, Target: 165.66, SL: 104.49
+[2026-04-18 02:13:21 IST] [INFO] [SYSTEM] Index Target Hit (+1.3R): 8548.55 >= 8547.0
+[2026-04-18 02:13:21 IST] [INFO] [ORDER] [2015-07-31 14:34:00] EXIT | Reason=target | P&L=+1719.25
+[2026-04-18 02:14:17 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 02:14:32 IST] [INFO] [SYSTEM] ORB calculated: High=8549.25 Low=8449.25 Range=100.0
+[2026-04-18 02:14:32 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 02:14:36 IST] [INFO] [SYSTEM] Using estimated premium for CE: 128.26
+[2026-04-18 02:14:36 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8336.90 | PASS
+[2026-04-18 02:14:36 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8550CE at 128.26
+[2026-04-18 02:14:36 IST] [INFO] [ORDER] BUY CE | Strike=8550 | Price=128.26 | Qty=65 | Mode=paper
+[2026-04-18 02:14:36 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_CE at 128.26. Qty: 65, Target: 166.74, SL: 105.17
+[2026-04-18 02:18:10 IST] [INFO] [SYSTEM] Supertrend flipped to DOWN → Early exit triggered
+[2026-04-18 02:18:10 IST] [INFO] [ORDER] [2015-08-03 13:06:00] EXIT | Reason=manual | P&L=-176.80
+[2026-04-18 02:19:14 IST] [INFO] [SYSTEM] Using estimated premium for CE: 128.34
+[2026-04-18 02:19:14 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8342.10 | PASS
+[2026-04-18 02:19:14 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8550CE at 128.34
+[2026-04-18 02:19:14 IST] [INFO] [ORDER] BUY CE | Strike=8550 | Price=128.34 | Qty=65 | Mode=paper
+[2026-04-18 02:19:14 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_CE at 128.34. Qty: 65, Target: 166.84, SL: 105.24
+[2026-04-18 02:19:18 IST] [INFO] [SYSTEM] Supertrend flipped to DOWN → Early exit triggered
+[2026-04-18 02:19:18 IST] [INFO] [ORDER] [2015-08-03 14:13:00] EXIT | Reason=manual | P&L=-78.00
+[2026-04-18 02:19:20 IST] [INFO] [SYSTEM] Using estimated premium for CE: 128.33
+[2026-04-18 02:19:20 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8341.45 | PASS
+[2026-04-18 02:19:20 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8550CE at 128.33
+[2026-04-18 02:19:20 IST] [INFO] [ORDER] BUY CE | Strike=8550 | Price=128.33 | Qty=65 | Mode=paper
+[2026-04-18 02:19:20 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_CE at 128.33. Qty: 65, Target: 166.83, SL: 105.23
+[2026-04-18 02:19:53 IST] [INFO] [SYSTEM] Supertrend flipped to DOWN → Early exit triggered
+[2026-04-18 02:19:53 IST] [INFO] [ORDER] [2015-08-03 14:49:01] EXIT | Reason=manual | P&L=-513.50
+[2026-04-18 02:20:34 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 02:20:50 IST] [INFO] [SYSTEM] ORB calculated: High=8564.35 Low=8502.6 Range=61.75
+[2026-04-18 02:20:50 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 02:20:54 IST] [INFO] [SYSTEM] Using estimated premium for PE: 127.54
+[2026-04-18 02:20:54 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8290.10 | PASS
+[2026-04-18 02:20:54 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8500PE at 127.54
+[2026-04-18 02:20:54 IST] [INFO] [ORDER] BUY PE | Strike=8500 | Price=127.54 | Qty=65 | Mode=paper
+[2026-04-18 02:20:54 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 127.54. Qty: 65, Target: 165.8, SL: 104.58
+[2026-04-18 02:22:29 IST] [INFO] [SYSTEM] Supertrend flipped to UP → Early exit triggered
+[2026-04-18 02:22:29 IST] [INFO] [ORDER] [2015-08-04 11:09:00] EXIT | Reason=manual | P&L=-973.05
+[2026-04-18 02:23:29 IST] [INFO] [SYSTEM] Using estimated premium for PE: 127.47
+[2026-04-18 02:23:29 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8285.55 | PASS
+[2026-04-18 02:23:29 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8500PE at 127.47
+[2026-04-18 02:23:29 IST] [INFO] [ORDER] BUY PE | Strike=8500 | Price=127.47 | Qty=65 | Mode=paper
+[2026-04-18 02:23:29 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 127.47. Qty: 65, Target: 165.71, SL: 104.53
+[2026-04-18 02:25:08 IST] [INFO] [SYSTEM] Supertrend flipped to UP → Early exit triggered
+[2026-04-18 02:25:08 IST] [INFO] [ORDER] [2015-08-04 13:47:00] EXIT | Reason=manual | P&L=-325.00
+[2026-04-18 02:26:50 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 02:27:06 IST] [INFO] [SYSTEM] ORB calculated: High=8581.2 Low=8502.6 Range=78.6
+[2026-04-18 02:27:06 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 02:27:44 IST] [INFO] [SYSTEM] Using estimated premium for CE: 128.76
+[2026-04-18 02:27:44 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8369.40 | PASS
+[2026-04-18 02:27:44 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8600CE at 128.76
+[2026-04-18 02:27:44 IST] [INFO] [ORDER] BUY CE | Strike=8600 | Price=128.76 | Qty=65 | Mode=paper
+[2026-04-18 02:27:44 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_CE at 128.76. Qty: 65, Target: 167.39, SL: 105.58
+[2026-04-18 02:31:42 IST] [INFO] [SYSTEM] Supertrend flipped to DOWN → Early exit triggered
+[2026-04-18 02:31:42 IST] [INFO] [ORDER] [2015-08-05 14:04:00] EXIT | Reason=manual | P&L=-593.45
+[2026-04-18 02:33:09 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 02:33:11 IST] [INFO] [SYSTEM] Settings updated: ['api_key', 'client_id', 'pin', 'totp_secret', 'orb_duration', 'min_orb_range', 'max_orb_range', 'supertrend_period', 'supertrend_multiplier', 'rsi_period', 'rsi_buy_level', 'rsi_sell_level', 'target_multiplier', 'sl_multiplier', 'max_trades_per_day', 'square_off_time', 'signal_cutoff_time', 'lot_size', 'trading_mode', 'paper_capital', 'data_source', 'playback_file', 'playback_speed', 'option_target_pct', 'option_sl_pct', 'trailing_sl_enabled', 'trailing_sl_pct', 'max_capital_risk_pct']
+[2026-04-18 02:33:11 IST] [WARNING] [SYSTEM] Bot is currently running. Please STOP and START the bot for live mode changes and credentials to take effect.
+[2026-04-18 02:33:23 IST] [INFO] [SYSTEM] ORB calculated: High=8589.4 Low=8547.4 Range=42.0
+[2026-04-18 02:33:23 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 02:35:49 IST] [INFO] [SYSTEM] Settings updated: ['api_key', 'client_id', 'pin', 'totp_secret', 'orb_duration', 'min_orb_range', 'max_orb_range', 'supertrend_period', 'supertrend_multiplier', 'rsi_period', 'rsi_buy_level', 'rsi_sell_level', 'target_multiplier', 'sl_multiplier', 'max_trades_per_day', 'square_off_time', 'signal_cutoff_time', 'lot_size', 'trading_mode', 'paper_capital', 'data_source', 'playback_file', 'playback_speed', 'option_target_pct', 'option_sl_pct', 'trailing_sl_enabled', 'trailing_sl_pct', 'max_capital_risk_pct']
+[2026-04-18 02:35:52 IST] [INFO] [SYSTEM] Settings updated: ['api_key', 'client_id', 'pin', 'totp_secret', 'orb_duration', 'min_orb_range', 'max_orb_range', 'supertrend_period', 'supertrend_multiplier', 'rsi_period', 'rsi_buy_level', 'rsi_sell_level', 'target_multiplier', 'sl_multiplier', 'max_trades_per_day', 'square_off_time', 'signal_cutoff_time', 'lot_size', 'trading_mode', 'paper_capital', 'data_source', 'playback_file', 'playback_speed', 'option_target_pct', 'option_sl_pct', 'trailing_sl_enabled', 'trailing_sl_pct', 'max_capital_risk_pct']
+[2026-04-18 02:35:55 IST] [INFO] [SYSTEM] Settings updated: ['api_key', 'client_id', 'pin', 'totp_secret', 'orb_duration', 'min_orb_range', 'max_orb_range', 'supertrend_period', 'supertrend_multiplier', 'rsi_period', 'rsi_buy_level', 'rsi_sell_level', 'target_multiplier', 'sl_multiplier', 'max_trades_per_day', 'square_off_time', 'signal_cutoff_time', 'lot_size', 'trading_mode', 'paper_capital', 'data_source', 'playback_file', 'playback_speed', 'option_target_pct', 'option_sl_pct', 'trailing_sl_enabled', 'trailing_sl_pct', 'max_capital_risk_pct']
+[2026-04-18 02:36:04 IST] [INFO] [SYSTEM] Settings updated: ['api_key', 'client_id', 'pin', 'totp_secret', 'orb_duration', 'min_orb_range', 'max_orb_range', 'supertrend_period', 'supertrend_multiplier', 'rsi_period', 'rsi_buy_level', 'rsi_sell_level', 'target_multiplier', 'sl_multiplier', 'max_trades_per_day', 'square_off_time', 'signal_cutoff_time', 'lot_size', 'trading_mode', 'paper_capital', 'data_source', 'playback_file', 'playback_speed', 'option_target_pct', 'option_sl_pct', 'trailing_sl_enabled', 'trailing_sl_pct', 'max_capital_risk_pct']
+[2026-04-18 02:36:08 IST] [INFO] [SYSTEM] Bot STARTED
+[2026-04-18 02:36:08 IST] [INFO] [SYSTEM] Starting CSV playback from /Users/shreyasms/Documents/TradingWebsite/trading-app/bot/data/nifty_sample.csv
+[2026-04-18 02:36:08 IST] [INFO] [SYSTEM] Bot STARTED | Market status: Market closed: Saturday (weekend)
+[2026-04-18 02:36:09 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 02:36:23 IST] [INFO] [SYSTEM] ORB calculated: High=8488.75 Low=8449.25 Range=39.5
+[2026-04-18 02:36:24 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 02:37:55 IST] [INFO] [SYSTEM] Using estimated premium for CE: 127.43
+[2026-04-18 02:37:55 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8282.95 | PASS
+[2026-04-18 02:37:55 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8500CE at 127.43
+[2026-04-18 02:37:55 IST] [INFO] [ORDER] BUY CE | Strike=8500 | Price=127.43 | Qty=65 | Mode=paper
+[2026-04-18 02:37:55 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_CE at 127.43. Qty: 65, Target: 229.37, SL: 76.46
+[2026-04-18 02:41:29 IST] [INFO] [SYSTEM] Index Target Hit (+1.3R): 8548.55 >= 8547.0
+[2026-04-18 02:41:29 IST] [INFO] [ORDER] [2015-07-31 14:34:00] EXIT | Reason=target | P&L=+1719.25
+[2026-04-18 02:42:25 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 02:42:41 IST] [INFO] [SYSTEM] ORB calculated: High=8549.25 Low=8449.25 Range=100.0
+[2026-04-18 02:42:41 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 02:42:45 IST] [INFO] [SYSTEM] Using estimated premium for CE: 128.26
+[2026-04-18 02:42:45 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8336.90 | PASS
+[2026-04-18 02:42:45 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8550CE at 128.26
+[2026-04-18 02:42:45 IST] [INFO] [ORDER] BUY CE | Strike=8550 | Price=128.26 | Qty=65 | Mode=paper
+[2026-04-18 02:42:45 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_CE at 128.26. Qty: 65, Target: 230.87, SL: 76.96
+[2026-04-18 02:46:18 IST] [INFO] [SYSTEM] Supertrend flipped to DOWN → Early exit triggered
+[2026-04-18 02:46:18 IST] [INFO] [ORDER] [2015-08-03 13:06:00] EXIT | Reason=manual | P&L=-176.80
+[2026-04-18 02:47:22 IST] [INFO] [SYSTEM] Using estimated premium for CE: 128.34
+[2026-04-18 02:47:22 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8342.10 | PASS
+[2026-04-18 02:47:22 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8550CE at 128.34
+[2026-04-18 02:47:22 IST] [INFO] [ORDER] BUY CE | Strike=8550 | Price=128.34 | Qty=65 | Mode=paper
+[2026-04-18 02:47:22 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_CE at 128.34. Qty: 65, Target: 231.01, SL: 77.0
+[2026-04-18 02:47:25 IST] [INFO] [SYSTEM] Supertrend flipped to DOWN → Early exit triggered
+[2026-04-18 02:47:25 IST] [INFO] [ORDER] [2015-08-03 14:13:00] EXIT | Reason=manual | P&L=-78.00
+[2026-04-18 02:47:27 IST] [INFO] [SYSTEM] Using estimated premium for CE: 128.34
+[2026-04-18 02:47:27 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8342.10 | PASS
+[2026-04-18 02:47:27 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8550CE at 128.34
+[2026-04-18 02:47:27 IST] [INFO] [ORDER] BUY CE | Strike=8550 | Price=128.34 | Qty=65 | Mode=paper
+[2026-04-18 02:47:27 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_CE at 128.34. Qty: 65, Target: 231.01, SL: 77.0
+[2026-04-18 02:48:01 IST] [INFO] [SYSTEM] Supertrend flipped to DOWN → Early exit triggered
+[2026-04-18 02:48:01 IST] [INFO] [ORDER] [2015-08-03 14:49:01] EXIT | Reason=manual | P&L=-518.70
+[2026-04-18 02:48:43 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 02:48:58 IST] [INFO] [SYSTEM] ORB calculated: High=8564.35 Low=8502.6 Range=61.75
+[2026-04-18 02:48:58 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 02:50:03 IST] [INFO] [SYSTEM] Using estimated premium for PE: 127.43
+[2026-04-18 02:50:03 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8282.95 | PASS
+[2026-04-18 02:50:03 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8500PE at 127.43
+[2026-04-18 02:50:03 IST] [INFO] [ORDER] BUY PE | Strike=8500 | Price=127.43 | Qty=65 | Mode=paper
+[2026-04-18 02:50:03 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 127.43. Qty: 65, Target: 229.37, SL: 76.46
+[2026-04-18 02:50:37 IST] [INFO] [SYSTEM] Supertrend flipped to UP → Early exit triggered
+[2026-04-18 02:50:37 IST] [INFO] [ORDER] [2015-08-04 11:09:00] EXIT | Reason=manual | P&L=-1205.75
+[2026-04-18 02:52:07 IST] [INFO] [SYSTEM] Using estimated premium for PE: 127.52
+[2026-04-18 02:52:07 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8288.80 | PASS
+[2026-04-18 02:52:07 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8500PE at 127.52
+[2026-04-18 02:52:07 IST] [INFO] [ORDER] BUY PE | Strike=8500 | Price=127.52 | Qty=65 | Mode=paper
+[2026-04-18 02:52:07 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 127.52. Qty: 65, Target: 229.54, SL: 76.51
+[2026-04-18 02:53:16 IST] [INFO] [SYSTEM] Supertrend flipped to UP → Early exit triggered
+[2026-04-18 02:53:16 IST] [INFO] [ORDER] [2015-08-04 13:47:00] EXIT | Reason=manual | P&L=-209.95
+[2026-04-18 02:55:00 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 02:55:15 IST] [INFO] [SYSTEM] ORB calculated: High=8581.2 Low=8502.6 Range=78.6
+[2026-04-18 02:55:15 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 02:55:52 IST] [INFO] [SYSTEM] Using estimated premium for CE: 128.76
+[2026-04-18 02:55:52 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8369.40 | PASS
+[2026-04-18 02:55:52 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8600CE at 128.76
+[2026-04-18 02:55:52 IST] [INFO] [ORDER] BUY CE | Strike=8600 | Price=128.76 | Qty=65 | Mode=paper
+[2026-04-18 02:55:52 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_CE at 128.76. Qty: 65, Target: 231.77, SL: 77.26
+[2026-04-18 02:59:51 IST] [INFO] [SYSTEM] Supertrend flipped to DOWN → Early exit triggered
+[2026-04-18 02:59:51 IST] [INFO] [ORDER] [2015-08-05 14:04:00] EXIT | Reason=manual | P&L=-593.45
+[2026-04-18 03:01:17 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 03:01:33 IST] [INFO] [SYSTEM] ORB calculated: High=8589.4 Low=8547.4 Range=42.0
+[2026-04-18 03:01:33 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 03:05:23 IST] [INFO] [SYSTEM] Using estimated premium for CE: 128.84
+[2026-04-18 03:05:23 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8374.60 | PASS
+[2026-04-18 03:05:23 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8600CE at 128.84
+[2026-04-18 03:05:23 IST] [INFO] [ORDER] BUY CE | Strike=8600 | Price=128.84 | Qty=65 | Mode=paper
+[2026-04-18 03:05:23 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_CE at 128.84. Qty: 65, Target: 231.91, SL: 77.3
+[2026-04-18 03:07:20 IST] [INFO] [ORDER] [2015-08-06 15:15:00] EXIT | Reason=squareoff | P&L=+138.45
+[2026-04-18 03:07:20 IST] [INFO] [SYSTEM] Auto square-off executed at 3:15 PM IST
+[2026-04-18 03:07:34 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 03:07:49 IST] [INFO] [SYSTEM] ORB calculated: High=8595.6 Low=8556.95 Range=38.65
+[2026-04-18 03:07:49 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 03:13:52 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 03:14:07 IST] [INFO] [SYSTEM] ORB calculated: High=8608.15 Low=8564.85 Range=43.3
+[2026-04-18 03:14:07 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 03:14:26 IST] [INFO] [SYSTEM] Using estimated premium for CE: 129.27
+[2026-04-18 03:14:26 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8402.55 | PASS
+[2026-04-18 03:14:26 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8600CE at 129.27
+[2026-04-18 03:14:26 IST] [INFO] [ORDER] BUY CE | Strike=8600 | Price=129.27 | Qty=65 | Mode=paper
+[2026-04-18 03:14:26 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_CE at 129.27. Qty: 65, Target: 232.69, SL: 77.56
+[2026-04-18 03:17:13 IST] [INFO] [SYSTEM] Supertrend flipped to DOWN → Early exit triggered
+[2026-04-18 03:17:13 IST] [INFO] [ORDER] [2015-08-10 12:33:01] EXIT | Reason=manual | P&L=-635.70
+[2026-04-18 03:20:11 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 03:20:26 IST] [INFO] [SYSTEM] ORB calculated: High=8608.15 Low=8505.9 Range=102.25
+[2026-04-18 03:20:26 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 03:20:31 IST] [INFO] [SYSTEM] Using estimated premium for PE: 127.58
+[2026-04-18 03:20:31 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8292.70 | PASS
+[2026-04-18 03:20:31 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8500PE at 127.58
+[2026-04-18 03:20:31 IST] [INFO] [ORDER] BUY PE | Strike=8500 | Price=127.58 | Qty=65 | Mode=paper
+[2026-04-18 03:20:31 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 127.58. Qty: 65, Target: 229.64, SL: 76.55
+[2026-04-18 03:26:14 IST] [INFO] [ORDER] [2015-08-11 15:15:00] EXIT | Reason=squareoff | P&L=+1417.00
+[2026-04-18 03:26:14 IST] [INFO] [SYSTEM] Auto square-off executed at 3:15 PM IST
+[2026-04-18 03:26:29 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 03:26:44 IST] [INFO] [SYSTEM] ORB calculated: High=8555.75 Low=8409.85 Range=145.9
+[2026-04-18 03:26:44 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 03:26:50 IST] [INFO] [SYSTEM] Using estimated premium for PE: 126.09
+[2026-04-18 03:26:50 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8195.85 | PASS
+[2026-04-18 03:26:50 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8400PE at 126.09
+[2026-04-18 03:26:50 IST] [INFO] [ORDER] BUY PE | Strike=8400 | Price=126.09 | Qty=65 | Mode=paper
+[2026-04-18 03:26:50 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 126.09. Qty: 65, Target: 226.96, SL: 75.65
+[2026-04-18 03:28:01 IST] [INFO] [SYSTEM] Supertrend flipped to UP → Early exit triggered
+[2026-04-18 03:28:01 IST] [INFO] [ORDER] [2015-08-12 10:47:00] EXIT | Reason=manual | P&L=-830.05
+[2026-04-18 03:30:01 IST] [INFO] [SYSTEM] Using estimated premium for PE: 126.08
+[2026-04-18 03:30:01 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8195.20 | PASS
+[2026-04-18 03:30:01 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8400PE at 126.08
+[2026-04-18 03:30:01 IST] [INFO] [ORDER] BUY PE | Strike=8400 | Price=126.08 | Qty=65 | Mode=paper
+[2026-04-18 03:30:01 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 126.08. Qty: 65, Target: 226.94, SL: 75.65
+[2026-04-18 03:32:31 IST] [INFO] [ORDER] [2015-08-12 15:15:00] EXIT | Reason=squareoff | P&L=+1941.55
+[2026-04-18 03:32:31 IST] [INFO] [SYSTEM] Auto square-off executed at 3:15 PM IST
+[2026-04-18 03:32:47 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 03:33:03 IST] [INFO] [SYSTEM] ORB calculated: High=8446.7 Low=8371.95 Range=74.75
+[2026-04-18 03:33:03 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 03:35:46 IST] [INFO] [SYSTEM] Using estimated premium for PE: 125.53
+[2026-04-18 03:35:46 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8159.45 | PASS
+[2026-04-18 03:35:46 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8350PE at 125.53
+[2026-04-18 03:35:46 IST] [INFO] [ORDER] BUY PE | Strike=8350 | Price=125.53 | Qty=65 | Mode=paper
+[2026-04-18 03:35:46 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 125.53. Qty: 65, Target: 225.95, SL: 75.32
+[2026-04-18 03:36:12 IST] [INFO] [SYSTEM] Supertrend flipped to UP → Early exit triggered
+[2026-04-18 03:36:12 IST] [INFO] [ORDER] [2015-08-13 12:38:01] EXIT | Reason=manual | P&L=-731.25
+[2026-04-18 03:37:33 IST] [INFO] [SYSTEM] Using estimated premium for PE: 125.46
+[2026-04-18 03:37:33 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8154.90 | PASS
+[2026-04-18 03:37:33 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8350PE at 125.46
+[2026-04-18 03:37:33 IST] [INFO] [ORDER] BUY PE | Strike=8350 | Price=125.46 | Qty=65 | Mode=paper
+[2026-04-18 03:37:33 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 125.46. Qty: 65, Target: 225.83, SL: 75.28
+[2026-04-18 03:38:50 IST] [INFO] [ORDER] [2015-08-13 15:15:01] EXIT | Reason=squareoff | P&L=+375.05
+[2026-04-18 03:38:50 IST] [INFO] [SYSTEM] Auto square-off executed at 3:15 PM IST
+[2026-04-18 03:39:04 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 03:39:20 IST] [INFO] [SYSTEM] ORB calculated: High=8429.15 Low=8371.95 Range=57.2
+[2026-04-18 03:39:20 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 03:40:54 IST] [INFO] [SYSTEM] Using estimated premium for CE: 126.77
+[2026-04-18 03:40:54 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8240.05 | PASS
+[2026-04-18 03:40:54 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8450CE at 126.77
+[2026-04-18 03:40:54 IST] [INFO] [ORDER] BUY CE | Strike=8450 | Price=126.77 | Qty=65 | Mode=paper
+[2026-04-18 03:40:54 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_CE at 126.77. Qty: 65, Target: 228.19, SL: 76.06
+[2026-04-18 03:44:53 IST] [INFO] [SYSTEM] Supertrend flipped to DOWN → Early exit triggered
+[2026-04-18 03:44:53 IST] [INFO] [ORDER] [2015-08-14 15:01:00] EXIT | Reason=manual | P&L=+1519.05
+[2026-04-18 03:45:23 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 03:45:38 IST] [INFO] [SYSTEM] ORB calculated: High=8530.5 Low=8381.4 Range=149.1
+[2026-04-18 03:45:38 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 03:51:40 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 03:51:55 IST] [INFO] [SYSTEM] ORB calculated: High=8530.5 Low=8428.55 Range=101.95
+[2026-04-18 03:51:55 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 03:57:58 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 03:58:12 IST] [INFO] [SYSTEM] ORB calculated: High=8520.2 Low=8426.55 Range=93.65
+[2026-04-18 03:58:13 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 04:04:15 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 04:04:30 IST] [INFO] [SYSTEM] ORB calculated: High=8488.1 Low=8426.55 Range=61.55
+[2026-04-18 04:04:30 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 04:08:07 IST] [INFO] [SYSTEM] Using estimated premium for PE: 126.35
+[2026-04-18 04:08:07 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8212.75 | PASS
+[2026-04-18 04:08:07 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8400PE at 126.35
+[2026-04-18 04:08:07 IST] [INFO] [ORDER] BUY PE | Strike=8400 | Price=126.35 | Qty=65 | Mode=paper
+[2026-04-18 04:08:07 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 126.35. Qty: 65, Target: 227.43, SL: 75.81
+[2026-04-18 04:10:17 IST] [INFO] [ORDER] [2015-08-20 15:15:00] EXIT | Reason=squareoff | P&L=+1675.70
+[2026-04-18 04:10:17 IST] [INFO] [SYSTEM] Auto square-off executed at 3:15 PM IST
+[2026-04-18 04:10:32 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 04:10:48 IST] [INFO] [SYSTEM] ORB calculated: High=8488.1 Low=8225.25 Range=262.85
+[2026-04-18 04:10:48 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 04:16:50 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 04:17:06 IST] [INFO] [SYSTEM] ORB calculated: High=8298.7 Low=7992.7 Range=306.0
+[2026-04-18 04:17:06 IST] [WARNING] [SYSTEM] ORB status: TOO_WIDE (range=306.0), skipping today
+[2026-04-18 04:23:04 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 04:23:18 IST] [INFO] [SYSTEM] ORB calculated: High=8058.95 Low=7884.25 Range=174.7
+[2026-04-18 04:23:18 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 04:24:39 IST] [INFO] [SYSTEM] Using estimated premium for PE: 116.8
+[2026-04-18 04:24:39 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=7592.00 | PASS
+[2026-04-18 04:24:39 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY7800PE at 116.8
+[2026-04-18 04:24:39 IST] [INFO] [ORDER] BUY PE | Strike=7800 | Price=116.80 | Qty=65 | Mode=paper
+[2026-04-18 04:24:39 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 116.8. Qty: 65, Target: 210.24, SL: 70.08
+[2026-04-18 04:25:57 IST] [INFO] [SYSTEM] Supertrend flipped to UP → Early exit triggered
+[2026-04-18 04:25:57 IST] [INFO] [ORDER] [2015-08-25 12:07:01] EXIT | Reason=manual | P&L=+788.45
+[2026-04-18 04:29:21 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 04:29:37 IST] [INFO] [SYSTEM] ORB calculated: High=7924.25 Low=7786.2 Range=138.05
+[2026-04-18 04:29:37 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 04:30:46 IST] [INFO] [SYSTEM] Using estimated premium for CE: 118.92
+[2026-04-18 04:30:46 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=7729.80 | PASS
+[2026-04-18 04:30:46 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY7950CE at 118.92
+[2026-04-18 04:30:46 IST] [INFO] [ORDER] BUY CE | Strike=7950 | Price=118.92 | Qty=65 | Mode=paper
+[2026-04-18 04:30:46 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_CE at 118.92. Qty: 65, Target: 214.06, SL: 71.35
+[2026-04-18 04:31:58 IST] [INFO] [SYSTEM] Supertrend flipped to DOWN → Early exit triggered
+[2026-04-18 04:31:58 IST] [INFO] [ORDER] [2015-08-26 11:51:01] EXIT | Reason=manual | P&L=-1722.50
+[2026-04-18 04:35:39 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 04:35:54 IST] [INFO] [SYSTEM] ORB calculated: High=7922.05 Low=7786.2 Range=135.85
+[2026-04-18 04:35:54 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 04:39:34 IST] [INFO] [SYSTEM] Using estimated premium for CE: 118.87
+[2026-04-18 04:39:34 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=7726.55 | PASS
+[2026-04-18 04:39:34 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY7900CE at 118.87
+[2026-04-18 04:39:34 IST] [INFO] [ORDER] BUY CE | Strike=7900 | Price=118.87 | Qty=65 | Mode=paper
+[2026-04-18 04:39:34 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_CE at 118.87. Qty: 65, Target: 213.97, SL: 71.32
+[2026-04-18 04:41:41 IST] [INFO] [ORDER] [2015-08-27 15:15:00] EXIT | Reason=squareoff | P&L=+856.70
+[2026-04-18 04:41:41 IST] [INFO] [SYSTEM] Auto square-off executed at 3:15 PM IST
+[2026-04-18 04:41:56 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 04:42:11 IST] [INFO] [SYSTEM] ORB calculated: High=8061.5 Low=7862.6 Range=198.9
+[2026-04-18 04:42:11 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 04:42:42 IST] [INFO] [SYSTEM] Using estimated premium for CE: 120.94
+[2026-04-18 04:42:42 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=7861.10 | PASS
+[2026-04-18 04:42:42 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8050CE at 120.94
+[2026-04-18 04:42:42 IST] [INFO] [ORDER] BUY CE | Strike=8050 | Price=120.94 | Qty=65 | Mode=paper
+[2026-04-18 04:42:42 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_CE at 120.94. Qty: 65, Target: 217.69, SL: 72.56
+[2026-04-18 04:45:42 IST] [INFO] [SYSTEM] Supertrend flipped to DOWN → Early exit triggered
+[2026-04-18 04:45:42 IST] [INFO] [ORDER] [2015-08-28 13:00:00] EXIT | Reason=manual | P&L=-177.45
+[2026-04-18 04:48:14 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 04:48:29 IST] [INFO] [SYSTEM] ORB calculated: High=8061.5 Low=7954.85 Range=106.65
+[2026-04-18 04:48:29 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 04:53:11 IST] [INFO] [SYSTEM] Using estimated premium for PE: 119.26
+[2026-04-18 04:53:12 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=7751.90 | PASS
+[2026-04-18 04:53:12 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY7950PE at 119.26
+[2026-04-18 04:53:12 IST] [INFO] [ORDER] BUY PE | Strike=7950 | Price=119.26 | Qty=65 | Mode=paper
+[2026-04-18 04:53:12 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 119.26. Qty: 65, Target: 214.67, SL: 71.56
+[2026-04-18 04:54:16 IST] [INFO] [ORDER] [2015-08-31 15:15:00] EXIT | Reason=squareoff | P&L=-625.30
+[2026-04-18 04:54:16 IST] [INFO] [SYSTEM] Auto square-off executed at 3:15 PM IST
+[2026-04-18 04:54:31 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 04:54:47 IST] [INFO] [SYSTEM] ORB calculated: High=8006.7 Low=7887.05 Range=119.65
+[2026-04-18 04:54:47 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 04:56:52 IST] [INFO] [SYSTEM] Using estimated premium for PE: 118.22
+[2026-04-18 04:56:52 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=7684.30 | PASS
+[2026-04-18 04:56:52 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY7900PE at 118.22
+[2026-04-18 04:56:52 IST] [INFO] [ORDER] BUY PE | Strike=7900 | Price=118.22 | Qty=65 | Mode=paper
+[2026-04-18 04:56:52 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 118.22. Qty: 65, Target: 212.8, SL: 70.93
+[2026-04-18 05:00:34 IST] [INFO] [ORDER] [2015-09-01 15:15:01] EXIT | Reason=squareoff | P&L=+3014.05
+[2026-04-18 05:00:34 IST] [INFO] [SYSTEM] Auto square-off executed at 3:15 PM IST
+[2026-04-18 05:00:49 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 05:01:04 IST] [INFO] [SYSTEM] ORB calculated: High=7917.45 Low=7783.85 Range=133.6
+[2026-04-18 05:01:04 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 05:02:36 IST] [INFO] [SYSTEM] Using estimated premium for PE: 116.7
+[2026-04-18 05:02:36 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=7585.50 | PASS
+[2026-04-18 05:02:36 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY7800PE at 116.7
+[2026-04-18 05:02:36 IST] [INFO] [ORDER] BUY PE | Strike=7800 | Price=116.70 | Qty=65 | Mode=paper
+[2026-04-18 05:02:36 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 116.7. Qty: 65, Target: 210.06, SL: 70.02
+[2026-04-18 05:06:43 IST] [INFO] [ORDER] [2015-09-02 15:15:00] EXIT | Reason=squareoff | P&L=+1799.20
+[2026-04-18 05:06:43 IST] [INFO] [SYSTEM] Auto square-off executed at 3:15 PM IST
+[2026-04-18 05:06:58 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 05:07:14 IST] [INFO] [SYSTEM] ORB calculated: High=7857.8 Low=7754.35 Range=103.45
+[2026-04-18 05:07:14 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 05:13:16 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 05:13:31 IST] [INFO] [SYSTEM] ORB calculated: High=7803.4 Low=7736.15 Range=67.25
+[2026-04-18 05:13:31 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 05:13:34 IST] [INFO] [SYSTEM] Using estimated premium for PE: 115.77
+[2026-04-18 05:13:34 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=7525.05 | PASS
+[2026-04-18 05:13:34 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY7700PE at 115.77
+[2026-04-18 05:13:34 IST] [INFO] [ORDER] BUY PE | Strike=7700 | Price=115.77 | Qty=65 | Mode=paper
+[2026-04-18 05:13:34 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 115.77. Qty: 65, Target: 208.39, SL: 69.46
+[2026-04-18 05:17:56 IST] [INFO] [SYSTEM] Index Target Hit (+1.3R): 7630.35 <= 7630.724999999999
+[2026-04-18 05:17:56 IST] [INFO] [ORDER] [2015-09-04 13:53:00] EXIT | Reason=target | P&L=+2853.50
+[2026-04-18 05:17:57 IST] [INFO] [SYSTEM] Using estimated premium for PE: 114.48
+[2026-04-18 05:17:57 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=7441.20 | PASS
+[2026-04-18 05:17:57 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY7650PE at 114.48
+[2026-04-18 05:17:57 IST] [INFO] [ORDER] BUY PE | Strike=7650 | Price=114.48 | Qty=65 | Mode=paper
+[2026-04-18 05:17:57 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 114.48. Qty: 65, Target: 206.06, SL: 68.69
+[2026-04-18 05:19:19 IST] [INFO] [ORDER] [2015-09-04 15:15:00] EXIT | Reason=squareoff | P&L=-591.50
+[2026-04-18 05:19:19 IST] [INFO] [SYSTEM] Auto square-off executed at 3:15 PM IST
+[2026-04-18 05:19:33 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 05:19:49 IST] [INFO] [SYSTEM] ORB calculated: High=7803.4 Low=7647.0 Range=156.4
+[2026-04-18 05:19:49 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 05:20:05 IST] [INFO] [SYSTEM] Using estimated premium for PE: 114.64
+[2026-04-18 05:20:05 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=7451.60 | PASS
+[2026-04-18 05:20:05 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY7650PE at 114.64
+[2026-04-18 05:20:05 IST] [INFO] [ORDER] BUY PE | Strike=7650 | Price=114.64 | Qty=65 | Mode=paper
+[2026-04-18 05:20:05 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 114.64. Qty: 65, Target: 206.35, SL: 68.78
+[2026-04-18 05:25:28 IST] [INFO] [ORDER] [2015-09-07 15:15:00] EXIT | Reason=squareoff | P&L=+2770.30
+[2026-04-18 05:25:28 IST] [INFO] [SYSTEM] Auto square-off executed at 3:15 PM IST
+[2026-04-18 05:25:43 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 05:25:59 IST] [INFO] [SYSTEM] ORB calculated: High=7704.5 Low=7540.15 Range=164.35
+[2026-04-18 05:25:59 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 05:30:59 IST] [INFO] [SYSTEM] Using estimated premium for CE: 115.62
+[2026-04-18 05:30:59 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=7515.30 | PASS
+[2026-04-18 05:30:59 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY7700CE at 115.62
+[2026-04-18 05:30:59 IST] [INFO] [ORDER] BUY CE | Strike=7700 | Price=115.62 | Qty=65 | Mode=paper
+[2026-04-18 05:30:59 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_CE at 115.62. Qty: 65, Target: 208.12, SL: 69.37
+[2026-04-18 05:31:46 IST] [INFO] [ORDER] [2015-09-08 15:15:01] EXIT | Reason=squareoff | P&L=-1072.50
+[2026-04-18 05:31:46 IST] [INFO] [SYSTEM] Auto square-off executed at 3:15 PM IST
+[2026-04-18 05:32:01 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 05:32:15 IST] [INFO] [SYSTEM] ORB calculated: High=7821.15 Low=7540.15 Range=281.0
+[2026-04-18 05:32:15 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 05:34:20 IST] [INFO] [SYSTEM] Using estimated premium for CE: 117.34
+[2026-04-18 05:34:20 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=7627.10 | PASS
+[2026-04-18 05:34:20 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY7800CE at 117.34
+[2026-04-18 05:34:20 IST] [INFO] [ORDER] BUY CE | Strike=7800 | Price=117.34 | Qty=65 | Mode=paper
+[2026-04-18 05:34:20 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_CE at 117.34. Qty: 65, Target: 211.21, SL: 70.4
+[2026-04-18 05:36:24 IST] [INFO] [SYSTEM] Supertrend flipped to DOWN → Early exit triggered
+[2026-04-18 05:36:24 IST] [INFO] [ORDER] [2015-09-09 13:37:00] EXIT | Reason=manual | P&L=-315.25
+[2026-04-18 05:38:18 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 05:38:33 IST] [INFO] [SYSTEM] ORB calculated: High=7821.15 Low=7678.6 Range=142.55
+[2026-04-18 05:38:33 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 05:44:36 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 05:44:51 IST] [INFO] [SYSTEM] ORB calculated: High=7864.75 Low=7678.6 Range=186.15
+[2026-04-18 05:44:51 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 05:50:53 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 05:51:09 IST] [INFO] [SYSTEM] ORB calculated: High=7864.75 Low=7770.15 Range=94.6
+[2026-04-18 05:51:09 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 05:51:12 IST] [INFO] [SYSTEM] Using estimated premium for PE: 116.46
+[2026-04-18 05:51:12 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=7569.90 | PASS
+[2026-04-18 05:51:12 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY7750PE at 116.46
+[2026-04-18 05:51:12 IST] [INFO] [ORDER] BUY PE | Strike=7750 | Price=116.46 | Qty=65 | Mode=paper
+[2026-04-18 05:51:12 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 116.46. Qty: 65, Target: 209.63, SL: 69.88
+[2026-04-18 05:52:23 IST] [INFO] [SYSTEM] Supertrend flipped to UP → Early exit triggered
+[2026-04-18 05:52:23 IST] [INFO] [ORDER] [2015-09-14 10:44:01] EXIT | Reason=manual | P&L=-1993.55
+[2026-04-18 05:57:11 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 05:57:25 IST] [INFO] [SYSTEM] ORB calculated: High=7875.7 Low=7770.15 Range=105.55
+[2026-04-18 05:57:25 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 05:57:26 IST] [INFO] [SYSTEM] Using estimated premium for CE: 118.18
+[2026-04-18 05:57:26 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=7681.70 | PASS
+[2026-04-18 05:57:26 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY7900CE at 118.18
+[2026-04-18 05:57:26 IST] [INFO] [ORDER] BUY CE | Strike=7900 | Price=118.18 | Qty=65 | Mode=paper
+[2026-04-18 05:57:26 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_CE at 118.18. Qty: 65, Target: 212.72, SL: 70.91
+[2026-04-18 05:57:38 IST] [INFO] [SYSTEM] Supertrend flipped to DOWN → Early exit triggered
+[2026-04-18 05:57:38 IST] [INFO] [ORDER] [2015-09-15 09:42:00] EXIT | Reason=manual | P&L=-1082.25
+[2026-04-18 06:03:28 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 06:03:43 IST] [INFO] [SYSTEM] ORB calculated: High=7886.2 Low=7845.35 Range=40.85
+[2026-04-18 06:03:43 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 06:04:03 IST] [INFO] [SYSTEM] Using estimated premium for CE: 118.3
+[2026-04-18 06:04:03 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=7689.50 | PASS
+[2026-04-18 06:04:03 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY7900CE at 118.3
+[2026-04-18 06:04:03 IST] [INFO] [ORDER] BUY CE | Strike=7900 | Price=118.30 | Qty=65 | Mode=paper
+[2026-04-18 06:04:03 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_CE at 118.3. Qty: 65, Target: 212.94, SL: 70.98
+[2026-04-18 06:08:32 IST] [INFO] [SYSTEM] Supertrend flipped to DOWN → Early exit triggered
+[2026-04-18 06:08:32 IST] [INFO] [ORDER] [2015-09-16 14:16:00] EXIT | Reason=manual | P&L=+136.50
+[2026-04-18 06:09:45 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 06:10:00 IST] [INFO] [SYSTEM] ORB calculated: High=7997.3 Low=7864.0 Range=133.3
+[2026-04-18 06:10:00 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 06:10:11 IST] [INFO] [SYSTEM] Using estimated premium for CE: 120.0
+[2026-04-18 06:10:11 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=7800.00 | PASS
+[2026-04-18 06:10:11 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8000CE at 120.0
+[2026-04-18 06:10:11 IST] [INFO] [ORDER] BUY CE | Strike=8000 | Price=120.00 | Qty=65 | Mode=paper
+[2026-04-18 06:10:11 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_CE at 120.0. Qty: 65, Target: 216.0, SL: 72.0
+[2026-04-18 06:13:16 IST] [INFO] [SYSTEM] Supertrend flipped to DOWN → Early exit triggered
+[2026-04-18 06:13:16 IST] [INFO] [ORDER] [2015-09-18 12:45:00] EXIT | Reason=manual | P&L=+1060.80
+[2026-04-18 06:16:01 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 06:16:17 IST] [INFO] [SYSTEM] ORB calculated: High=7997.3 Low=7909.0 Range=88.3
+[2026-04-18 06:16:17 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 06:22:19 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 06:22:34 IST] [INFO] [SYSTEM] ORB calculated: High=8021.4 Low=7909.0 Range=112.4
+[2026-04-18 06:22:34 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 06:26:57 IST] [INFO] [SYSTEM] Using estimated premium for PE: 118.56
+[2026-04-18 06:26:57 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=7706.40 | PASS
+[2026-04-18 06:26:57 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY7900PE at 118.56
+[2026-04-18 06:26:57 IST] [INFO] [ORDER] BUY PE | Strike=7900 | Price=118.56 | Qty=65 | Mode=paper
+[2026-04-18 06:26:57 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 118.56. Qty: 65, Target: 213.41, SL: 71.14
+[2026-04-18 06:28:22 IST] [INFO] [ORDER] [2015-09-22 15:15:00] EXIT | Reason=squareoff | P&L=+2882.75
+[2026-04-18 06:28:22 IST] [INFO] [SYSTEM] Auto square-off executed at 3:15 PM IST
+[2026-04-18 06:28:36 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 06:28:51 IST] [INFO] [SYSTEM] ORB calculated: High=8021.4 Low=7723.35 Range=298.05
+[2026-04-18 06:28:51 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 06:34:52 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 06:35:07 IST] [INFO] [SYSTEM] ORB calculated: High=7848.35 Low=7723.35 Range=125.0
+[2026-04-18 06:35:07 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 06:37:38 IST] [INFO] [SYSTEM] Using estimated premium for CE: 117.74
+[2026-04-18 06:37:38 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=7653.10 | PASS
+[2026-04-18 06:37:38 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY7850CE at 117.74
+[2026-04-18 06:37:38 IST] [INFO] [ORDER] BUY CE | Strike=7850 | Price=117.74 | Qty=65 | Mode=paper
+[2026-04-18 06:37:38 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_CE at 117.74. Qty: 65, Target: 211.93, SL: 70.64
+[2026-04-18 06:38:38 IST] [INFO] [SYSTEM] Supertrend flipped to DOWN → Early exit triggered
+[2026-04-18 06:38:38 IST] [INFO] [ORDER] [2015-09-24 13:00:01] EXIT | Reason=manual | P&L=-733.20
+[2026-04-18 06:39:11 IST] [INFO] [SYSTEM] Using estimated premium for CE: 117.79
+[2026-04-18 06:39:11 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=7656.35 | PASS
+[2026-04-18 06:39:11 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY7850CE at 117.79
+[2026-04-18 06:39:11 IST] [INFO] [ORDER] BUY CE | Strike=7850 | Price=117.79 | Qty=65 | Mode=paper
+[2026-04-18 06:39:11 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_CE at 117.79. Qty: 65, Target: 212.02, SL: 70.67
+[2026-04-18 06:40:55 IST] [INFO] [ORDER] [2015-09-24 15:15:00] EXIT | Reason=squareoff | P&L=+382.20
+[2026-04-18 06:40:55 IST] [INFO] [SYSTEM] Auto square-off executed at 3:15 PM IST
+[2026-04-18 06:41:09 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 06:41:25 IST] [INFO] [SYSTEM] ORB calculated: High=7892.8 Low=7819.45 Range=73.35
+[2026-04-18 06:41:25 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 06:47:27 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 06:47:42 IST] [INFO] [SYSTEM] ORB calculated: High=7892.8 Low=7701.4 Range=191.4
+[2026-04-18 06:47:42 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 06:48:46 IST] [INFO] [SYSTEM] Using estimated premium for PE: 115.4
+[2026-04-18 06:48:46 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=7501.00 | PASS
+[2026-04-18 06:48:46 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY7700PE at 115.4
+[2026-04-18 06:48:46 IST] [INFO] [ORDER] BUY PE | Strike=7700 | Price=115.40 | Qty=65 | Mode=paper
+[2026-04-18 06:48:46 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 115.4. Qty: 65, Target: 207.72, SL: 69.24
+[2026-04-18 06:49:13 IST] [INFO] [SYSTEM] Option Premium SL Hit: 62.0 <= 69.24
+[2026-04-18 06:49:13 IST] [INFO] [ORDER] [2015-09-29 11:01:00] EXIT | Reason=stoploss | P&L=-3471.00
+[2026-04-18 06:52:13 IST] [INFO] [SYSTEM] Using estimated premium for CE: 118.4
+[2026-04-18 06:52:13 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=7696.00 | PASS
+[2026-04-18 06:52:13 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY7900CE at 118.4
+[2026-04-18 06:52:13 IST] [INFO] [ORDER] BUY CE | Strike=7900 | Price=118.40 | Qty=65 | Mode=paper
+[2026-04-18 06:52:13 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_CE at 118.4. Qty: 65, Target: 213.12, SL: 71.04
+[2026-04-18 06:53:08 IST] [INFO] [SYSTEM] Supertrend flipped to DOWN → Early exit triggered
+[2026-04-18 06:53:08 IST] [INFO] [ORDER] [2015-09-29 14:54:00] EXIT | Reason=manual | P&L=-536.25
+[2026-04-18 06:53:44 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 06:54:00 IST] [INFO] [SYSTEM] ORB calculated: High=7924.25 Low=7701.4 Range=222.85
+[2026-04-18 06:54:00 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 07:00:02 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 07:00:17 IST] [INFO] [SYSTEM] ORB calculated: High=8008.0 Low=7895.0 Range=113.0
+[2026-04-18 07:00:17 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 07:06:19 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 07:06:35 IST] [INFO] [SYSTEM] ORB calculated: High=8048.1 Low=7982.2 Range=65.9
+[2026-04-18 07:06:35 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 07:06:35 IST] [INFO] [SYSTEM] Using estimated premium for CE: 120.83
+[2026-04-18 07:06:35 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=7853.95 | PASS
+[2026-04-18 07:06:35 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8050CE at 120.83
+[2026-04-18 07:06:35 IST] [INFO] [ORDER] BUY CE | Strike=8050 | Price=120.83 | Qty=65 | Mode=paper
+[2026-04-18 07:06:35 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_CE at 120.83. Qty: 65, Target: 217.49, SL: 72.5
+[2026-04-18 07:12:22 IST] [INFO] [ORDER] [2015-10-05 15:15:01] EXIT | Reason=squareoff | P&L=+2050.75
+[2026-04-18 07:12:22 IST] [INFO] [SYSTEM] Auto square-off executed at 3:15 PM IST
+[2026-04-18 07:12:37 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 07:12:52 IST] [INFO] [SYSTEM] ORB calculated: High=8180.45 Low=8008.45 Range=172.0
+[2026-04-18 07:12:52 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 07:18:55 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 07:19:10 IST] [INFO] [SYSTEM] ORB calculated: High=8180.45 Low=8130.1 Range=50.35
+[2026-04-18 07:19:10 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 07:19:58 IST] [INFO] [SYSTEM] Using estimated premium for CE: 122.73
+[2026-04-18 07:19:58 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=7977.45 | PASS
+[2026-04-18 07:19:58 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8200CE at 122.73
+[2026-04-18 07:19:58 IST] [INFO] [ORDER] BUY CE | Strike=8200 | Price=122.73 | Qty=65 | Mode=paper
+[2026-04-18 07:19:58 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_CE at 122.73. Qty: 65, Target: 220.91, SL: 73.64
+[2026-04-18 07:21:33 IST] [INFO] [SYSTEM] Supertrend flipped to DOWN → Early exit triggered
+[2026-04-18 07:21:33 IST] [INFO] [ORDER] [2015-10-07 11:52:01] EXIT | Reason=manual | P&L=-757.25
+[2026-04-18 07:25:13 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 07:25:28 IST] [INFO] [SYSTEM] ORB calculated: High=8196.75 Low=8133.95 Range=62.8
+[2026-04-18 07:25:28 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 07:27:27 IST] [INFO] [SYSTEM] Using estimated premium for PE: 121.99
+[2026-04-18 07:27:27 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=7929.35 | PASS
+[2026-04-18 07:27:27 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8150PE at 121.99
+[2026-04-18 07:27:27 IST] [INFO] [ORDER] BUY PE | Strike=8150 | Price=121.99 | Qty=65 | Mode=paper
+[2026-04-18 07:27:27 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 121.99. Qty: 65, Target: 219.58, SL: 73.19
+[2026-04-18 07:29:43 IST] [INFO] [SYSTEM] Supertrend flipped to UP → Early exit triggered
+[2026-04-18 07:29:43 IST] [INFO] [ORDER] [2015-10-08 13:44:00] EXIT | Reason=manual | P&L=-174.20
+[2026-04-18 07:30:29 IST] [INFO] [SYSTEM] Using estimated premium for PE: 121.6
+[2026-04-18 07:30:29 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=7904.00 | PASS
+[2026-04-18 07:30:29 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8100PE at 121.6
+[2026-04-18 07:30:29 IST] [INFO] [ORDER] BUY PE | Strike=8100 | Price=121.60 | Qty=65 | Mode=paper
+[2026-04-18 07:30:29 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 121.6. Qty: 65, Target: 218.88, SL: 72.96
+[2026-04-18 07:30:54 IST] [INFO] [SYSTEM] Supertrend flipped to UP → Early exit triggered
+[2026-04-18 07:30:54 IST] [INFO] [ORDER] [2015-10-08 14:54:00] EXIT | Reason=manual | P&L=-913.25
+[2026-04-18 07:31:30 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 07:31:45 IST] [INFO] [SYSTEM] ORB calculated: High=8223.9 Low=8160.2 Range=63.7
+[2026-04-18 07:31:45 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 07:32:34 IST] [INFO] [SYSTEM] Using estimated premium for CE: 123.38
+[2026-04-18 07:32:34 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8019.70 | PASS
+[2026-04-18 07:32:34 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8250CE at 123.38
+[2026-04-18 07:32:34 IST] [INFO] [ORDER] BUY CE | Strike=8250 | Price=123.38 | Qty=65 | Mode=paper
+[2026-04-18 07:32:34 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_CE at 123.38. Qty: 65, Target: 222.08, SL: 74.03
+[2026-04-18 07:33:16 IST] [INFO] [SYSTEM] Supertrend flipped to DOWN → Early exit triggered
+[2026-04-18 07:33:16 IST] [INFO] [ORDER] [2015-10-09 11:00:01] EXIT | Reason=manual | P&L=-729.30
+[2026-04-18 07:35:08 IST] [INFO] [SYSTEM] Using estimated premium for PE: 122.37
+[2026-04-18 07:35:08 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=7954.05 | PASS
+[2026-04-18 07:35:08 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8150PE at 122.37
+[2026-04-18 07:35:08 IST] [INFO] [ORDER] BUY PE | Strike=8150 | Price=122.37 | Qty=65 | Mode=paper
+[2026-04-18 07:35:08 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 122.37. Qty: 65, Target: 220.27, SL: 73.42
+[2026-04-18 07:36:52 IST] [INFO] [SYSTEM] Supertrend flipped to UP → Early exit triggered
+[2026-04-18 07:36:52 IST] [INFO] [ORDER] [2015-10-09 14:35:00] EXIT | Reason=manual | P&L=-702.00
+[2026-04-18 07:37:47 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 07:38:03 IST] [INFO] [SYSTEM] ORB calculated: High=8243.95 Low=8176.6 Range=67.35
+[2026-04-18 07:38:03 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 07:40:07 IST] [INFO] [SYSTEM] Using estimated premium for PE: 122.64
+[2026-04-18 07:40:07 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=7971.60 | PASS
+[2026-04-18 07:40:07 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8200PE at 122.64
+[2026-04-18 07:40:07 IST] [INFO] [ORDER] BUY PE | Strike=8200 | Price=122.64 | Qty=65 | Mode=paper
+[2026-04-18 07:40:07 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 122.64. Qty: 65, Target: 220.75, SL: 73.58
+[2026-04-18 07:41:31 IST] [INFO] [SYSTEM] Supertrend flipped to UP → Early exit triggered
+[2026-04-18 07:41:31 IST] [INFO] [ORDER] [2015-10-12 12:57:00] EXIT | Reason=manual | P&L=-687.70
+[2026-04-18 07:42:27 IST] [INFO] [SYSTEM] Using estimated premium for PE: 122.62
+[2026-04-18 07:42:27 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=7970.30 | PASS
+[2026-04-18 07:42:27 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8150PE at 122.62
+[2026-04-18 07:42:27 IST] [INFO] [ORDER] BUY PE | Strike=8150 | Price=122.62 | Qty=65 | Mode=paper
+[2026-04-18 07:42:27 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 122.62. Qty: 65, Target: 220.72, SL: 73.57
+[2026-04-18 07:43:50 IST] [INFO] [ORDER] [2015-10-12 15:15:00] EXIT | Reason=squareoff | P&L=+994.50
+[2026-04-18 07:43:50 IST] [INFO] [SYSTEM] Auto square-off executed at 3:15 PM IST
+[2026-04-18 07:44:05 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 07:44:20 IST] [INFO] [SYSTEM] ORB calculated: High=8243.95 Low=8121.7 Range=122.25
+[2026-04-18 07:44:20 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 07:44:27 IST] [INFO] [SYSTEM] Using estimated premium for PE: 121.82
+[2026-04-18 07:44:28 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=7918.30 | PASS
+[2026-04-18 07:44:28 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8100PE at 121.82
+[2026-04-18 07:44:28 IST] [INFO] [ORDER] BUY PE | Strike=8100 | Price=121.82 | Qty=65 | Mode=paper
+[2026-04-18 07:44:28 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 121.82. Qty: 65, Target: 219.28, SL: 73.09
+[2026-04-18 07:47:19 IST] [INFO] [SYSTEM] Supertrend flipped to UP → Early exit triggered
+[2026-04-18 07:47:19 IST] [INFO] [ORDER] [2015-10-13 12:28:01] EXIT | Reason=manual | P&L=-471.25
+[2026-04-18 07:47:44 IST] [INFO] [SYSTEM] Using estimated premium for PE: 121.68
+[2026-04-18 07:47:44 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=7909.20 | PASS
+[2026-04-18 07:47:44 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8100PE at 121.68
+[2026-04-18 07:47:44 IST] [INFO] [ORDER] BUY PE | Strike=8100 | Price=121.68 | Qty=65 | Mode=paper
+[2026-04-18 07:47:44 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 121.68. Qty: 65, Target: 219.02, SL: 73.01
+[2026-04-18 07:49:53 IST] [INFO] [SYSTEM] Supertrend flipped to UP → Early exit triggered
+[2026-04-18 07:49:53 IST] [INFO] [ORDER] [2015-10-13 15:01:00] EXIT | Reason=manual | P&L=-240.50
+[2026-04-18 07:50:23 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 07:50:38 IST] [INFO] [SYSTEM] ORB calculated: High=8150.15 Low=8096.9 Range=53.25
+[2026-04-18 07:50:38 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 07:56:41 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 07:56:56 IST] [INFO] [SYSTEM] ORB calculated: High=8161.0 Low=8096.9 Range=64.1
+[2026-04-18 07:56:56 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 07:57:21 IST] [INFO] [SYSTEM] Using estimated premium for CE: 122.61
+[2026-04-18 07:57:21 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=7969.65 | PASS
+[2026-04-18 07:57:21 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8150CE at 122.61
+[2026-04-18 07:57:21 IST] [INFO] [ORDER] BUY CE | Strike=8150 | Price=122.61 | Qty=65 | Mode=paper
+[2026-04-18 07:57:21 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_CE at 122.61. Qty: 65, Target: 220.7, SL: 73.57
+[2026-04-18 08:01:40 IST] [INFO] [SYSTEM] Supertrend flipped to DOWN → Early exit triggered
+[2026-04-18 08:01:40 IST] [INFO] [ORDER] [2015-10-15 14:13:00] EXIT | Reason=manual | P&L=-120.25
+[2026-04-18 08:02:58 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 08:03:13 IST] [INFO] [SYSTEM] ORB calculated: High=8195.95 Low=8130.85 Range=65.1
+[2026-04-18 08:03:13 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 08:08:00 IST] [INFO] [SYSTEM] Using estimated premium for CE: 122.96
+[2026-04-18 08:08:00 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=7992.40 | PASS
+[2026-04-18 08:08:00 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8200CE at 122.96
+[2026-04-18 08:08:00 IST] [INFO] [ORDER] BUY CE | Strike=8200 | Price=122.96 | Qty=65 | Mode=paper
+[2026-04-18 08:08:00 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_CE at 122.96. Qty: 65, Target: 221.33, SL: 73.78
+[2026-04-18 08:09:00 IST] [INFO] [ORDER] [2015-10-16 15:15:00] EXIT | Reason=squareoff | P&L=+1218.75
+[2026-04-18 08:09:00 IST] [INFO] [SYSTEM] Auto square-off executed at 3:15 PM IST
+[2026-04-18 08:09:15 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 08:09:31 IST] [INFO] [SYSTEM] ORB calculated: High=8263.45 Low=8164.7 Range=98.75
+[2026-04-18 08:09:31 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 08:12:36 IST] [INFO] [SYSTEM] Using estimated premium for CE: 123.98
+[2026-04-18 08:12:36 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8058.70 | PASS
+[2026-04-18 08:12:36 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8250CE at 123.98
+[2026-04-18 08:12:36 IST] [INFO] [ORDER] BUY CE | Strike=8250 | Price=123.98 | Qty=65 | Mode=paper
+[2026-04-18 08:12:36 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_CE at 123.98. Qty: 65, Target: 223.16, SL: 74.39
+[2026-04-18 08:13:36 IST] [INFO] [SYSTEM] Supertrend flipped to DOWN → Early exit triggered
+[2026-04-18 08:13:36 IST] [INFO] [ORDER] [2015-10-19 13:34:00] EXIT | Reason=manual | P&L=-141.70
+[2026-04-18 08:15:33 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 08:15:48 IST] [INFO] [SYSTEM] ORB calculated: High=8281.3 Low=8239.5 Range=41.8
+[2026-04-18 08:15:48 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 08:16:32 IST] [INFO] [SYSTEM] Using estimated premium for CE: 124.25
+[2026-04-18 08:16:32 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8076.25 | PASS
+[2026-04-18 08:16:32 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8300CE at 124.25
+[2026-04-18 08:16:32 IST] [INFO] [ORDER] BUY CE | Strike=8300 | Price=124.25 | Qty=65 | Mode=paper
+[2026-04-18 08:16:32 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_CE at 124.25. Qty: 65, Target: 223.65, SL: 74.55
+[2026-04-18 08:19:59 IST] [INFO] [SYSTEM] Supertrend flipped to DOWN → Early exit triggered
+[2026-04-18 08:19:59 IST] [INFO] [ORDER] [2015-10-20 13:40:00] EXIT | Reason=manual | P&L=-258.05
+[2026-04-18 08:21:51 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 08:22:05 IST] [INFO] [SYSTEM] ORB calculated: High=8281.3 Low=8256.85 Range=24.45
+[2026-04-18 08:22:05 IST] [WARNING] [SYSTEM] ORB status: TOO_FLAT (range=24.45), skipping today
+[2026-04-18 08:28:08 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 08:28:23 IST] [INFO] [SYSTEM] ORB calculated: High=8327.05 Low=8256.85 Range=70.2
+[2026-04-18 08:28:23 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 08:34:26 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 08:34:40 IST] [INFO] [SYSTEM] ORB calculated: High=8335.35 Low=8308.25 Range=27.1
+[2026-04-18 08:34:40 IST] [WARNING] [SYSTEM] ORB status: TOO_FLAT (range=27.1), skipping today
+[2026-04-18 08:40:43 IST] [INFO] [SYSTEM] ORB building started
+[2026-04-18 08:40:58 IST] [INFO] [SYSTEM] ORB calculated: High=8335.35 Low=8227.9 Range=107.45
+[2026-04-18 08:40:58 IST] [INFO] [SYSTEM] ORB status: READY for trading
+[2026-04-18 08:42:00 IST] [INFO] [SYSTEM] Using estimated premium for PE: 123.37
+[2026-04-18 08:42:00 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8019.05 | PASS
+[2026-04-18 08:42:00 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8200PE at 123.37
+[2026-04-18 08:42:00 IST] [INFO] [ORDER] BUY PE | Strike=8200 | Price=123.37 | Qty=65 | Mode=paper
+[2026-04-18 08:42:00 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 123.37. Qty: 65, Target: 222.07, SL: 74.02
+[2026-04-18 08:43:07 IST] [INFO] [SYSTEM] Supertrend flipped to UP → Early exit triggered
+[2026-04-18 08:43:07 IST] [INFO] [ORDER] [2015-10-27 11:38:01] EXIT | Reason=manual | P&L=-331.50
+[2026-04-18 08:45:58 IST] [INFO] [SYSTEM] Using estimated premium for PE: 123.31
+[2026-04-18 08:45:58 IST] [INFO] [SYSTEM] Margin Check | Available=100000.00 | Required=8015.15 | PASS
+[2026-04-18 08:45:58 IST] [INFO] [SYSTEM] Paper trade: Simulated fill for NIFTY8200PE at 123.31
+[2026-04-18 08:45:58 IST] [INFO] [ORDER] BUY PE | Strike=8200 | Price=123.31 | Qty=65 | Mode=paper
+[2026-04-18 08:45:58 IST] [INFO] [SYSTEM] ORB Trade Entry: BUY_PE at 123.31. Qty: 65, Target: 221.96, SL: 73.99
+[2026-04-18 08:46:33 IST] [INFO] [SYSTEM] Supertrend flipped to UP → Early exit triggered
+[2026-04-18 08:46:33 IST] [INFO] [ORDER] [2015-10-27 15:03:01] EXIT | Reason=manual | P&L=-494.00
+[2026-04-18 08:46:40 IST] [INFO] [SYSTEM] Bot STOPPED
+[2026-04-18 08:46:41 IST] [INFO] [SYSTEM] CSV playback completed
+[2026-04-18 08:46:42 IST] [INFO] [SYSTEM] Bot STARTED
+[2026-04-18 08:46:42 IST] [INFO] [SYSTEM] Starting CSV playback from /Users/shreyasms/Documents/TradingWebsite/trading-app/bot/data/nifty_sample.csv
+[2026-04-18 08:46:42 IST] [INFO] [SYSTEM] Bot STARTED | Market status: Market closed: Saturday (weekend)
+[2026-04-18 08:46:43 IST] [INFO] [SYSTEM] ORB building started

@@ -22,9 +22,9 @@ export default function Chart({ data }: ChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
-  const emaFastLineRef = useRef<ISeriesApi<'Line'> | null>(null);
-  const emaSlowLineRef = useRef<ISeriesApi<'Line'> | null>(null);
-  const vwapLineRef = useRef<ISeriesApi<'Line'> | null>(null);
+  const stLineRef = useRef<ISeriesApi<'Line'> | null>(null);
+  const orbHighRef = useRef<ISeriesApi<'Line'> | null>(null);
+  const orbLowRef = useRef<ISeriesApi<'Line'> | null>(null);
   const [initialized, setInitialized] = useState(false);
 
   const initChart = useCallback(() => {
@@ -59,6 +59,41 @@ export default function Chart({ data }: ChartProps) {
         borderColor: '#1a1a2e',
         timeVisible: true,
         secondsVisible: false,
+        tickMarkFormatter: (time: number, tickMarkType: number, locale: string) => {
+          const date = new Date(time * 1000);
+          const options: Intl.DateTimeFormatOptions = {
+            timeZone: 'Asia/Kolkata',
+            hour12: false,
+          };
+
+          // TickMarkType: 0=Year, 1=Month, 2=Day, 3=Time, 4=TimeWithSeconds
+          if (tickMarkType < 3) {
+            return new Intl.DateTimeFormat(locale, {
+              ...options,
+              day: '2-digit',
+              month: 'short',
+            }).format(date);
+          } else {
+            return new Intl.DateTimeFormat(locale, {
+              ...options,
+              hour: '2-digit',
+              minute: '2-digit',
+            }).format(date);
+          }
+        },
+      },
+      localization: {
+        locale: 'en-IN',
+        timeFormatter: (time: number) => {
+          const date = new Date(time * 1000);
+          return date.toLocaleTimeString('en-IN', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false,
+            timeZone: 'Asia/Kolkata'
+          });
+        },
+        priceFormatter: (price: number) => price.toFixed(2),
       },
       width: chartContainerRef.current.clientWidth,
       height: 400,
@@ -74,36 +109,36 @@ export default function Chart({ data }: ChartProps) {
       wickDownColor: '#ef4444',
     });
 
-    // EMA 9 (Fast) - Cyan
-    const emaFastLine = chart.addSeries(LineSeries, {
-      color: '#06b6d4',
+    // Supertrend Line
+    const stLine = chart.addSeries(LineSeries, {
+      color: '#22c55e',
       lineWidth: 2,
-      title: 'EMA 9',
+      title: 'Supertrend',
     });
 
-    // EMA 21 (Slow) - Yellow
-    const emaSlowLine = chart.addSeries(LineSeries, {
-      color: '#eab308',
-      lineWidth: 2,
-      title: 'EMA 21',
+    // ORB High - Green Dashed
+    const orbHigh = chart.addSeries(LineSeries, {
+      color: '#22c55e',
+      lineWidth: 1,
+      lineStyle: 2, // Dashed
+      title: 'ORB High',
     });
 
-    // VWAP - Magenta
-    const vwapLine = chart.addSeries(LineSeries, {
-      color: '#d946ef',
-      lineWidth: 2,
-      lineStyle: 2,
-      title: 'VWAP',
+    // ORB Low - Red Dashed
+    const orbLow = chart.addSeries(LineSeries, {
+      color: '#ef4444',
+      lineWidth: 1,
+      lineStyle: 2, // Dashed
+      title: 'ORB Low',
     });
 
     chartRef.current = chart;
     candleSeriesRef.current = candleSeries;
-    emaFastLineRef.current = emaFastLine;
-    emaSlowLineRef.current = emaSlowLine;
-    vwapLineRef.current = vwapLine;
+    stLineRef.current = stLine;
+    orbHighRef.current = orbHigh;
+    orbLowRef.current = orbLow;
     setInitialized(true);
 
-    // Resize handler
     const handleResize = () => {
       if (chartContainerRef.current) {
         chart.applyOptions({ width: chartContainerRef.current.clientWidth });
@@ -133,19 +168,18 @@ export default function Chart({ data }: ChartProps) {
       candleSeriesRef.current.setData(data.candles as CandlestickData<Time>[]);
     }
 
-    if (data.ema_fast && data.ema_fast.length > 0 && emaFastLineRef.current) {
-      emaFastLineRef.current.setData(data.ema_fast as LineData<Time>[]);
+    if (data.supertrend && data.supertrend.length > 0 && stLineRef.current) {
+      stLineRef.current.setData(data.supertrend as LineData<Time>[]);
     }
 
-    if (data.ema_slow && data.ema_slow.length > 0 && emaSlowLineRef.current) {
-      emaSlowLineRef.current.setData(data.ema_slow as LineData<Time>[]);
+    if (data.orb_high && data.orb_high.length > 0 && orbHighRef.current) {
+      orbHighRef.current.setData(data.orb_high as LineData<Time>[]);
     }
 
-    if (data.vwap && data.vwap.length > 0 && vwapLineRef.current) {
-      vwapLineRef.current.setData(data.vwap as LineData<Time>[]);
+    if (data.orb_low && data.orb_low.length > 0 && orbLowRef.current) {
+      orbLowRef.current.setData(data.orb_low as LineData<Time>[]);
     }
 
-    // Auto-scroll to latest
     if (chartRef.current) {
       chartRef.current.timeScale().scrollToRealTime();
     }
@@ -154,11 +188,11 @@ export default function Chart({ data }: ChartProps) {
   return (
     <div className="chart-container">
       <div className="chart-header">
-        <h3>NIFTY 50 — 5 Min Chart</h3>
+        <h3>NIFTY 50 — ORB + Supertrend</h3>
         <div className="chart-legend">
-          <span className="legend-item" style={{ color: '#06b6d4' }}>● EMA 9</span>
-          <span className="legend-item" style={{ color: '#eab308' }}>● EMA 21</span>
-          <span className="legend-item" style={{ color: '#d946ef' }}>● VWAP</span>
+          <span className="legend-item" style={{ color: '#22c55e' }}>● Supertrend</span>
+          <span className="legend-item" style={{ color: '#22c55e', borderBottom: '1px dashed #22c55e' }}>ORB High</span>
+          <span className="legend-item" style={{ color: '#ef4444', borderBottom: '1px dashed #ef4444' }}>ORB Low</span>
         </div>
       </div>
       <div ref={chartContainerRef} className="chart-canvas" />

@@ -1,5 +1,15 @@
 # Nifty 50 Trading Dashboard
 IOAACBWQHXLGAGZ3URYN3CWAOE
+
+Target Multiplier: 1.3
+SL Multiplier: 0.9
+
+Option Target: 30%
+Option SL: 18%
+
+Trailing SL: ON
+Trailing SL %: 12%
+
 A professional, full-stack automated trading dashboard for Nifty 50 Options (CE/PE) built with **Next.js 14**, **Python FastAPI**, and **Angel One SmartAPI**.
 
 ## 🚀 Features
