@@ -9,25 +9,29 @@ import ConnectionStatus from '@/components/ConnectionStatus';
 import LogViewer from '@/components/LogViewer';
 import TradeModeToggle from '@/components/TradeModeToggle';
 import TradeCard from '@/components/TradeCard';
+import StrategyFlow from '@/components/StrategyFlow';
 import { api } from '@/lib/api';
-import type { BotStatus, ChartData } from '@/lib/types';
+import type { BotStatus, ChartData, Signal } from '@/lib/types';
 
 // Dynamic import for Chart (client-only, uses Canvas)
 const Chart = dynamic(() => import('@/components/Chart'), { ssr: false });
 
 export default function DashboardPage() {
   const [status, setStatus] = useState<BotStatus | null>(null);
+  const [signalInfo, setSignalInfo] = useState<Signal | null>(null);
   const [chartData, setChartData] = useState<ChartData | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
     try {
-      const [statusRes, candlesRes] = await Promise.all([
+      const [statusRes, candlesRes, signalRes] = await Promise.all([
         api.getBotStatus(),
         api.getCandles(),
+        api.getSignal(),
       ]);
       setStatus(statusRes);
       setChartData(candlesRes);
+      setSignalInfo(signalRes);
     } catch {
       // Bot server not available
     } finally {
@@ -65,33 +69,66 @@ export default function DashboardPage() {
 
   const priceInfo = status?.price || {} as Record<string, unknown>;
   const mode = status?.mode || 'paper';
+  const phase = status?.phase || 'WATCHING';
 
   return (
     <>
       <TradeModeToggle mode={mode} onToggle={handleModeToggle} />
       <div className="page-container">
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>
-            Loading dashboard...
+          <div className="flex items-center justify-center p-16 text-gray-400">
+            <span className="animate-pulse">Loading dashboard...</span>
           </div>
         ) : (
           <>
             <div className="dashboard-grid">
               <div className="dashboard-left">
-                {/* Chart */}
-                <Chart data={chartData} />
+                {/* Chart Area */}
+                <div className="flex flex-col gap-4">
+                  <Chart data={chartData} />
+                  
+                  {/* Info Cards Row */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="stat-info-card">
+                       <span className="info-label">ORB RANGE</span>
+                       <span className="info-value">{signalInfo?.orb_range?.toFixed(2) || '0.00'} pts</span>
+                       <span className={`info-sub ${signalInfo?.orb_status === 'READY' ? 'text-green-500' : 'text-blue-400'}`}>
+                         {signalInfo?.orb_status || '--'}
+                       </span>
+                    </div>
+                    <div className="stat-info-card">
+                       <span className="info-label">MACD STATUS</span>
+                       <span className="info-value">
+                         {signalInfo?.macd?.histogram?.toFixed(4) || '0.000'}
+                       </span>
+                       <span className={`info-sub ${signalInfo?.macd?.is_bullish ? 'text-green-500' : 'text-red-500'}`}>
+                         {signalInfo?.macd?.is_bullish ? 'BULLISH' : 'BEARISH'}
+                       </span>
+                    </div>
+                    <div className="stat-info-card">
+                       <span className="info-label">BREAKOUT</span>
+                       <span className="info-value">
+                         {signalInfo?.breakout_price?.toFixed(2) || '---'}
+                       </span>
+                       <span className={`info-sub ${signalInfo?.breakout_direction === 'UP' ? 'text-green-500' : signalInfo?.breakout_direction === 'DOWN' ? 'text-red-500' : 'text-gray-500'}`}>
+                         {signalInfo?.breakout_direction === 'UP' ? 'UPWARD' : signalInfo?.breakout_direction === 'DOWN' ? 'DOWNWARD' : 'WATCHING'}
+                       </span>
+                    </div>
+                  </div>
 
-                {/* Stats Grid */}
-                <StatsGrid
-                  todayPnl={status?.today_pnl || 0}
-                  totalTrades={status?.today_trades || 0}
-                  winRate={status?.win_rate || 0}
-                  wins={status?.wins || 0}
-                  losses={status?.losses || 0}
-                  totalAllTimePnl={status?.total_pnl || 0}
-                  totalAllTimeTrades={status?.total_trades || 0}
-                  mode={mode}
-                />
+                  {/* Stats Grid */}
+                  <StatsGrid
+                    todayPnl={status?.today_pnl || 0}
+                    totalTrades={status?.today_trades || 0}
+                    winRate={status?.win_rate || 0}
+                    wins={status?.wins || 0}
+                    losses={status?.losses || 0}
+                    totalAllTimePnl={status?.total_pnl || 0}
+                    totalAllTimeTrades={status?.total_trades || 0}
+                    allTimeWinRate={status?.all_time_win_rate || 0}
+                    mode={mode}
+                  />
+                </div>
               </div>
 
               <div className="dashboard-right">
@@ -103,6 +140,9 @@ export default function DashboardPage() {
                   connected={(priceInfo as { connected?: boolean }).connected || false}
                   simulation={(priceInfo as { simulation?: boolean }).simulation || true}
                 />
+
+                {/* Strategy Phase Tracker */}
+                <StrategyFlow phase={phase} strategyInfo={signalInfo} />
 
                 {/* Active Trade */}
                 <TradeCard 
@@ -142,6 +182,35 @@ export default function DashboardPage() {
           </>
         )}
       </div>
+
+      <style jsx>{`
+        .stat-info-card {
+          background: var(--bg-card);
+          border: 1px solid var(--border);
+          border-radius: 12px;
+          padding: 1rem;
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+        }
+        .info-label {
+          font-size: 0.65rem;
+          font-weight: 700;
+          color: var(--text-muted);
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+        .info-value {
+          font-size: 1.1rem;
+          font-family: 'JetBrains Mono', monospace;
+          font-weight: 700;
+          color: var(--text-primary);
+        }
+        .info-sub {
+          font-size: 0.7rem;
+          font-weight: 600;
+        }
+      `}</style>
     </>
   );
 }

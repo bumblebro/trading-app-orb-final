@@ -195,7 +195,10 @@ class DataFeed:
                             if close_key:
                                 self._process_tick(float(row[headers[close_key]]), volume=volume, override_time=row_time)
                         
-                        time.sleep(max(0.01, 1.0 / self.playback_speed))
+                        if self.playback_speed >= 500:
+                            pass # No sleep for MAX speed
+                        else:
+                            time.sleep(1.0 / self.playback_speed)
                         
                     except (ValueError, KeyError):
                         continue

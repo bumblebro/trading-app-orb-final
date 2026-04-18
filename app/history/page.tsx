@@ -66,73 +66,79 @@ export default function HistoryPage() {
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>Loading...</div>
+        <div className="flex items-center justify-center p-32 text-gray-500">
+           <span className="animate-pulse">Loading trade data...</span>
+        </div>
       ) : (
         <div className="trades-table-container">
           <table className="trades-table">
             <thead>
               <tr>
-                <th>Date</th>
-                <th>Time</th>
+                <th>Date/Time</th>
                 <th>Type</th>
                 <th>Strike</th>
+                <th>Breakout</th>
+                <th>Fib %</th>
+                <th>MACD</th>
                 <th>Entry</th>
                 <th>Exit</th>
                 <th>Qty</th>
                 <th>P&L</th>
+                <th>SL</th>
                 <th>Status</th>
-                <th>Reason</th>
-                <th>Mode</th>
               </tr>
             </thead>
             <tbody>
               {trades.length === 0 ? (
                 <tr>
-                  <td colSpan={11} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
+                  <td colSpan={12} style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
                     No trades found
                   </td>
                 </tr>
               ) : (
                 trades.map((trade) => (
                   <tr key={trade.id}>
-                    <td>{trade.date}</td>
-                    <td>{trade.time}</td>
-                    <td style={{ color: trade.type === 'CE' ? 'var(--green)' : 'var(--red)', fontWeight: 600 }}>
+                    <td>
+                      <div className="flex flex-col">
+                        <span className="font-bold">{trade.date}</span>
+                        <span className="text-[10px] text-gray-500">{trade.time}</span>
+                      </div>
+                    </td>
+                    <td style={{ color: trade.type === 'CE' ? 'var(--green)' : 'var(--red)', fontWeight: 800 }}>
                       {trade.type}
                     </td>
                     <td>{trade.strike_price}</td>
-                    <td>₹{trade.entry_price.toFixed(2)}</td>
+                    <td className="text-cyan-400">₹{trade.breakout_price?.toFixed(2) || '—'}</td>
+                    <td className="text-yellow-500">{trade.fib_entry_level || '—'}%</td>
+                    <td className={trade.macd_at_entry && trade.macd_at_entry >= 0 ? 'text-green-500' : 'text-red-500'}>
+                      {trade.macd_at_entry?.toFixed(4) || '—'}
+                    </td>
+                    <td className="font-bold">₹{trade.entry_price.toFixed(2)}</td>
                     <td>{trade.exit_price ? `₹${trade.exit_price.toFixed(2)}` : '—'}</td>
-                    <td>{trade.quantity}</td>
-                    <td className={trade.pnl >= 0 ? 'win' : 'loss'}>
-                      {trade.status !== 'open' ? `${trade.pnl >= 0 ? '+' : ''}₹${trade.pnl.toFixed(2)}` : '—'}
+                    <td>
+                      <div className="flex flex-col">
+                        <span>{trade.quantity}</span>
+                        <span className="text-[10px] text-gray-500">{trade.mode.toUpperCase()}</span>
+                      </div>
+                    </td>
+                    <td className={`font-bold ${trade.pnl >= 0 ? 'win' : 'loss'}`}>
+                      {trade.status !== 'open' ? `${trade.pnl >= 0 ? '+' : ''}₹${trade.pnl.toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '—'}
                     </td>
                     <td>
-                      <span style={{
-                        color: trade.status === 'win' ? 'var(--green)' :
-                               trade.status === 'loss' ? 'var(--red)' :
-                               trade.status === 'open' ? 'var(--yellow)' : 'var(--text-muted)',
-                        fontWeight: 600,
-                        textTransform: 'uppercase',
-                        fontSize: '0.75rem'
-                      }}>
-                        {trade.status}
-                      </span>
-                    </td>
-                    <td style={{ textTransform: 'capitalize', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                      {trade.exit_reason || '—'}
+                      <div className="flex flex-col gap-0.5">
+                         {trade.trailing_sl_used ? (
+                           <span className="text-[8px] bg-purple-500/20 text-purple-400 px-1 rounded border border-purple-500/30 font-bold w-fit">TRAILING</span>
+                         ) : null}
+                         <span className="text-[11px] text-red-500">₹{trade.stop_loss?.toFixed(2) || '—'}</span>
+                      </div>
                     </td>
                     <td>
-                      <span style={{
-                        padding: '1px 6px',
-                        borderRadius: '3px',
-                        fontSize: '0.65rem',
-                        fontWeight: 600,
-                        background: trade.mode === 'paper' ? 'var(--yellow-dim)' : 'var(--red-dim)',
-                        color: trade.mode === 'paper' ? 'var(--yellow)' : 'var(--red)'
-                      }}>
-                        {trade.mode.toUpperCase()}
-                      </span>
+                      <div className="flex flex-col gap-1 items-center">
+                        <span className={`status-badge ${trade.status}`}>
+                          {trade.status}
+                        </span>
+                        <span className="text-[9px] uppercase text-gray-500 whitespace-nowrap">{trade.exit_reason || 'open'}</span>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -143,20 +149,64 @@ export default function HistoryPage() {
           {/* P&L Summary */}
           {trades.length > 0 && (
             <div className="pnl-summary">
-              <span>
-                Total P&L:{' '}
-                <span style={{ color: totalPnl >= 0 ? 'var(--green)' : 'var(--red)', fontFamily: "'JetBrains Mono', monospace" }}>
-                  {totalPnl >= 0 ? '+' : ''}₹{totalPnl.toFixed(2)}
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Total Realized P&L</span>
+                <span style={{ color: totalPnl >= 0 ? 'var(--green)' : 'var(--red)', fontFamily: "'JetBrains Mono', monospace", fontSize: '1.2rem', fontWeight: 700 }}>
+                  {totalPnl >= 0 ? '+' : ''}₹{totalPnl.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </span>
-              </span>
-              <span>Trades: {trades.length}</span>
-              <span style={{ color: 'var(--green)' }}>Wins: {wins}</span>
-              <span style={{ color: 'var(--red)' }}>Losses: {losses}</span>
-              <span>Win Rate: {wins + losses > 0 ? ((wins / (wins + losses)) * 100).toFixed(1) : 0}%</span>
+              </div>
+              <div className="flex gap-8 ml-auto">
+                <div className="summary-stat">
+                  <span className="label">Trades</span>
+                  <span className="value">{trades.length}</span>
+                </div>
+                <div className="summary-stat">
+                  <span className="label text-green-500">Wins</span>
+                  <span className="value text-green-500">{wins}</span>
+                </div>
+                <div className="summary-stat">
+                  <span className="label text-red-500">Losses</span>
+                  <span className="value text-red-500">{losses}</span>
+                </div>
+                <div className="summary-stat">
+                  <span className="label">Win Rate</span>
+                  <span className="value">{wins + losses > 0 ? ((wins / (wins + losses)) * 100).toFixed(1) : 0}%</span>
+                </div>
+              </div>
             </div>
           )}
         </div>
       )}
+      
+      <style jsx>{`
+        .status-badge {
+          display: inline-block;
+          padding: 2px 8px;
+          border-radius: 4px;
+          font-size: 0.65rem;
+          font-weight: 800;
+          text-transform: uppercase;
+        }
+        .status-badge.win { background: #064e3b; color: #34d399; }
+        .status-badge.loss { background: #450a0a; color: #f87171; }
+        .status-badge.open { background: #1e3a8a; color: #93c5fd; }
+        
+        .summary-stat {
+          display: flex;
+          flex-direction: column;
+        }
+        .summary-stat .label {
+          font-size: 0.65rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          color: var(--text-muted);
+        }
+        .summary-stat .value {
+          font-size: 1rem;
+          font-weight: 700;
+          font-family: 'JetBrains Mono', monospace;
+        }
+      `}</style>
     </div>
   );
 }

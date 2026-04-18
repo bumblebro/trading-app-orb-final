@@ -22,7 +22,6 @@ export default function Chart({ data }: ChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
-  const stLineRef = useRef<ISeriesApi<'Line'> | null>(null);
   const orbHighRef = useRef<ISeriesApi<'Line'> | null>(null);
   const orbLowRef = useRef<ISeriesApi<'Line'> | null>(null);
   const [initialized, setInitialized] = useState(false);
@@ -53,7 +52,6 @@ export default function Chart({ data }: ChartProps) {
       },
       rightPriceScale: {
         borderColor: '#1a1a2e',
-        scaleMargins: { top: 0.1, bottom: 0.1 },
       },
       timeScale: {
         borderColor: '#1a1a2e',
@@ -66,14 +64,13 @@ export default function Chart({ data }: ChartProps) {
             hour12: false,
           };
 
-          // TickMarkType: 0=Year, 1=Month, 2=Day, 3=Time, 4=TimeWithSeconds
-          if (tickMarkType < 3) {
+          if (tickMarkType < 3) { // Day, Month, Year
             return new Intl.DateTimeFormat(locale, {
               ...options,
               day: '2-digit',
               month: 'short',
             }).format(date);
-          } else {
+          } else { // Time
             return new Intl.DateTimeFormat(locale, {
               ...options,
               hour: '2-digit',
@@ -96,10 +93,10 @@ export default function Chart({ data }: ChartProps) {
         priceFormatter: (price: number) => price.toFixed(2),
       },
       width: chartContainerRef.current.clientWidth,
-      height: 400,
+      height: 500,
     });
 
-    // Candlestick series
+    // Main series
     const candleSeries = chart.addSeries(CandlestickSeries, {
       upColor: '#22c55e',
       downColor: '#ef4444',
@@ -109,24 +106,16 @@ export default function Chart({ data }: ChartProps) {
       wickDownColor: '#ef4444',
     });
 
-    // Supertrend Line
-    const stLine = chart.addSeries(LineSeries, {
-      color: '#22c55e',
-      lineWidth: 2,
-      title: 'Supertrend',
-    });
-
-    // ORB High - Green Dashed
+    // ORB Lines - Cyan
     const orbHigh = chart.addSeries(LineSeries, {
-      color: '#22c55e',
+      color: '#06b6d4',
       lineWidth: 1,
       lineStyle: 2, // Dashed
       title: 'ORB High',
     });
 
-    // ORB Low - Red Dashed
     const orbLow = chart.addSeries(LineSeries, {
-      color: '#ef4444',
+      color: '#06b6d4',
       lineWidth: 1,
       lineStyle: 2, // Dashed
       title: 'ORB Low',
@@ -134,7 +123,6 @@ export default function Chart({ data }: ChartProps) {
 
     chartRef.current = chart;
     candleSeriesRef.current = candleSeries;
-    stLineRef.current = stLine;
     orbHighRef.current = orbHigh;
     orbLowRef.current = orbLow;
     setInitialized(true);
@@ -149,35 +137,47 @@ export default function Chart({ data }: ChartProps) {
     return () => {
       window.removeEventListener('resize', handleResize);
       chart.remove();
+      setInitialized(false);
+      chartRef.current = null;
     };
-  }, [initialized]);
+  }, []); // Remove initialized dependency
 
   useEffect(() => {
     const cleanup = initChart();
     return () => {
       if (cleanup) cleanup();
-      setInitialized(false);
-      chartRef.current = null;
     };
-  }, []);
+  }, [initChart]);
 
   useEffect(() => {
     if (!initialized || !data) return;
 
-    if (data.candles && data.candles.length > 0 && candleSeriesRef.current) {
-      candleSeriesRef.current.setData(data.candles as CandlestickData<Time>[]);
+    if (candleSeriesRef.current) {
+      if (data.candles && data.candles.length > 0) {
+        candleSeriesRef.current.setData(data.candles as CandlestickData<Time>[]);
+      } else {
+        candleSeriesRef.current.setData([]);
+      }
     }
 
-    if (data.supertrend && data.supertrend.length > 0 && stLineRef.current) {
-      stLineRef.current.setData(data.supertrend as LineData<Time>[]);
+    if (orbHighRef.current) {
+      if (data.orb_high && data.orb_high.length > 0) {
+        orbHighRef.current.setData(data.orb_high as LineData<Time>[]);
+      } else {
+        orbHighRef.current.setData([]);
+      }
     }
 
-    if (data.orb_high && data.orb_high.length > 0 && orbHighRef.current) {
-      orbHighRef.current.setData(data.orb_high as LineData<Time>[]);
+    if (orbLowRef.current) {
+      if (data.orb_low && data.orb_low.length > 0) {
+        orbLowRef.current.setData(data.orb_low as LineData<Time>[]);
+      } else {
+        orbLowRef.current.setData([]);
+      }
     }
 
-    if (data.orb_low && data.orb_low.length > 0 && orbLowRef.current) {
-      orbLowRef.current.setData(data.orb_low as LineData<Time>[]);
+    if (chartRef.current) {
+      chartRef.current.timeScale().scrollToRealTime();
     }
 
     if (chartRef.current) {
@@ -188,11 +188,16 @@ export default function Chart({ data }: ChartProps) {
   return (
     <div className="chart-container">
       <div className="chart-header">
-        <h3>NIFTY 50 — ORB + Supertrend</h3>
-        <div className="chart-legend">
-          <span className="legend-item" style={{ color: '#22c55e' }}>● Supertrend</span>
-          <span className="legend-item" style={{ color: '#22c55e', borderBottom: '1px dashed #22c55e' }}>ORB High</span>
-          <span className="legend-item" style={{ color: '#ef4444', borderBottom: '1px dashed #ef4444' }}>ORB Low</span>
+        <div className="flex flex-col gap-1">
+          <h3>NIFTY 50 — Natural ORB Strategy</h3>
+          <p className="text-xs text-gray-500">
+            Strategy: Standard 15-Minute Opening Range Breakout
+          </p>
+        </div>
+        <div className="chart-legend flex flex-wrap gap-x-4 gap-y-1 justify-end max-w-[50%]">
+          <span className="legend-item flex items-center gap-1" style={{ color: '#06b6d4' }}>
+            <span className="w-3 h-1 bg-[#06b6d4]"></span> ORB High/Low
+          </span>
         </div>
       </div>
       <div ref={chartContainerRef} className="chart-canvas" />

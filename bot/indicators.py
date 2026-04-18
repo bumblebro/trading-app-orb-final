@@ -1,36 +1,40 @@
 """
 Technical indicators module.
-Calculates ORB, Supertrend, and RSI for trading signals.
+Calculates ORB, Fibonacci levels, MACD, and RSI for the
+ORB + Fibonacci Pullback + MACD Confirmation strategy.
 """
 
 import numpy as np
-import pandas as pd
 from typing import List, Optional, Dict
 
 
 def calculate_orb(candles: List[dict], start_time: str = "09:15", end_time: str = "09:30") -> dict:
     """
-    Calculate the Opening Range Breakout levels.
-    Finds the high and low between the specified start and end time (IST).
-    
+    Calculate the Opening Range Breakout levels for the CURRENT day.
+    Finds the high and low between the specified start and end time (IST) 
+    only for the most recent date in the candles list.
+
     candles: List of 1-minute OHLCV dicts.
     Returns: {orb_high, orb_low, orb_range, orb_status}
     """
     if not candles:
         return {"orb_high": None, "orb_low": None, "orb_range": None, "orb_status": "BUILDING"}
 
-    # Filter candles within the window
+    # Identify the latest date in the list to avoid mixing multi-day data
+    dates = [c.get("time_key", "").split(" ")[0] for c in candles if c.get("time_key")]
+    if not dates:
+        return {"orb_high": None, "orb_low": None, "orb_range": None, "orb_status": "BUILDING"}
+    
+    latest_date = max(dates)
+
+    # Filter candles within the window for the latest date only
     window_candles = []
     for c in candles:
-        # Assuming c['time'] is 'HH:MM' or contains it
-        # DataFeed format for time is typically 'HH:MM:SS'
-        time_part = c.get("time_str", "") or ""
-        if not time_part:
-            # Fallback to parsing from datetime if available
-            pass 
-        
-        # Simplified for now: assuming candles are 1-min and sorted
-        # We find candles where time >= start_time and time < end_time
+        time_key = c.get("time_key", "")
+        if not time_key or not time_key.startswith(latest_date):
+            continue
+            
+        time_part = c.get("time_str", "")
         if start_time <= time_part < end_time:
             window_candles.append(c)
 
@@ -39,11 +43,11 @@ def calculate_orb(candles: List[dict], start_time: str = "09:15", end_time: str 
 
     highs = [c["high"] for c in window_candles]
     lows = [c["low"] for c in window_candles]
-    
+
     orb_high = max(highs)
     orb_low = min(lows)
     orb_range = round(orb_high - orb_low, 2)
-    
+
     return {
         "orb_high": orb_high,
         "orb_low": orb_low,
@@ -52,77 +56,11 @@ def calculate_orb(candles: List[dict], start_time: str = "09:15", end_time: str 
     }
 
 
-def calculate_supertrend(ohlcv_data: List[dict], period: int = 7, multiplier: float = 3.0) -> List[dict]:
-    """
-    Calculate Supertrend indicator using ATR.
-    Returns a list of dicts: {'value': float, 'direction': 'UP'|'DOWN'}
-    """
-    if len(ohlcv_data) < period:
-        return [{"value": None, "direction": "NEUTRAL"}] * len(ohlcv_data)
-
-    df = pd.DataFrame(ohlcv_data)
-    
-    # ATR calculation
-    high_low = df['high'] - df['low']
-    high_pc = (df['high'] - df['close'].shift()).abs()
-    low_pc = (df['low'] - df['close'].shift()).abs()
-    tr = pd.concat([high_low, high_pc, low_pc], axis=1).max(axis=1)
-    atr = tr.ewm(alpha=1/period, adjust=False).mean()
-
-    # Basic Upper and Lower Bands
-    hl2 = (df['high'] + df['low']) / 2
-    final_ub = hl2 + (multiplier * atr)
-    final_lb = hl2 - (multiplier * atr)
-
-    # Supertrend logic
-    supertrend = [0.0] * len(df)
-    direction = [1] * len(df) # 1 for UP, -1 for DOWN
-
-    for i in range(1, len(df)):
-        # Final Upper Band
-        if final_ub[i] < final_ub[i-1] or df['close'][i-1] > final_ub[i-1]:
-            final_ub.at[i] = final_ub[i]
-        else:
-            final_ub.at[i] = final_ub[i-1]
-
-        # Final Lower Band
-        if final_lb[i] > final_lb[i-1] or df['close'][i-1] < final_lb[i-1]:
-            final_lb.at[i] = final_lb[i]
-        else:
-            final_lb.at[i] = final_lb[i-1]
-
-        # Trend direction
-        if df['close'][i] > final_ub[i-1]:
-            direction[i] = 1
-        elif df['close'][i] < final_lb[i-1]:
-            direction[i] = -1
-        else:
-            direction[i] = direction[i-1]
-            if direction[i] == 1 and final_lb[i] < final_lb[i-1]:
-                final_lb.at[i] = final_lb[i-1]
-            if direction[i] == -1 and final_ub[i] > final_ub[i-1]:
-                final_ub.at[i] = final_ub[i-1]
-
-        # Supertrend value
-        if direction[i] == 1:
-            supertrend[i] = final_lb[i]
-        else:
-            supertrend[i] = final_ub[i]
-
-    results = []
-    for i in range(len(df)):
-        results.append({
-            "value": round(supertrend[i], 2) if supertrend[i] != 0 else None,
-            "direction": "UP" if direction[i] == 1 else "DOWN"
-        })
-    
-    return results
-
-
 def calculate_rsi(prices: List[float], period: int = 14) -> List[float]:
     """
     Calculate Relative Strength Index.
     Returns list of RSI values (same length as prices).
+    Used as optional confirmation filter.
     """
     if len(prices) < period + 1:
         return [float('nan')] * len(prices)
@@ -158,31 +96,19 @@ def calculate_rsi(prices: List[float], period: int = 14) -> List[float]:
     return rsi_values
 
 
-def get_latest_indicators(candles: List[dict], settings: dict) -> dict:
+def get_latest_indicators(candles: List[dict]) -> dict:
     """
-    Calculate all indicators for the ORB + Supertrend + RSI strategy.
+    Calculate only ORB indicators for the Natural ORB strategy.
     """
     if not candles:
-        return {"ready": False}
+        return {"orb_status": "BUILDING", "ready": False}
 
-    # Extract parameters from settings
-    st_period = int(settings.get("supertrend_period", 7))
-    st_multiplier = float(settings.get("supertrend_multiplier", 3.0))
-    rsi_period = int(settings.get("rsi_period", 14))
-
-    # We need 1-min candles for ORB, and can use them for Supertrend/RSI too
-    # Assuming 'candles' passed here are the ones used for strategy checks (typically 5-min or 1-min)
-    close_prices = [c["close"] for c in candles]
+    orb_results = calculate_orb(candles)
     
-    supertrend_data = calculate_supertrend(candles, st_period, st_multiplier)
-    rsi_data = calculate_rsi(close_prices, rsi_period)
-    
-    latest_st = supertrend_data[-1]
-    latest_rsi = rsi_data[-1]
-
     return {
-        "supertrend_value": latest_st["value"],
-        "supertrend_direction": latest_st["direction"],
-        "rsi": round(latest_rsi, 2) if not np.isnan(latest_rsi) else None,
-        "ready": len(candles) >= max(st_period, rsi_period)
+        "orb_high": orb_results["orb_high"],
+        "orb_low": orb_results["orb_low"],
+        "orb_range": orb_results["orb_range"],
+        "orb_status": orb_results["orb_status"],
+        "ready": True
     }

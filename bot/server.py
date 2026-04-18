@@ -1,6 +1,7 @@
 """
 FastAPI Server for the Trading Bot.
 Provides REST API endpoints for the Next.js frontend.
+Strategy: ORB + Fibonacci Pullback + MACD Confirmation.
 """
 
 import sys
@@ -28,7 +29,7 @@ from market_calendar import should_bot_run, is_trading_day, get_ist_now
 init_db()
 logger = get_logger()
 
-app = FastAPI(title="Nifty 50 Trading Bot", version="1.0.0")
+app = FastAPI(title="Nifty 50 Trading Bot", version="2.0.0")
 
 # CORS for Next.js frontend
 app.add_middleware(
@@ -53,7 +54,7 @@ class ExitTradeRequest(BaseModel):
 
 @app.get("/")
 async def root():
-    return {"status": "ok", "service": "Nifty 50 Trading Bot"}
+    return {"status": "ok", "service": "Nifty 50 Trading Bot", "strategy": "Natural ORB"}
 
 
 @app.post("/start")
@@ -128,60 +129,63 @@ async def get_price():
             "orb_low": indicators.get("orb_low"),
             "orb_range": indicators.get("orb_range"),
             "orb_status": indicators.get("orb_status"),
-            "supertrend_value": indicators.get("supertrend_value"),
-            "supertrend_direction": indicators.get("supertrend_direction"),
-            "rsi": indicators.get("rsi"),
             "phase": indicators.get("phase", "WATCHING"),
-            "ready": indicators.get("ready", False)
+            "ready": indicators.get("ready", False),
         }
     }
 
 
 @app.get("/signal")
 async def get_signal():
-    """Get current trade signal with breakout checklist."""
+    """Get current trade signal with strategy checklist."""
     bot = get_bot()
+    phase_data = bot.strategy_phase_data
     indicators = bot.indicators
-    
+
     current_price = bot.data_feed.current_price if bot.data_feed else 0
     orb_high = indicators.get("orb_high")
     orb_low = indicators.get("orb_low")
-    
+
+    # Determine breakout state
     breakout_dir = "NONE"
     orb_breakout = False
-    if orb_high and current_price > orb_high:
+    buffer = float(get_all_settings().get("breakout_buffer", "5"))
+    if orb_high and current_price > orb_high + buffer:
         breakout_dir = "UP"
         orb_breakout = True
-    elif orb_low and current_price < orb_low:
+    elif orb_low and current_price < orb_low - buffer:
         breakout_dir = "DOWN"
         orb_breakout = True
 
-    st_direction = indicators.get("supertrend_direction")
-    rsi = indicators.get("rsi")
-    rsi_buy = float(get_all_settings().get("rsi_buy_level", "55"))
-    rsi_sell = float(get_all_settings().get("rsi_sell_level", "45"))
-
-    st_confirms = (breakout_dir == st_direction)
-    rsi_confirms = False
-    if breakout_dir == "UP" and rsi and rsi > rsi_buy:
-        rsi_confirms = True
-    elif breakout_dir == "DOWN" and rsi and rsi < rsi_sell:
-        rsi_confirms = True
-
     return {
         "signal": bot.current_signal,
-        "phase": indicators.get("phase"),
+        "phase": phase_data.get("phase"),
+        "phase_description": phase_data.get("phase_description"),
         "orb_status": indicators.get("orb_status"),
         "orb_high": orb_high,
         "orb_low": orb_low,
+        "orb_range": indicators.get("orb_range"),
         "breakout_direction": breakout_dir,
-        "conditions": {
-            "orb_breakout": orb_breakout,
-            "supertrend_confirms": st_confirms,
-            "rsi_confirms": rsi_confirms
-        },
+        "breakout_price": phase_data.get("breakout_price"),
+        "breakout_time": phase_data.get("breakout_time"),
         "timestamp": get_ist_now().isoformat()
     }
+
+
+@app.get("/orb")
+async def get_orb():
+    """Get Opening Range Breakout data."""
+    bot = get_bot()
+    return bot.orb_api_data
+
+
+
+
+@app.get("/strategy-phase")
+async def get_strategy_phase():
+    """Get current strategy phase and metadata."""
+    bot = get_bot()
+    return bot.strategy_phase_data
 
 
 @app.get("/candles")
@@ -204,45 +208,30 @@ async def get_candles():
             if "time" in c
         ]
 
-        # Add indicator lines: ORB and Supertrend
-        from indicators import calculate_supertrend
-        settings = get_all_settings()
-        st_vals = calculate_supertrend(candles, 
-                                      int(settings.get("supertrend_period", 7)), 
-                                      float(settings.get("supertrend_multiplier", 3.0)))
-
         indicators = bot.indicators
         orb_high = indicators.get("orb_high")
         orb_low = indicators.get("orb_low")
 
-        supertrend_line = []
         orb_high_line = []
         orb_low_line = []
 
-        for i, c in enumerate(candles):
-            if "time" not in c:
-                continue
-            t = c["time"]
-            
-            if i < len(st_vals) and st_vals[i]["value"]:
-                supertrend_line.append({
-                    "time": t, 
-                    "value": st_vals[i]["value"],
-                    "color": "#22c55e" if st_vals[i]["direction"] == "UP" else "#ef4444"
-                })
-            
-            if orb_high and orb_low:
-                orb_high_line.append({"time": t, "value": orb_high})
-                orb_low_line.append({"time": t, "value": orb_low})
+        if orb_high and orb_low:
+            for c in candles:
+                if "time" in c:
+                    orb_high_line.append({"time": c["time"], "value": orb_high})
+                    orb_low_line.append({"time": c["time"], "value": orb_low})
 
         return {
             "candles": chart_candles,
-            "supertrend": supertrend_line,
             "orb_high": orb_high_line,
-            "orb_low": orb_low_line
+            "orb_low": orb_low_line,
         }
     else:
-        return {"candles": [], "supertrend": [], "orb_high": [], "orb_low": []}
+        return {
+            "candles": [],
+            "orb_high": [],
+            "orb_low": [],
+        }
 
 
 @app.get("/trades")
@@ -263,7 +252,6 @@ async def active_trade():
         bot = get_bot()
         current_index_price = bot.data_feed.current_price if bot.data_feed else 0
         if current_index_price > 0:
-            # Use the bot's simulation logic to get the option price
             simulated_option_price = bot.calculate_option_price(trade, current_index_price)
             trade["current_price"] = simulated_option_price
             trade["live_pnl"] = round(
@@ -287,7 +275,7 @@ async def pnl_summary(mode: Optional[str] = None):
     date_override = None
     if bot.data_feed and bot.data_feed.playback_file and bot.data_feed.last_tick_time:
         date_override = bot.data_feed.last_tick_time.strftime("%Y-%m-%d")
-        
+
     return get_today_pnl(mode=mode, date_override=date_override)
 
 
@@ -297,12 +285,12 @@ async def update_settings(req: SettingsRequest):
     try:
         save_settings(req.settings)
         logger.info(f"Settings updated: {list(req.settings.keys())}")
-        
+
         # Check if critical settings were changed while bot is running
         bot = get_bot()
         if bot.is_running and ("trading_mode" in req.settings or "pin" in req.settings or "totp_secret" in req.settings):
             logger.warning("Bot is currently running. Please STOP and START the bot for live mode changes and credentials to take effect.")
-            
+
         return {"status": "saved", "message": "Settings saved successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -339,4 +327,5 @@ async def get_margin():
 
 if __name__ == "__main__":
     print("🚀 Starting Nifty 50 Trading Bot Server on port 8000...")
+    print("📊 Strategy: Natural Opening Range Breakout")
     uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")

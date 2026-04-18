@@ -55,7 +55,13 @@ def init_db(db_path: str = None):
             orb_high REAL,
             orb_low REAL,
             orb_range REAL,
-            supertrend_at_entry TEXT,
+            breakout_price REAL,
+            fib_entry_level TEXT,
+            fib_entry_price REAL,
+            fib_sl_price REAL,
+            macd_at_entry REAL,
+            trailing_sl_used INTEGER DEFAULT 0,
+            trailing_sl_final REAL,
             rsi_at_entry REAL,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
@@ -79,23 +85,29 @@ def init_db(db_path: str = None):
         )
     """)
 
-    # Migration: Add underlying_entry_price and token columns if they don't exist
+    # Migration: Add columns if they don't exist (for existing databases)
     for column, col_type in [
-        ("underlying_entry_price", "REAL"), 
-        ("token", "TEXT"), 
+        ("underlying_entry_price", "REAL"),
+        ("token", "TEXT"),
         ("entry_quality", "REAL"),
         ("orb_high", "REAL"),
         ("orb_low", "REAL"),
         ("orb_range", "REAL"),
-        ("supertrend_at_entry", "TEXT"),
+        ("trailing_sl", "REAL"),
+        ("breakout_price", "REAL"),
+        ("fib_entry_level", "TEXT"),
+        ("fib_entry_price", "REAL"),
+        ("fib_sl_price", "REAL"),
+        ("macd_at_entry", "REAL"),
+        ("trailing_sl_used", "INTEGER DEFAULT 0"),
+        ("trailing_sl_final", "REAL"),
         ("rsi_at_entry", "REAL"),
-        ("trailing_sl", "REAL")
     ]:
         try:
             conn.execute(f"ALTER TABLE trades ADD COLUMN {column} {col_type}")
         except sqlite3.OperationalError:
-            pass # Column likely already exists
-            
+            pass  # Column likely already exists
+
     conn.commit()
     conn.close()
 
@@ -108,9 +120,11 @@ def insert_trade(trade: Dict[str, Any], timestamp: datetime = None, db_path: str
     now = timestamp or get_ist_now()
     cursor = conn.execute("""
         INSERT INTO trades (date, time, type, strike_price, trading_symbol, entry_price,
-                          quantity, lot_size, status, mode, stop_loss, target, underlying_entry_price, 
-                          token, entry_quality, orb_high, orb_low, orb_range, supertrend_at_entry, rsi_at_entry)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'open', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                          quantity, lot_size, status, mode, stop_loss, target, underlying_entry_price,
+                          token, entry_quality, orb_high, orb_low, orb_range,
+                          breakout_price, fib_entry_level, fib_entry_price, fib_sl_price,
+                          macd_at_entry, trailing_sl_used, rsi_at_entry)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'open', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         now.strftime("%Y-%m-%d"),
         now.strftime("%H:%M:%S"),
@@ -129,8 +143,13 @@ def insert_trade(trade: Dict[str, Any], timestamp: datetime = None, db_path: str
         trade.get("orb_high"),
         trade.get("orb_low"),
         trade.get("orb_range"),
-        trade.get("supertrend_at_entry"),
-        trade.get("rsi_at_entry")
+        trade.get("breakout_price"),
+        trade.get("fib_entry_level"),
+        trade.get("fib_entry_price"),
+        trade.get("fib_sl_price"),
+        trade.get("macd_at_entry"),
+        trade.get("trailing_sl_used", 0),
+        trade.get("rsi_at_entry"),
     ))
     trade_id = cursor.lastrowid
     conn.commit()
@@ -160,10 +179,10 @@ def close_trade(trade_id: int, exit_price: float, exit_reason: str, timestamp: d
         pnl = (exit_price - trade["entry_price"]) * trade["quantity"]
         # For PE, profit is when price goes down (but we're buying the option, so it's still exit - entry)
         status = "win" if pnl > 0 else "loss"
-        
+
         # In playback, we record the exit_date/exit_time to match the historical period
         now = timestamp or get_ist_now()
-        
+
         conn.execute("""
             UPDATE trades SET exit_price = ?, pnl = ?, status = ?, exit_reason = ?
             WHERE id = ?
@@ -234,20 +253,36 @@ def get_today_pnl(mode: str = None, date_override: str = None, db_path: str = No
 def get_all_time_pnl(mode: str = None, db_path: str = None) -> Dict:
     """Get all-time P&L summary."""
     conn = get_connection(db_path)
-    # Only fetch closed/win/loss trades for PnL calculation
-    query = "SELECT SUM(pnl) as total_pnl, COUNT(*) as total_trades FROM trades WHERE status != 'open'"
+    # Only fetch closed/win/loss trades
+    query = """
+        SELECT 
+            SUM(pnl) as total_pnl, 
+            COUNT(*) as total_trades,
+            SUM(CASE WHEN status = 'win' THEN 1 ELSE 0 END) as wins,
+            SUM(CASE WHEN status = 'loss' THEN 1 ELSE 0 END) as losses
+        FROM trades 
+        WHERE status != 'open'
+    """
     params = []
-    
+
     if mode:
         query += " AND mode = ?"
         params.append(mode)
-        
+
     row = conn.execute(query, params).fetchone()
     conn.close()
+
+    total_pnl = row["total_pnl"] or 0
+    total_trades = row["total_trades"] or 0
+    wins = row["wins"] or 0
+    losses = row["losses"] or 0
     
+    win_rate = (wins / total_trades * 100) if total_trades > 0 else 0
+
     return {
-        "all_time_pnl": round(row["total_pnl"] or 0, 2),
-        "all_time_trades": row["total_trades"] or 0
+        "all_time_pnl": round(total_pnl, 2),
+        "all_time_trades": total_trades,
+        "all_time_win_rate": round(win_rate, 1)
     }
 
 
@@ -282,47 +317,34 @@ def get_consecutive_losses(date_override: str = None, db_path: str = None) -> in
 # --- Settings Operations ---
 
 DEFAULT_SETTINGS = {
+    # Angel One Credentials
     "api_key": "",
     "client_id": "",
     "pin": "",
     "totp_secret": "",
-    # ORB Strategy
+    # ORB Parameters
     "orb_duration": "15",
     "min_orb_range": "30",
-    "max_orb_range": "300",
-    "supertrend_period": "7",
-    "supertrend_multiplier": "3.0",
-    "rsi_period": "14",
-    "rsi_buy_level": "55",
-    "rsi_sell_level": "45",
+    "max_orb_range": "150",
+    "breakout_buffer": "3",
     # Trade Management
-    "target_multiplier": "2.0",
-    "sl_multiplier": "1.0",
-    "option_target_pct": "50",
-    "option_sl_pct": "25",
-    "trailing_sl_enabled": "false",
+    "atm_delta": "0.5",
+    "trailing_sl_enabled": "true",
     "trailing_sl_pct": "15",
-    # Risk Management
     "max_trades_per_day": "3",
     "signal_cutoff_time": "14:30",
     "square_off_time": "15:15",
     "lot_size": "65",
+    # Capital & Risk
+    "position_size_mode": "fixed",
+    "fixed_lots": "2",
     "max_capital_risk_pct": "1",
     "trading_mode": "paper",
     "paper_capital": "100000",
+    # Data Source
     "data_source": "smartapi",
     "playback_file": "bot/data/nifty_sample.csv",
     "playback_speed": "1",
-    "orb_duration": "15",
-    "min_orb_range": "30",
-    "max_orb_range": "300",
-    "supertrend_period": "7",
-    "supertrend_multiplier": "3.0",
-    "rsi_buy_level": "55",
-    "rsi_sell_level": "45",
-    "target_multiplier": "2.0",
-    "sl_multiplier": "1.0",
-    "signal_cutoff_time": "14:30"
 }
 
 

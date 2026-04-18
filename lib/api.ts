@@ -41,6 +41,10 @@ export const api = {
   getPrice: () => fetchAPI('/price'),
   getSignal: () => fetchAPI('/signal'),
   getCandles: () => fetchAPI('/candles'),
+  getOrb: () => fetchAPI('/orb'),
+  getFibonacci: () => fetchAPI('/fibonacci'),
+  getMacd: () => fetchAPI('/macd'),
+  getStrategyPhase: () => fetchAPI('/strategy-phase'),
 
   // Bot Control
   getBotStatus: () => fetchAPI('/bot/status'),

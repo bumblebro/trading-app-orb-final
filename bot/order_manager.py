@@ -84,7 +84,8 @@ class OrderManager:
 
     def place_order(self, signal: str, current_price: float,
                     mode: str = "paper", timestamp: Optional[datetime] = None, 
-                    entry_quality: Optional[float] = None) -> Optional[Dict]:
+                    entry_quality: Optional[float] = None,
+                    quantity: Optional[int] = None) -> Optional[Dict]:
         """
         Place an order based on signal.
         signal: 'BUY_CE' or 'BUY_PE'
@@ -98,7 +99,12 @@ class OrderManager:
                 self.instrument_mgr.load_instruments()
                 strike = self.instrument_mgr.get_atm_strike(current_price)
                 lot_size = self.instrument_mgr.get_lot_size()
-                quantity = lot_size  # 1 lot
+                
+                if quantity is None:
+                    quantity = lot_size
+                elif not self.validate_lot_size(quantity):
+                    quantity = lot_size # fallback to 1 lot if invalid
+
                 expiry = self.instrument_mgr.get_nearest_expiry()
 
                 option_info = self.instrument_mgr.get_option_info(strike, option_type, expiry)
