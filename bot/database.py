@@ -253,8 +253,8 @@ def get_today_pnl(mode: str = None, date_override: str = None, db_path: str = No
     }
 
 
-def get_all_time_pnl(mode: str = None, db_path: str = None) -> Dict:
-    """Get all-time P&L summary."""
+def get_all_time_pnl(mode: str = None, date_from: str = None, date_to: str = None, db_path: str = None) -> Dict:
+    """Get all-time P&L summary with optional filters."""
     conn = get_connection(db_path)
     # Only fetch closed/win/loss trades
     query = """
@@ -271,6 +271,12 @@ def get_all_time_pnl(mode: str = None, db_path: str = None) -> Dict:
     if mode:
         query += " AND mode = ?"
         params.append(mode)
+    if date_from:
+        query += " AND date >= ?"
+        params.append(date_from)
+    if date_to:
+        query += " AND date <= ?"
+        params.append(date_to)
 
     row = conn.execute(query, params).fetchone()
     conn.close()
@@ -327,19 +333,23 @@ DEFAULT_SETTINGS = {
     "totp_secret": "",
     # ORB Parameters
     "orb_duration": "15",
-    "min_orb_range": "20",
+    "min_orb_range": "30",
     "max_orb_range": "150",
     "breakout_buffer": "5",
     # Advanced Filters
     "vwap_confirmation": "true",
     "sideways_threshold_pct": "0.2",
     "atr_period": "14",
-    "atr_threshold": "10",
+    "atr_threshold": "11",
     # Trade Management
     "atm_delta": "0.5",
     "trailing_sl_enabled": "true",
-    "trailing_sl_pct": "15",
-    "max_trades_per_day": "3",
+    "trailing_sl_pct": "20",
+    "index_trailing_sl_pts": "20",
+    "max_trades_per_day": "2",
+    "max_trade_loss_inr": "3000",
+    "hard_sl_option_pts": "25",
+    "min_prev_day_range": "150",
     "signal_cutoff_time": "14:30",
     "square_off_time": "15:15",
     "lot_size": "65",

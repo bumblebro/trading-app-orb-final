@@ -91,6 +91,13 @@ class TradingBot:
         self._vwap_dev_min: float = float('inf')
         self._vwap_dev_max: float = float('-inf')
         self._sideways_start_time: Optional[datetime] = None
+        self._daily_high: float = float('-inf')
+        self._daily_low: float = float('inf')
+        self._prev_day_range: float = 0.0
+
+        # Trade Peak/Valley Tracking (for Index Trailing)
+        self._peak_index: Optional[float] = None
+        self._valley_index: Optional[float] = None
 
         # Reset tracking
         self._last_tick_date: Optional[str] = None
@@ -277,6 +284,18 @@ class TradingBot:
         self._vwap_dev_min = float('inf')
         self._vwap_dev_max = float('-inf')
         self._sideways_start_time = None
+        
+        # Reset Peak/Valley
+        self._peak_index = None
+        self._valley_index = None
+
+        # Reset Daily Tracking (Carry last day H/L to Prev Day Range)
+        if self._daily_high > float('-inf') and self._daily_low < float('inf'):
+            self._prev_day_range = round(self._daily_high - self._daily_low, 2)
+            self.logger.info(f"Day Reset: Previous Day Range = {self._prev_day_range}")
+        
+        self._daily_high = float('-inf')
+        self._daily_low = float('inf')
 
     def _set_phase(self, phase: str):
         """Update strategy phase with logging."""
@@ -306,8 +325,15 @@ class TradingBot:
     def _tick(self):
         """Single bot tick — called every second."""
         now = self._get_current_time()
+        current_time_str = now.strftime("%H:%M")
+        current_price = self.data_feed.current_price if self.data_feed else 0
 
-        # Simple New Day Reset
+        # Track Daily H/L
+        if now.hour >= 9 and current_price > 0: # Only track during market or pre-market hours
+             self._daily_high = max(self._daily_high, current_price)
+             self._daily_low = min(self._daily_low, current_price)
+
+        # 1. Day Reset Check
         current_date = now.strftime("%Y-%m-%d")
         if self._last_tick_date and self._last_tick_date != current_date:
             self.logger.info(f"New day detected ({current_date}). Resetting strategy state.")
@@ -322,11 +348,8 @@ class TradingBot:
             self._current_signal = "MARKET_CLOSED"
             return
 
-        current_price = self.data_feed.current_price if self.data_feed else 0
-        if current_price <= 0:
+        if current_price <= 0 and current_time_str >= "09:15":
             return
-
-        current_time_str = now.strftime("%H:%M")
 
         # Update indicators continuously
         self._update_indicators()
@@ -425,7 +448,7 @@ class TradingBot:
         if orb_high and orb_low:
             self.logger.info(f"ORB calculated: High={orb_high} Low={orb_low} Range={orb_range}")
 
-            min_range = float(get_setting("min_orb_range") or "20")
+            min_range = float(get_setting("min_orb_range") or "30")
             max_range = float(get_setting("max_orb_range") or "300")
             
             # 1. Strict Range Filter
@@ -437,7 +460,7 @@ class TradingBot:
 
             # 2. Volatility (ATR) Filter
             atr = self._indicators.get("atr")
-            atr_threshold = float(get_setting("atr_threshold") or "10")
+            atr_threshold = float(get_setting("atr_threshold") or "11")
             if atr and atr < atr_threshold:
                 self._orb_data["orb_status"] = "LOW_VOLATILITY"
                 self.logger.warning(f"VOLATILITY FILTER: ATR {atr} < {atr_threshold} threshold. Skipping today.")
@@ -481,10 +504,22 @@ class TradingBot:
         # PHASE 2: Detect Breakout
         # ----------------------------------------
         if self._strategy_phase == PHASE_WAITING_BREAKOUT:
-            # Risk Guard: Max 2 attempts per day (1 entry + 1 re-entry)
+            # Risk Guard: Max 2 attempts per day, but RE-ENTRY ONLY IF PREVIOUS WAS WIN
             if self._breakout_attempts >= 2:
-                self._current_signal = "WAIT (Max Trades reached)"
+                self._current_signal = "WAIT (Max Attempts reached)"
                 return
+
+            if self._breakout_attempts == 1:
+                from database import get_today_trades
+                mode = get_setting("trading_mode") or "paper"
+                trades = get_today_trades(mode=mode, date_override=now.strftime("%Y-%m-%d"))
+                if trades:
+                    last_trade = trades[0] # Sorted DESC
+                    if last_trade["status"] != "win":
+                        self._current_signal = "WAIT (No re-entry after loss)"
+                        return
+                    else:
+                        self.logger.info("RE-ENTRY MODE: Previous trade was a WIN. Watching for next breakout.")
 
             # Breakout UP: candle close above ORB high OR price > ORB high + buffer
             candle_break_up = last_candle_close is not None and last_candle_close > orb_high
@@ -618,13 +653,30 @@ class TradingBot:
             trade_id = result["trade_id"]
             entry_price = result["entry_price"]
 
+            # Reset Peak/Valley for the new trade
+            self._peak_index = current_price
+            self._valley_index = current_price
+
             # 4. Dynamic Range-Based Target and SL
             delta = float(get_setting("atm_delta") or "0.5")
             
-            # SL = Entry - (Range * Delta * 0.8)
+            # Strategy SL
+            strategy_sl = round(entry_price - (orb_range * delta * 0.8), 2)
+
+            # Hard SL Caps
+            max_loss_inr = float(get_setting("max_trade_loss_inr") or "3000")
+            max_sl_pts = float(get_setting("hard_sl_option_pts") or "25")
+            
+            # Pts-based hard SL (e.g. entry - 25)
+            hard_pts_sl = round(entry_price - max_sl_pts, 2)
+            # Capital-based hard SL (e.g. entry - (3000/qty))
+            hard_capital_sl = round(entry_price - (max_loss_inr / quantity), 2)
+
+            # Final SL is the TIGHTEST of all three (Maximum price)
+            final_sl = max(strategy_sl, hard_pts_sl, hard_capital_sl)
+            
             # Target = Entry + (Range * Delta * 1.5)
             final_target = round(entry_price + (orb_range * delta * 1.5), 2)
-            final_sl = round(entry_price - (orb_range * delta * 0.8), 2)
 
             vwap_at_entry = self._indicators.get("vwap")
 
@@ -652,23 +704,29 @@ class TradingBot:
         simulated_price = self.calculate_option_price(trade, current_price)
         trade_type = trade.get("type", "CE")
 
-        # 1. Trailing Stop Loss Logic
+        # 1. Trailing Stop Loss Logic (Index-based 20 pts)
         trailing_enabled = get_setting("trailing_sl_enabled") == "true"
-        trailing_pct = float(get_setting("trailing_sl_pct") or "15.0")
-        current_sl = trade.get("trailing_sl") or trade.get("stop_loss")
-
+        
         if trailing_enabled:
-            potential_sl = round(simulated_price * (1 - trailing_pct / 100), 2)
-            if potential_sl > current_sl:
-                current_sl = potential_sl
-                from database import update_trade
-                update_trade(trade["id"], {
-                    "trailing_sl": current_sl,
-                    "trailing_sl_final": current_sl,
-                })
-                self.logger.info(f"Trailing SL updated to {current_sl} (Price: {simulated_price})")
+            index_trail_pts = float(get_setting("index_trailing_sl_pts") or "20")
+            
+            if trade_type == "CE":
+                if self._peak_index is None or current_price > self._peak_index:
+                    self._peak_index = current_price
+                if current_price <= self._peak_index - index_trail_pts:
+                    self.logger.info(f"INDEX TRAILING SL (CE): Exit at {current_price} (Peak: {self._peak_index})")
+                    self._close_active_trade(trade, simulated_price, "trailing_sl")
+                    return
+            else:
+                if self._valley_index is None or current_price < self._valley_index:
+                    self._valley_index = current_price
+                if current_price >= self._valley_index + index_trail_pts:
+                    self.logger.info(f"INDEX TRAILING SL (PE): Exit at {current_price} (Valley: {self._valley_index})")
+                    self._close_active_trade(trade, simulated_price, "trailing_sl")
+                    return
 
         # 2. Exit checks
+        current_sl = trade.get("trailing_sl") or trade.get("stop_loss")
 
         # 2a. Stop loss hit
         if simulated_price <= current_sl:
@@ -736,7 +794,26 @@ class TradingBot:
 
     def _can_trade(self) -> bool:
         """PHASE 7: Risk management rules."""
-        max_trades = int(get_setting("max_trades_per_day") or "3")
+        # 1. Previous Day Range Filter
+        min_prev_range = float(get_setting("min_prev_day_range") or "150")
+        
+        # In playback, if we just started, try to fetch it from history
+        if self._prev_day_range <= 0 and self.data_feed:
+             # Look back 1-3 days for the previous trading day
+             for d_back in range(1, 4):
+                 prev_dt = self._get_current_time() - timedelta(days=d_back)
+                 prev_date_str = prev_dt.strftime("%Y-%m-%d")
+                 stats = self.data_feed.get_daily_range(prev_date_str)
+                 if stats:
+                     self._prev_day_range = stats["range"]
+                     self.logger.info(f"Identified Previous Day ({prev_date_str}) Range: {self._prev_day_range}")
+                     break
+
+        if self._prev_day_range > 0 and self._prev_day_range < min_prev_range:
+            self._current_signal = f"SKIP (Prev Day Range {self._prev_day_range} < {min_prev_range})"
+            return False
+
+        max_trades = int(get_setting("max_trades_per_day") or "2")
         today_count = get_today_trade_count()
         if today_count >= max_trades:
             return False

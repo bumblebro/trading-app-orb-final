@@ -7,16 +7,16 @@ import type { Settings } from '@/lib/types';
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Settings>({
     api_key: '', client_id: '', pin: '', totp_secret: '',
-    orb_duration: '15', min_orb_range: '20', max_orb_range: '150', breakout_buffer: '5',
-    vwap_confirmation: 'true', sideways_threshold_pct: '0.2', atr_period: '14', atr_threshold: '10',
+    orb_duration: '15', min_orb_range: '30', max_orb_range: '150', breakout_buffer: '5',
+    vwap_confirmation: 'true', sideways_threshold_pct: '0.2', atr_period: '14', atr_threshold: '11',
+    min_prev_day_range: '150',
     primary_fib_level: '61.8', secondary_fib_level: '50.0', fib_sl_level: '78.6', pullback_timeout: '45',
     macd_fast_period: '12', macd_slow_period: '26', macd_signal_period: '9',
     rsi_filter_enabled: 'false', rsi_period: '14', rsi_min_ce: '45', rsi_max_pe: '55',
-    option_target_pct: '80', option_sl_pct: '40',
-    trailing_sl_enabled: 'true', trailing_sl_pct: '15',
-    max_trades_per_day: '3', signal_cutoff_time: '14:30', square_off_time: '15:15',
-    lot_size: '65', max_capital_risk_pct: '1',
-    data_source: 'smartapi', playback_file: 'bot/data/nifty_sample.csv', playback_speed: '1',
+    atm_delta: '0.5', trailing_sl_enabled: 'true', trailing_sl_pct: '20', index_trailing_sl_pts: '20',
+    max_trades_per_day: '2', max_trade_loss_inr: '3000', hard_sl_option_pts: '25',
+    signal_cutoff_time: '14:30', square_off_time: '15:15', lot_size: '65', position_size_mode: 'fixed',
+    fixed_lots: '2', max_capital_risk_pct: '1', trading_mode: 'paper', paper_capital: '100000', playback_file: 'bot/data/nifty_sample.csv', playback_speed: '1',
     playback_start_date: '', playback_period: 'all',
   });
   const [loading, setLoading] = useState(true);
@@ -212,6 +212,13 @@ export default function SettingsPage() {
             </label>
             <input type="number" className="form-input" value={settings.atr_threshold} onChange={(e) => handleChange('atr_threshold', e.target.value)} />
           </div>
+          <div className="form-group border-l-2 border-yellow-500/30 pl-4">
+            <label className="form-label flex items-center gap-1">
+              Min Prev Day Range
+              <span className="text-[10px] bg-yellow-500/20 text-yellow-400 px-1 rounded border border-yellow-500/30 cursor-help" title="Only trade if the previous day's Nifty range (High - Low) was greater than this value. Helps avoid trading after boring 'inside' days.">i</span>
+            </label>
+            <input type="number" className="form-input" value={settings.min_prev_day_range} onChange={(e) => handleChange('min_prev_day_range', e.target.value)} />
+          </div>
         </div>
       </div>
 
@@ -266,8 +273,9 @@ export default function SettingsPage() {
             </select>
           </div>
           <div className="form-group">
-            <label className="form-label">Trailing Step (%)</label>
-            <input type="number" className="form-input" value={settings.trailing_sl_pct} onChange={(e) => handleChange('trailing_sl_pct', e.target.value)} />
+            <label className="form-label">Index Trailing (Pts)</label>
+            <input type="number" className="form-input" value={settings.index_trailing_sl_pts} onChange={(e) => handleChange('index_trailing_sl_pts', e.target.value)} />
+            <p className="text-[9px] text-indigo-400 mt-1">Trails by Nifty Points (e.g. 20)</p>
           </div>
         </div>
       </div>
@@ -287,6 +295,14 @@ export default function SettingsPage() {
           <div className="form-group">
             <label className="form-label">Auto Square Off</label>
             <input type="time" className="form-input" value={settings.square_off_time} onChange={(e) => handleChange('square_off_time', e.target.value)} />
+          </div>
+          <div className="form-group bg-red-500/5 p-2 rounded border border-red-500/10">
+            <label className="form-label text-red-400 font-bold">Max Trade Loss (₹)</label>
+            <input type="number" className="form-input border-red-500/30" value={settings.max_trade_loss_inr} onChange={(e) => handleChange('max_trade_loss_inr', e.target.value)} />
+          </div>
+          <div className="form-group bg-red-500/5 p-2 rounded border border-red-500/10">
+            <label className="form-label text-red-400">Hard Option SL (Pts)</label>
+            <input type="number" className="form-input border-red-500/30" value={settings.hard_sl_option_pts} onChange={(e) => handleChange('hard_sl_option_pts', e.target.value)} />
           </div>
           <div className="form-group">
             <label className="form-label">Lot Size (NIFTY)</label>

@@ -256,7 +256,9 @@ async def list_trades(mode: Optional[str] = None,
                       limit: int = 100):
     """Get trade history."""
     trades = get_trades(mode=mode, date_from=date_from, date_to=date_to, limit=limit)
-    return {"trades": trades}
+    from database import get_all_time_pnl
+    summary = get_all_time_pnl(mode=mode, date_from=date_from, date_to=date_to)
+    return {"trades": trades, "summary": summary}
 
 
 @app.get("/trades/active")

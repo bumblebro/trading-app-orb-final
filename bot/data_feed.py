@@ -401,6 +401,41 @@ class DataFeed:
             if current: result.append(dict(current))
             return result
 
+    def get_daily_range(self, target_date: str) -> Optional[Dict]:
+        """Scan CSV or history for daily High/Low of a specific date."""
+        if not self.playback_file or not os.path.exists(self.playback_file):
+            return None
+        
+        try:
+            high = float('-inf')
+            low = float('inf')
+            found = False
+
+            with open(self.playback_file, 'r') as f:
+                reader = csv.DictReader(f)
+                headers = {k.lower(): k for k in reader.fieldnames} if reader.fieldnames else {}
+                ts_key = next((k for k in headers if 'date' in k or 'time' in k or 'timestamp' in k), None)
+                
+                if not ts_key: return None
+
+                for row in reader:
+                    ts_str = row[headers[ts_key]]
+                    if not ts_str.startswith(target_date):
+                        if found: break # Optimization: past the date
+                        continue
+                    
+                    found = True
+                    h_val = float(row[headers.get('high', headers.get('price'))])
+                    l_val = float(row[headers.get('low', headers.get('price'))])
+                    high = max(high, h_val)
+                    low = min(low, l_val)
+            
+            if found:
+                return {"high": high, "low": low, "range": round(high - low, 2)}
+        except Exception:
+            pass
+        return None
+
     def get_price_info(self) -> Dict:
         with self._lock:
             change = self._current_price - self._prev_price if self._prev_price > 0 else 0

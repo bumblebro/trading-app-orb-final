@@ -6,10 +6,18 @@ import type { Trade } from '@/lib/types';
 
 export default function HistoryPage() {
   const [trades, setTrades] = useState<Trade[]>([]);
+  const [summary, setSummary] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [modeFilter, setModeFilter] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+
+  // Set default mode from status
+  useEffect(() => {
+    api.getBotStatus().then(status => {
+      if (status?.mode) setModeFilter(status.mode);
+    }).catch(() => {});
+  }, []);
 
   const fetchTrades = useCallback(async () => {
     try {
@@ -19,6 +27,7 @@ export default function HistoryPage() {
         date_to: dateTo || undefined,
       });
       setTrades(data.trades || []);
+      setSummary(data.summary || null);
     } catch {
       // Bot not connected
     } finally {
@@ -30,9 +39,11 @@ export default function HistoryPage() {
     fetchTrades();
   }, [fetchTrades]);
 
-  const totalPnl = trades.reduce((sum, t) => sum + (t.status !== 'open' ? t.pnl : 0), 0);
-  const wins = trades.filter(t => t.status === 'win').length;
-  const losses = trades.filter(t => t.status === 'loss').length;
+  const totalPnl = summary?.all_time_pnl ?? trades.reduce((sum, t) => sum + (t.status !== 'open' ? t.pnl : 0), 0);
+  const wins = summary?.wins ?? trades.filter(t => t.status === 'win').length;
+  const losses = summary?.losses ?? trades.filter(t => t.status === 'loss').length;
+  const totalTrades = summary?.all_time_trades ?? trades.length;
+  const winRate = summary?.all_time_win_rate ?? (wins + losses > 0 ? (wins / (wins + losses) * 100) : 0);
 
   return (
     <div className="page-container">
@@ -64,6 +75,40 @@ export default function HistoryPage() {
           <option value="live">Live Trades</option>
         </select>
       </div>
+
+      {/* P&L Summary at Top */}
+      {!loading && trades.length > 0 && (
+        <div className="pnl-summary-top">
+          <div className="flex flex-col gap-1">
+            <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Overall Performance</span>
+            <span 
+              className="text-2xl font-bold"
+              style={{ color: totalPnl >= 0 ? 'var(--green)' : 'var(--red)', fontFamily: "'JetBrains Mono', monospace" }}
+            >
+              {totalPnl >= 0 ? '+' : ''}₹{totalPnl.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+            </span>
+          </div>
+          <div className="flex items-center gap-6 ml-auto bg-black/20 p-4 rounded-xl border border-white/5">
+            <div className="summary-stat">
+              <span className="label">Trades</span>
+              <span className="value">{totalTrades}</span>
+            </div>
+            <div className="summary-stat">
+              <span className="label text-green-500">Wins</span>
+              <span className="value text-green-500">{wins}</span>
+            </div>
+            <div className="summary-stat">
+              <span className="label text-red-500">Losses</span>
+              <span className="value text-red-500">{losses}</span>
+            </div>
+            <div className="divider mx-2 w-[1px] h-8 bg-white/10"></div>
+            <div className="summary-stat">
+              <span className="label">Win Rate</span>
+              <span className="value text-cyan-400">{winRate.toFixed(1)}%</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center p-32 text-gray-500">
@@ -145,36 +190,6 @@ export default function HistoryPage() {
               )}
             </tbody>
           </table>
-
-          {/* P&L Summary */}
-          {trades.length > 0 && (
-            <div className="pnl-summary">
-              <div className="flex flex-col gap-1">
-                <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Total Realized P&L</span>
-                <span style={{ color: totalPnl >= 0 ? 'var(--green)' : 'var(--red)', fontFamily: "'JetBrains Mono', monospace", fontSize: '1.2rem', fontWeight: 700 }}>
-                  {totalPnl >= 0 ? '+' : ''}₹{totalPnl.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                </span>
-              </div>
-              <div className="flex gap-8 ml-auto">
-                <div className="summary-stat">
-                  <span className="label">Trades</span>
-                  <span className="value">{trades.length}</span>
-                </div>
-                <div className="summary-stat">
-                  <span className="label text-green-500">Wins</span>
-                  <span className="value text-green-500">{wins}</span>
-                </div>
-                <div className="summary-stat">
-                  <span className="label text-red-500">Losses</span>
-                  <span className="value text-red-500">{losses}</span>
-                </div>
-                <div className="summary-stat">
-                  <span className="label">Win Rate</span>
-                  <span className="value">{wins + losses > 0 ? ((wins / (wins + losses)) * 100).toFixed(1) : 0}%</span>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       )}
       
@@ -202,9 +217,20 @@ export default function HistoryPage() {
           color: var(--text-muted);
         }
         .summary-stat .value {
-          font-size: 1rem;
+          font-size: 1.1rem;
           font-weight: 700;
           font-family: 'JetBrains Mono', monospace;
+        }
+
+        .pnl-summary-top {
+          display: flex;
+          align-items: center;
+          padding: 1.5rem;
+          background: linear-gradient(145deg, rgba(20, 20, 20, 0.4), rgba(40, 40, 40, 0.4));
+          border: 1px solid var(--border);
+          border-radius: 16px;
+          margin-bottom: 2rem;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
         }
       `}</style>
     </div>
