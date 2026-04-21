@@ -11,6 +11,7 @@ export interface PriceInfo {
     orb_low: number | null;
     orb_range: number | null;
     orb_status: string | null;
+    vwap: number | null;
     macd_line: number | null;
     signal_line: number | null;
     histogram: number | null;
@@ -37,6 +38,8 @@ export interface Signal {
   pullback_timer_remaining: number | null;
   fibonacci_levels: FibonacciData | null;
   macd_confirms: boolean;
+  vwap: number | null;
+  vwap_confirms: boolean;
   timestamp: string;
 }
 
@@ -151,6 +154,7 @@ export interface ChartData {
   candles: CandleData[];
   orb_high: LineData[];
   orb_low: LineData[];
+  vwap: LineData[];
 }
 
 export interface Settings {
@@ -162,6 +166,10 @@ export interface Settings {
   min_orb_range: string;
   max_orb_range: string;
   breakout_buffer: string;
+  vwap_confirmation: string;
+  sideways_threshold_pct: string;
+  atr_period: string;
+  atr_threshold: string;
   atm_delta: string;
   trailing_sl_enabled: string;
   trailing_sl_pct: string;
@@ -177,6 +185,8 @@ export interface Settings {
   data_source: string;
   playback_file: string;
   playback_speed: string;
+  playback_start_date: string;
+  playback_period: string;
 }
 
 export interface LogEntry {

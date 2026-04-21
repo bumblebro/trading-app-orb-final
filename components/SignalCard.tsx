@@ -91,6 +91,12 @@ export default function SignalCard({ signal }: SignalCardProps) {
           <div className={`check-item ${strategyInfo?.breakout_direction !== 'NONE' ? 'checked' : ''}`}>
             {strategyInfo?.breakout_direction !== 'NONE' ? '✅' : '⚪'} 1. ORB Breakout Detected
           </div>
+          <div className={`check-item ${strategyInfo?.vwap_confirms ? 'checked' : ''}`}>
+            {strategyInfo?.vwap_confirms ? '✅' : '⚪'} 2. VWAP Confirmation
+            {strategyInfo?.vwap && (
+              <span className="check-detail"> ({strategyInfo.vwap.toFixed(2)})</span>
+            )}
+          </div>
         </div>
       )}
 
@@ -142,6 +148,14 @@ export default function SignalCard({ signal }: SignalCardProps) {
         .check-item.checked {
           color: #fff;
           font-weight: 500;
+        }
+        .check-detail {
+          font-size: 0.7rem;
+          color: #6b7280;
+          font-weight: 400;
+        }
+        .check-item.checked .check-detail {
+          color: #9ca3af;
         }
         .orb-stats {
            margin-top: 1rem;

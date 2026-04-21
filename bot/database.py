@@ -63,6 +63,7 @@ def init_db(db_path: str = None):
             trailing_sl_used INTEGER DEFAULT 0,
             trailing_sl_final REAL,
             rsi_at_entry REAL,
+            vwap_at_entry REAL,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
     """)
@@ -102,6 +103,7 @@ def init_db(db_path: str = None):
         ("trailing_sl_used", "INTEGER DEFAULT 0"),
         ("trailing_sl_final", "REAL"),
         ("rsi_at_entry", "REAL"),
+        ("vwap_at_entry", "REAL"),
     ]:
         try:
             conn.execute(f"ALTER TABLE trades ADD COLUMN {column} {col_type}")
@@ -123,8 +125,8 @@ def insert_trade(trade: Dict[str, Any], timestamp: datetime = None, db_path: str
                           quantity, lot_size, status, mode, stop_loss, target, underlying_entry_price,
                           token, entry_quality, orb_high, orb_low, orb_range,
                           breakout_price, fib_entry_level, fib_entry_price, fib_sl_price,
-                          macd_at_entry, trailing_sl_used, rsi_at_entry)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'open', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                          macd_at_entry, trailing_sl_used, rsi_at_entry, vwap_at_entry)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'open', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         now.strftime("%Y-%m-%d"),
         now.strftime("%H:%M:%S"),
@@ -150,6 +152,7 @@ def insert_trade(trade: Dict[str, Any], timestamp: datetime = None, db_path: str
         trade.get("macd_at_entry"),
         trade.get("trailing_sl_used", 0),
         trade.get("rsi_at_entry"),
+        trade.get("vwap_at_entry"),
     ))
     trade_id = cursor.lastrowid
     conn.commit()
@@ -324,9 +327,14 @@ DEFAULT_SETTINGS = {
     "totp_secret": "",
     # ORB Parameters
     "orb_duration": "15",
-    "min_orb_range": "30",
+    "min_orb_range": "20",
     "max_orb_range": "150",
-    "breakout_buffer": "3",
+    "breakout_buffer": "5",
+    # Advanced Filters
+    "vwap_confirmation": "true",
+    "sideways_threshold_pct": "0.2",
+    "atr_period": "14",
+    "atr_threshold": "10",
     # Trade Management
     "atm_delta": "0.5",
     "trailing_sl_enabled": "true",
@@ -345,6 +353,8 @@ DEFAULT_SETTINGS = {
     "data_source": "smartapi",
     "playback_file": "bot/data/nifty_sample.csv",
     "playback_speed": "1",
+    "playback_start_date": "",
+    "playback_period": "all",
 }
 
 

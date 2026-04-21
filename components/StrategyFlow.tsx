@@ -25,6 +25,13 @@ export default function StrategyFlow({ phase, strategyInfo }: StrategyFlowProps)
       details: strategyInfo?.breakout_price ? `Broke ${strategyInfo.breakout_direction === 'UP' ? 'High' : 'Low'} @ ${strategyInfo.breakout_price}` : 'Watching levels...',
     },
     {
+      id: 'VWAP',
+      label: 'VWAP Confirmation',
+      phases: ['WAITING_BREAKOUT'],
+      completedPhases: ['ORDER_PLACED', 'IN_TRADE'],
+      details: strategyInfo?.vwap ? `VWAP: ${strategyInfo.vwap.toFixed(2)}${strategyInfo.vwap_confirms ? ' ✓' : ''}` : 'Calculating...',
+    },
+    {
       id: 'ENTRY',
       label: 'Order Execution',
       phases: ['ORDER_PLACED', 'IN_TRADE'],

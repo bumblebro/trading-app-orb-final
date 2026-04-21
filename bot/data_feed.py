@@ -28,12 +28,16 @@ class DataFeed:
     def __init__(self, api_key: str = "", client_id: str = "",
                  feed_token: str = "",
                  playback_file: Optional[str] = None,
-                 playback_speed: float = 1.0):
+                 playback_speed: float = 1.0,
+                 playback_start_date: str = "",
+                 playback_period: str = "all"):
         self.api_key = api_key
         self.client_id = client_id
         self.feed_token = feed_token
         self.playback_file = playback_file
         self.playback_speed = playback_speed
+        self.playback_start_date = playback_start_date
+        self.playback_period = playback_period
 
         # Price state
         self._lock = threading.Lock()
@@ -152,12 +156,27 @@ class DataFeed:
             logger.info(f"Starting CSV playback from {self.playback_file}")
 
         self._connected = True
-        self._playback_thread = threading.Thread(target=self._play_csv_data, daemon=True)
+        
+        # Pre-calculate start and end times
+        start_dt = None
+        if self.playback_start_date:
+            try:
+                start_dt = datetime.strptime(self.playback_start_date, "%Y-%m-%d").replace(tzinfo=IST)
+            except ValueError:
+                pass
+        
+        end_dt = None
+        # We'll calculate end_dt once we find the first valid row_time >= start_dt
+
+        self._playback_thread = threading.Thread(target=self._play_csv_data, args=(start_dt,), daemon=True)
         self._playback_thread.start()
 
-    def _play_csv_data(self):
+    def _play_csv_data(self, start_dt: Optional[datetime] = None):
         """Read CSV and emit prices."""
         try:
+            end_dt = None
+            period_started = False
+
             with open(self.playback_file, 'r') as f:
                 reader = csv.DictReader(f)
                 headers = {k.lower(): k for k in reader.fieldnames} if reader.fieldnames else {}
@@ -177,6 +196,30 @@ class DataFeed:
                                     break
                                 except ValueError:
                                     continue
+                        
+                        # Date Filtering
+                        if row_time:
+                            if start_dt and row_time < start_dt:
+                                continue
+                            
+                            # Calculate End Date on the first qualifying row
+                            if not period_started:
+                                period_started = True
+                                if self.playback_period != "all":
+                                    days = {
+                                        "1 month": 30,
+                                        "3 months": 91,
+                                        "6 months": 182,
+                                        "1 year": 365
+                                    }.get(self.playback_period)
+                                    if days:
+                                        end_dt = row_time + timedelta(days=days)
+                            
+                            if end_dt and row_time > end_dt:
+                                logger = self._get_logger()
+                                if logger:
+                                    logger.info(f"Playback period ({self.playback_period}) completed at {row_time}")
+                                break
                         
                         has_ohlc = all(k in headers for k in ['open', 'high', 'low', 'close'])
                         volume = int(row.get(headers.get('volume', ''), 0))

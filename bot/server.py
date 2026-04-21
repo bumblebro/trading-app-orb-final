@@ -129,6 +129,7 @@ async def get_price():
             "orb_low": indicators.get("orb_low"),
             "orb_range": indicators.get("orb_range"),
             "orb_status": indicators.get("orb_status"),
+            "vwap": indicators.get("vwap"),
             "phase": indicators.get("phase", "WATCHING"),
             "ready": indicators.get("ready", False),
         }
@@ -168,6 +169,8 @@ async def get_signal():
         "breakout_direction": breakout_dir,
         "breakout_price": phase_data.get("breakout_price"),
         "breakout_time": phase_data.get("breakout_time"),
+        "vwap": phase_data.get("vwap"),
+        "vwap_confirms": phase_data.get("vwap_confirms", False),
         "timestamp": get_ist_now().isoformat()
     }
 
@@ -221,16 +224,28 @@ async def get_candles():
                     orb_high_line.append({"time": c["time"], "value": orb_high})
                     orb_low_line.append({"time": c["time"], "value": orb_low})
 
+        # VWAP line data
+        vwap_line = []
+        vwap_values = []
+        if candles:
+            from indicators import calculate_vwap
+            vwap_values = calculate_vwap(candles)
+            for i, c in enumerate(candles):
+                if "time" in c and i < len(vwap_values):
+                    vwap_line.append({"time": c["time"], "value": vwap_values[i]})
+
         return {
             "candles": chart_candles,
             "orb_high": orb_high_line,
             "orb_low": orb_low_line,
+            "vwap": vwap_line,
         }
     else:
         return {
             "candles": [],
             "orb_high": [],
             "orb_low": [],
+            "vwap": [],
         }
 
 

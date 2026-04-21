@@ -7,7 +7,8 @@ import type { Settings } from '@/lib/types';
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Settings>({
     api_key: '', client_id: '', pin: '', totp_secret: '',
-    orb_duration: '15', min_orb_range: '30', max_orb_range: '150', breakout_buffer: '5',
+    orb_duration: '15', min_orb_range: '20', max_orb_range: '150', breakout_buffer: '5',
+    vwap_confirmation: 'true', sideways_threshold_pct: '0.2', atr_period: '14', atr_threshold: '10',
     primary_fib_level: '61.8', secondary_fib_level: '50.0', fib_sl_level: '78.6', pullback_timeout: '45',
     macd_fast_period: '12', macd_slow_period: '26', macd_signal_period: '9',
     rsi_filter_enabled: 'false', rsi_period: '14', rsi_min_ce: '45', rsi_max_pe: '55',
@@ -15,8 +16,8 @@ export default function SettingsPage() {
     trailing_sl_enabled: 'true', trailing_sl_pct: '15',
     max_trades_per_day: '3', signal_cutoff_time: '14:30', square_off_time: '15:15',
     lot_size: '65', max_capital_risk_pct: '1',
-    trading_mode: 'paper', paper_capital: '100000',
     data_source: 'smartapi', playback_file: 'bot/data/nifty_sample.csv', playback_speed: '1',
+    playback_start_date: '', playback_period: 'all',
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -131,8 +132,39 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
+      
+      {/* 2. Backtest Config (only visible in playback) */}
+      <div className="settings-section border-l-4 border-indigo-500">
+        <h3 className="text-indigo-500">🧪 Backtest Configuration</h3>
+        <div className="form-grid">
+          <div className="form-group">
+            <label className="form-label">Playback Start Date</label>
+            <input 
+              type="date" 
+              className="form-input" 
+              value={settings.playback_start_date} 
+              onChange={(e) => handleChange('playback_start_date', e.target.value)} 
+            />
+            <p className="text-[10px] text-gray-400 mt-1">Leave empty to start from first row</p>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Backtest Duration</label>
+            <select 
+              className="form-input" 
+              value={settings.playback_period} 
+              onChange={(e) => handleChange('playback_period', e.target.value)}
+            >
+              <option value="all">📊 Full Dataset</option>
+              <option value="1 month">📅 1 Month</option>
+              <option value="3 months">📅 3 Months</option>
+              <option value="6 months">📅 6 Months</option>
+              <option value="1 year">📅 1 Year</option>
+            </select>
+          </div>
+        </div>
+      </div>
 
-      {/* 2. ORB Parameters */}
+      {/* 3. ORB Parameters */}
       <div className="settings-section border-l-4 border-cyan-500">
         <h3 className="text-cyan-400">📊 1. Opening Range (ORB)</h3>
         <div className="form-grid">
@@ -155,6 +187,30 @@ export default function SettingsPage() {
           <div className="form-group">
             <label className="form-label">Max Range Filter (Pts)</label>
             <input type="number" className="form-input" value={settings.max_orb_range} onChange={(e) => handleChange('max_orb_range', e.target.value)} />
+          </div>
+          <div className="form-group col-span-2">
+            <label className="form-label flex items-center gap-1">
+              VWAP Confirmation
+              <span className="text-[10px] bg-yellow-500/20 text-yellow-400 px-1 rounded border border-yellow-500/30 cursor-help" title="When enabled, breakout UP requires price above VWAP (bullish bias), and breakout DOWN requires price below VWAP (bearish bias). This filters out false breakouts against the intraday trend.">i</span>
+            </label>
+            <select className="form-input" value={settings.vwap_confirmation} onChange={(e) => handleChange('vwap_confirmation', e.target.value)}>
+              <option value="true">✅ Enabled (Recommended)</option>
+              <option value="false">❌ Disabled</option>
+            </select>
+          </div>
+          <div className="form-group">
+            <label className="form-label flex items-center gap-1">
+              Sideways Filter (%)
+              <span className="text-[10px] bg-purple-500/20 text-purple-400 px-1 rounded border border-purple-500/30 cursor-help" title="If price stays within this % of VWAP for the first 45 mins, it marks the day as 'Sideways' and skips trading (No Trade Zone).">i</span>
+            </label>
+            <input type="number" step="0.01" className="form-input" value={settings.sideways_threshold_pct} onChange={(e) => handleChange('sideways_threshold_pct', e.target.value)} />
+          </div>
+          <div className="form-group">
+            <label className="form-label flex items-center gap-1">
+              ATR Volatility Limit
+              <span className="text-[10px] bg-red-500/20 text-red-400 px-1 rounded border border-red-500/30 cursor-help" title="Average True Range (14 periods). If ATR is below this value, the day is considered too low-volatility for ORB and will be skipped.">i</span>
+            </label>
+            <input type="number" className="form-input" value={settings.atr_threshold} onChange={(e) => handleChange('atr_threshold', e.target.value)} />
           </div>
         </div>
       </div>

@@ -24,6 +24,7 @@ export default function Chart({ data }: ChartProps) {
   const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
   const orbHighRef = useRef<ISeriesApi<'Line'> | null>(null);
   const orbLowRef = useRef<ISeriesApi<'Line'> | null>(null);
+  const vwapRef = useRef<ISeriesApi<'Line'> | null>(null);
   const [initialized, setInitialized] = useState(false);
 
   const initChart = useCallback(() => {
@@ -121,10 +122,19 @@ export default function Chart({ data }: ChartProps) {
       title: 'ORB Low',
     });
 
+    // VWAP Line - Yellow/Amber
+    const vwapLine = chart.addSeries(LineSeries, {
+      color: '#eab308',
+      lineWidth: 2,
+      lineStyle: 0, // Solid
+      title: 'VWAP',
+    });
+
     chartRef.current = chart;
     candleSeriesRef.current = candleSeries;
     orbHighRef.current = orbHigh;
     orbLowRef.current = orbLow;
+    vwapRef.current = vwapLine;
     setInitialized(true);
 
     const handleResize = () => {
@@ -176,6 +186,14 @@ export default function Chart({ data }: ChartProps) {
       }
     }
 
+    if (vwapRef.current) {
+      if (data.vwap && data.vwap.length > 0) {
+        vwapRef.current.setData(data.vwap as LineData<Time>[]);
+      } else {
+        vwapRef.current.setData([]);
+      }
+    }
+
     if (chartRef.current) {
       chartRef.current.timeScale().scrollToRealTime();
     }
@@ -197,6 +215,9 @@ export default function Chart({ data }: ChartProps) {
         <div className="chart-legend flex flex-wrap gap-x-4 gap-y-1 justify-end max-w-[50%]">
           <span className="legend-item flex items-center gap-1" style={{ color: '#06b6d4' }}>
             <span className="w-3 h-1 bg-[#06b6d4]"></span> ORB High/Low
+          </span>
+          <span className="legend-item flex items-center gap-1" style={{ color: '#eab308' }}>
+            <span className="w-3 h-1 bg-[#eab308]"></span> VWAP
           </span>
         </div>
       </div>

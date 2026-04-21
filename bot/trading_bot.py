@@ -17,7 +17,7 @@ from market_calendar import (
 )
 from data_feed import get_data_feed, DataFeed
 from indicators import (
-    get_latest_indicators, calculate_orb
+    get_latest_indicators, calculate_orb, calculate_vwap
 )
 from order_manager import get_order_manager, OrderManager
 from auth import login_and_get_session
@@ -81,8 +81,16 @@ class TradingBot:
 
         self._breakout_attempts = 0
 
+        # VWAP confirmation state
+        self._vwap_confirms = False
+
         # Indicators Tracking
         self._indicators: Dict = {}
+
+        # Filter Tracking
+        self._vwap_dev_min: float = float('inf')
+        self._vwap_dev_max: float = float('-inf')
+        self._sideways_start_time: Optional[datetime] = None
 
         # Reset tracking
         self._last_tick_date: Optional[str] = None
@@ -113,6 +121,8 @@ class TradingBot:
             "breakout_direction": self._breakout_direction,
             "breakout_price": self._breakout_price,
             "breakout_time": self._breakout_time.isoformat() if self._breakout_time else None,
+            "vwap": self._indicators.get("vwap"),
+            "vwap_confirms": self._vwap_confirms,
         }
 
     @property
@@ -166,6 +176,8 @@ class TradingBot:
         if data_source == "playback":
             feed_args["playback_file"] = playback_file
             feed_args["playback_speed"] = playback_speed
+            feed_args["playback_start_date"] = get_setting("playback_start_date") or ""
+            feed_args["playback_period"] = get_setting("playback_period") or "all"
         else:
             feed_args["api_key"] = get_setting("api_key")
             feed_args["client_id"] = get_setting("client_id")
@@ -256,9 +268,15 @@ class TradingBot:
         self._breakout_price = None
         self._breakout_time = None
         self._breakout_attempts = 0 # Track attempts per day (max 2)
+        self._vwap_confirms = False
 
         # Indicators tracking
         self._indicators = {}
+
+        # Filter tracking
+        self._vwap_dev_min = float('inf')
+        self._vwap_dev_max = float('-inf')
+        self._sideways_start_time = None
 
     def _set_phase(self, phase: str):
         """Update strategy phase with logging."""
@@ -312,6 +330,24 @@ class TradingBot:
 
         # Update indicators continuously
         self._update_indicators()
+
+        # ----------------------------------------
+        # No Trade Zone (Sideways) Filter
+        # Monitor 9:15 - 10:00 (45 mins)
+        # ----------------------------------------
+        if "09:15" <= current_time_str <= "10:00":
+            vwap = self._indicators.get("vwap")
+            if vwap and current_price > 0:
+                dev = (current_price - vwap) / vwap * 100
+                self._vwap_dev_min = min(self._vwap_dev_min, dev)
+                self._vwap_dev_max = max(self._vwap_dev_max, dev)
+        
+        if current_time_str == "10:00" and self._strategy_phase != PHASE_SKIP_TODAY:
+            spread = self._vwap_dev_max - self._vwap_dev_min
+            threshold = float(get_setting("sideways_threshold_pct") or "0.2")
+            if spread < threshold:
+                self.logger.warning(f"SIDEWAYS FILTER: Spread {spread:.3f}% < {threshold}%. NO TRADE ZONE. Skipping.")
+                self._set_phase(PHASE_SKIP_TODAY)
 
         # 1. Square-off check
         if is_square_off_time(now):
@@ -389,14 +425,26 @@ class TradingBot:
         if orb_high and orb_low:
             self.logger.info(f"ORB calculated: High={orb_high} Low={orb_low} Range={orb_range}")
 
-            min_range = float(get_setting("min_orb_range") or "30")
+            min_range = float(get_setting("min_orb_range") or "20")
             max_range = float(get_setting("max_orb_range") or "300")
-
+            
+            # 1. Strict Range Filter
             if orb_range < min_range:
                 self._orb_data["orb_status"] = "TOO_FLAT"
-                self.logger.warning(f"ORB range too small ({orb_range} pts), skipping today")
+                self.logger.warning(f"STRICT RANGE FILTER: Range {orb_range} < {min_range} min. NO TRADE DAY.")
                 self._set_phase(PHASE_SKIP_TODAY)
-            elif orb_range > max_range:
+                return
+
+            # 2. Volatility (ATR) Filter
+            atr = self._indicators.get("atr")
+            atr_threshold = float(get_setting("atr_threshold") or "10")
+            if atr and atr < atr_threshold:
+                self._orb_data["orb_status"] = "LOW_VOLATILITY"
+                self.logger.warning(f"VOLATILITY FILTER: ATR {atr} < {atr_threshold} threshold. Skipping today.")
+                self._set_phase(PHASE_SKIP_TODAY)
+                return
+
+            if orb_range > max_range:
                 self._orb_data["orb_status"] = "TOO_WIDE"
                 self.logger.warning(f"ORB range too wide ({orb_range} pts), skipping today")
                 self._set_phase(PHASE_SKIP_TODAY)
@@ -419,44 +467,84 @@ class TradingBot:
 
         buffer = float(get_setting("breakout_buffer") or "5")
 
+        # Get the last completed candle's close for candle-close breakout
+        candles = self.data_feed.get_all_candles() if self.data_feed else []
+        last_candle_close = candles[-2]["close"] if len(candles) >= 2 else None
+
+        # ----------------------------------------
+        # VWAP Confirmation Logic
+        # ----------------------------------------
+        vwap = self._indicators.get("vwap")
+        vwap_enabled = get_setting("vwap_confirmation") != "false"  # Enabled by default
+
         # ----------------------------------------
         # PHASE 2: Detect Breakout
         # ----------------------------------------
         if self._strategy_phase == PHASE_WAITING_BREAKOUT:
-            # Risk Guard: Max 2 attempts per day
+            # Risk Guard: Max 2 attempts per day (1 entry + 1 re-entry)
             if self._breakout_attempts >= 2:
                 self._current_signal = "WAIT (Max Trades reached)"
                 return
 
-            # RE-ENTRY RULE: If we already took one trade, 
-            # we only allow a second one if price comes back INSIDE the ORB first
-            # (To avoid flicker re-entries)
-            if self._breakout_attempts == 1:
-                # If price is still above high or below low, we wait
-                if current_price > orb_high or current_price < orb_low:
-                    self._current_signal = "WAIT (Price must return to ORB)"
+            # Breakout UP: candle close above ORB high OR price > ORB high + buffer
+            candle_break_up = last_candle_close is not None and last_candle_close > orb_high
+            price_break_up = current_price > orb_high + buffer
+
+            if candle_break_up and price_break_up:
+                # 3. Candle Strength Filter
+                strength = self._indicators.get("candle_strength", {})
+                if not strength.get("strength_pass", False):
+                    self.logger.info(f"CANDLE STRENGTH FILTER: Body {strength.get('current_body')} <= Avg {strength.get('avg_body')}. Skipping entry.")
                     return
 
-            if current_price > orb_high + buffer:
+                # VWAP Confirmation: For LONG breakout, price must be above VWAP
+                if vwap_enabled and vwap:
+                    self._vwap_confirms = current_price > vwap
+                    if not self._vwap_confirms:
+                        self._current_signal = "WAIT (VWAP: Price below VWAP)"
+                        return
+                else:
+                    self._vwap_confirms = True  # Disabled or no data, auto-pass
+
+                trigger = "candle close + buffer"
                 self._breakout_direction = "LONG"
                 self._breakout_price = current_price
                 self._breakout_time = now
                 self._breakout_attempts += 1
                 self._set_phase(PHASE_ORDER_PLACED)
-                self.logger.info(f"BREAKOUT UP at {current_price} (ORB High {orb_high} + buffer {buffer}) - Attempt {self._breakout_attempts}")
+                self.logger.info(f"BREAKOUT UP at {current_price} ({trigger}, ORB High {orb_high}, VWAP {vwap}) - Attempt {self._breakout_attempts}")
                 
                 signal = "BUY_CE"
                 self._current_signal = signal
                 self._execute_trade(signal, current_price, now)
                 return
 
-            elif current_price < orb_low - buffer:
+            # Breakout DOWN: candle close below ORB low OR price < ORB low - buffer
+            candle_break_down = last_candle_close is not None and last_candle_close < orb_low
+            price_break_down = current_price < orb_low - buffer
+
+            if candle_break_down and price_break_down:
+                # 3. Candle Strength Filter
+                strength = self._indicators.get("candle_strength", {})
+                if not strength.get("strength_pass", False):
+                    self.logger.info(f"CANDLE STRENGTH FILTER: Body {strength.get('current_body')} <= Avg {strength.get('avg_body')}. Skipping entry.")
+                    return
+
+                if vwap_enabled and vwap:
+                    self._vwap_confirms = current_price < vwap
+                    if not self._vwap_confirms:
+                        self._current_signal = "WAIT (VWAP: Price above VWAP)"
+                        return
+                else:
+                    self._vwap_confirms = True  # Disabled or no data, auto-pass
+
+                trigger = "candle close + buffer"
                 self._breakout_direction = "SHORT"
                 self._breakout_price = current_price
                 self._breakout_time = now
                 self._breakout_attempts += 1
                 self._set_phase(PHASE_ORDER_PLACED)
-                self.logger.info(f"BREAKOUT DOWN at {current_price} (ORB Low {orb_low} - buffer {buffer}) - Attempt {self._breakout_attempts}")
+                self.logger.info(f"BREAKOUT DOWN at {current_price} ({trigger}, ORB Low {orb_low}, VWAP {vwap}) - Attempt {self._breakout_attempts}")
                 
                 signal = "BUY_PE"
                 self._current_signal = signal
@@ -538,6 +626,8 @@ class TradingBot:
             final_target = round(entry_price + (orb_range * delta * 1.5), 2)
             final_sl = round(entry_price - (orb_range * delta * 0.8), 2)
 
+            vwap_at_entry = self._indicators.get("vwap")
+
             update_trade(trade_id, {
                 "target": final_target,
                 "stop_loss": final_sl,
@@ -548,12 +638,13 @@ class TradingBot:
                 "orb_range": self._orb_data["orb_range"],
                 "breakout_price": self._breakout_price,
                 "trailing_sl_used": 1 if get_setting("trailing_sl_enabled") == "true" else 0,
+                "vwap_at_entry": vwap_at_entry,
             })
 
             self.logger.info(
                 f"Natural ORB Entry: {signal} at {entry_price}. "
                 f"Qty: {quantity}, Target: {final_target}, SL: {final_sl}. "
-                f"Breakout: {self._breakout_price}"
+                f"Breakout: {self._breakout_price}, VWAP: {vwap_at_entry}"
             )
 
     def _manage_trade(self, trade: Dict, current_price: float):
