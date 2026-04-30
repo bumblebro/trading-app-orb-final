@@ -7,18 +7,11 @@ export interface PriceInfo {
   connected: boolean;
   simulation: boolean;
   indicators: {
-    orb_high: number | null;
-    orb_low: number | null;
-    orb_range: number | null;
-    orb_status: string | null;
-    vwap: number | null;
-    macd_line: number | null;
-    signal_line: number | null;
-    histogram: number | null;
-    is_bullish: boolean | null;
-    is_curling_up: boolean | null;
-    is_curling_down: boolean | null;
-    rsi: number | null;
+    ema_short: number | null;
+    ema_long: number | null;
+    supertrend: number | null;
+    supertrend_direction: number | null;
+    adx: number | null;
     phase: string;
     ready: boolean;
   };
@@ -28,18 +21,11 @@ export interface Signal {
   signal: string;
   phase: string;
   phase_description: string;
-  orb_status: string;
-  orb_high: number | null;
-  orb_low: number | null;
-  orb_range: number | null;
-  breakout_direction: 'UP' | 'DOWN' | 'NONE';
-  breakout_price: number | null;
-  breakout_time: string | null;
-  pullback_timer_remaining: number | null;
-  fibonacci_levels: FibonacciData | null;
-  macd_confirms: boolean;
-  vwap: number | null;
-  vwap_confirms: boolean;
+  ema_short: number | null;
+  ema_long: number | null;
+  supertrend: number | null;
+  supertrend_direction: number | null;
+  adx: number | null;
   timestamp: string;
 }
 
@@ -93,17 +79,15 @@ export interface Trade {
   trailing_sl: number | null;
   underlying_entry_price?: number;
   token?: string;
-  orb_high?: number;
-  orb_low?: number;
-  orb_range?: number;
-  breakout_price?: number;
-  fib_entry_level?: string;
-  fib_entry_price?: number;
-  fib_sl_price?: number;
-  macd_at_entry?: number;
+  supertrend_at_entry?: number;
+  adx_at_entry?: number;
+  ema_short_at_entry?: number;
+  ema_long_at_entry?: number;
+  exit_time?: string;
   trailing_sl_used?: number;
   current_price?: number;
   live_pnl?: number;
+  capital_used?: number;
 }
 
 export interface PnLSummary {
@@ -128,13 +112,20 @@ export interface BotStatus {
   win_rate: number;
   total_pnl: number;
   total_trades: number;
+  total_wins: number;
+  total_losses: number;
   mode: 'paper' | 'live';
   market_status: string;
   market_open: boolean;
   is_trading_day: boolean;
-  phase: string;
-  orb_status: string;
   all_time_win_rate: number;
+  backtest_capital?: number;
+  capital_history?: number[];
+  compounding_advantage?: number;
+  backtest_start?: string;
+  backtest_current?: string;
+  backtest_duration?: string;
+  initial_capital?: number;
 }
 
 export interface CandleData {
@@ -152,9 +143,9 @@ export interface LineData {
 
 export interface ChartData {
   candles: CandleData[];
-  orb_high: LineData[];
-  orb_low: LineData[];
-  vwap: LineData[];
+  ema9: LineData[];
+  ema21: LineData[];
+  supertrend: (LineData & { color: string })[];
 }
 
 export interface Settings {
@@ -162,18 +153,14 @@ export interface Settings {
   client_id: string;
   pin: string;
   totp_secret: string;
-  orb_duration: string;
-  min_orb_range: string;
-  max_orb_range: string;
-  breakout_buffer: string;
-  vwap_confirmation: string;
-  sideways_threshold_pct: string;
-  atr_period: string;
-  atr_threshold: string;
-  atm_delta: string;
-  trailing_sl_enabled: string;
-  trailing_sl_pct: string;
+  supertrend_period: string;
+  supertrend_multiplier: string;
+  ema_9_period: string;
+  ema_21_period: string;
+  adx_threshold: string;
+  max_sl_distance_pts: string;
   max_trades_per_day: string;
+  max_daily_loss: string;
   signal_cutoff_time: string;
   square_off_time: string;
   lot_size: string;
@@ -186,7 +173,14 @@ export interface Settings {
   playback_file: string;
   playback_speed: string;
   playback_start_date: string;
+  playback_end_date: string;
   playback_period: string;
+  initial_capital: string;
+  position_sizing_mode: string;
+  risk_percent_per_trade: string;
+  min_lots: string;
+  max_lots: string;
+  trailing_sl_enabled: string;
 }
 
 export interface LogEntry {

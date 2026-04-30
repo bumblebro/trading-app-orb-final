@@ -11,25 +11,25 @@ interface StrategyFlowProps {
 export default function StrategyFlow({ phase, strategyInfo }: StrategyFlowProps) {
   const steps = [
     {
-      id: 'ORB',
-      label: 'ORB Building',
-      phases: ['BUILDING_ORB'],
-      completedPhases: ['WAITING_BREAKOUT', 'BREAKOUT_DETECTED', 'WAITING_PULLBACK', 'IN_ENTRY_ZONE', 'MACD_CONFIRMING', 'ORDER_PLACED', 'IN_TRADE'],
-      details: strategyInfo?.orb_range ? `Range: ${strategyInfo.orb_range.toFixed(2)} pts` : '9:15 - 9:30 AM',
+      id: 'DATA',
+      label: 'Strategy Ready',
+      phases: ['WATCHING'],
+      completedPhases: ['WAITING_FOR_ALIGNMENT', 'ORDER_PLACED', 'IN_TRADE'],
+      details: strategyInfo?.adx ? `ADX: ${strategyInfo.adx.toFixed(1)} ${strategyInfo.adx >= 20 ? '✓' : '⚠️'}` : 'Analyzing Market...',
     },
     {
-      id: 'BREAKOUT',
-      label: 'Breakout Detection',
-      phases: ['WAITING_BREAKOUT'],
-      completedPhases: ['BREAKOUT_DETECTED', 'WAITING_PULLBACK', 'IN_ENTRY_ZONE', 'MACD_CONFIRMING', 'ORDER_PLACED', 'IN_TRADE'],
-      details: strategyInfo?.breakout_price ? `Broke ${strategyInfo.breakout_direction === 'UP' ? 'High' : 'Low'} @ ${strategyInfo.breakout_price}` : 'Watching levels...',
-    },
-    {
-      id: 'VWAP',
-      label: 'VWAP Confirmation',
-      phases: ['WAITING_BREAKOUT'],
+      id: 'TREND',
+      label: 'Trend Direction',
+      phases: ['WAITING_FOR_ALIGNMENT'],
       completedPhases: ['ORDER_PLACED', 'IN_TRADE'],
-      details: strategyInfo?.vwap ? `VWAP: ${strategyInfo.vwap.toFixed(2)}${strategyInfo.vwap_confirms ? ' ✓' : ''}` : 'Calculating...',
+      details: strategyInfo?.supertrend_direction !== 0 ? `ST: ${strategyInfo?.supertrend_direction === 1 ? 'BULL' : 'BEAR'}` : 'Waiting for Trend',
+    },
+    {
+      id: 'ALIGNMENT',
+      label: 'EMA Alignment',
+      phases: ['WAITING_FOR_ALIGNMENT'],
+      completedPhases: ['ORDER_PLACED', 'IN_TRADE'],
+      details: 'Checking 9/21 Cross',
     },
     {
       id: 'ENTRY',

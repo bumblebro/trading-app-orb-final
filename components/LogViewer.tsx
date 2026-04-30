@@ -8,7 +8,20 @@ export default function LogViewer() {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [filter, setFilter] = useState<string>('');
   const [collapsed, setCollapsed] = useState(false);
+  const [copied, setCopied] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const copyLogs = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const logText = logs
+      .map(log => `[${log.timestamp}] [${log.category}] ${log.message}`)
+      .join('\n');
+    
+    navigator.clipboard.writeText(logText).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
   const fetchLogs = useCallback(async () => {
     try {
@@ -27,7 +40,12 @@ export default function LogViewer() {
 
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = 0;
+      // Only auto-scroll to top if user is already near the top (within 50px)
+      // This prevents snapping back to top when the user has scrolled down to read older logs.
+      const isAtTop = scrollRef.current.scrollTop < 50;
+      if (isAtTop) {
+        scrollRef.current.scrollTop = 0;
+      }
     }
   }, [logs]);
 
@@ -57,18 +75,27 @@ export default function LogViewer() {
         <h3>📋 Bot Logs</h3>
         <div className="log-controls">
           {!collapsed && (
-            <select
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              className="log-filter"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <option value="">All</option>
-              <option value="SIGNAL">Signals</option>
-              <option value="ORDER">Orders</option>
-              <option value="SYSTEM">System</option>
-              <option value="ERROR">Errors</option>
-            </select>
+            <>
+              <button 
+                className={`copy-logs-btn ${copied ? 'success' : ''}`}
+                onClick={copyLogs}
+                title="Copy logs to clipboard"
+              >
+                {copied ? '✅ Copied!' : '📋 Copy'}
+              </button>
+              <select
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                className="log-filter"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <option value="">All</option>
+                <option value="SIGNAL">Signals</option>
+                <option value="ORDER">Orders</option>
+                <option value="SYSTEM">System</option>
+                <option value="ERROR">Errors</option>
+              </select>
+            </>
           )}
           <span className="collapse-icon">{collapsed ? '▼' : '▲'}</span>
         </div>

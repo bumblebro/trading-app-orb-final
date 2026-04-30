@@ -1,12 +1,14 @@
 """
 Main Trading Bot Logic.
 Orchestrates signal generation, trade management, and risk controls.
-Strategy: ORB + Fibonacci Pullback + MACD Confirmation.
+Strategy: Supertrend + EMA Crossover + ADX Filter.
 """
+
 
 import threading
 import time
 import os
+import json
 from datetime import datetime, timezone, timedelta
 from typing import Optional, Dict, List
 
@@ -17,35 +19,31 @@ from market_calendar import (
 )
 from data_feed import get_data_feed, DataFeed
 from indicators import (
-    get_latest_indicators, calculate_orb, calculate_vwap
+    get_latest_indicators
 )
 from order_manager import get_order_manager, OrderManager
 from auth import login_and_get_session
 from database import (
     get_active_trade, get_today_trade_count, get_consecutive_losses,
-    get_today_pnl, get_setting, update_trade
+    get_today_pnl, get_all_time_pnl, get_setting, update_trade, insert_signal_log
 )
 
 IST = timezone(timedelta(hours=5, minutes=30))
 
 # Strategy phases
 PHASE_WATCHING = "WATCHING"
-PHASE_BUILDING_ORB = "BUILDING_ORB"
-PHASE_WAITING_BREAKOUT = "WAITING_BREAKOUT"
-PHASE_ORDER_PLACED = "ORDER_PLACED"
+PHASE_WAITING_FOR_ALIGNMENT = "WAITING_FOR_ALIGNMENT"
 PHASE_IN_TRADE = "IN_TRADE"
-PHASE_SKIP_TODAY = "SKIP_TODAY"
 PHASE_MAX_TRADES_DONE = "MAX_TRADES_DONE"
+PHASE_DAILY_LOSS_LIMIT = "DAILY_LOSS_LIMIT"
 PHASE_CLOSED = "CLOSED"
 
 PHASE_DESCRIPTIONS = {
     PHASE_WATCHING: "Pre-market — waiting for 9:15 AM",
-    PHASE_BUILDING_ORB: "Building Opening Range (9:15-9:30)",
-    PHASE_WAITING_BREAKOUT: "Watching for ORB Breakout",
-    PHASE_ORDER_PLACED: "Order placed — entering trade",
+    PHASE_WAITING_FOR_ALIGNMENT: "Waiting for Supertrend & EMA Alignment",
     PHASE_IN_TRADE: "Trade active — monitoring position",
-    PHASE_SKIP_TODAY: "Skipping today — ORB range invalid",
     PHASE_MAX_TRADES_DONE: "Max trades reached for today",
+    PHASE_DAILY_LOSS_LIMIT: "Daily loss limit reached",
     PHASE_CLOSED: "Market session closed",
 }
 
@@ -53,13 +51,17 @@ PHASE_DESCRIPTIONS = {
 class TradingBot:
     """
     Automated trading bot for NIFTY 50 Options.
-    Strategy: ORB (Opening Range Breakout) + Fibonacci Pullback + MACD Confirmation.
+    Strategy: Supertrend + EMA Crossover + ADX Filter.
     """
 
     def __init__(self):
         self.logger = get_logger()
         self.data_feed: Optional[DataFeed] = None
         self.order_manager: Optional[OrderManager] = None
+        
+        # Cooldown state
+        self._last_exit_time = None
+        self._last_exit_reason = None
 
         # Bot state
         self._running = False
@@ -71,36 +73,23 @@ class TradingBot:
         self._strategy_phase = PHASE_WATCHING
         self._phase_description = PHASE_DESCRIPTIONS[PHASE_WATCHING]
 
-        # ORB data
-        self._orb_data = {"orb_high": None, "orb_low": None, "orb_range": None, "orb_status": "BUILDING"}
-
-        # Breakout tracking
-        self._breakout_direction: Optional[str] = None  # "LONG" or "SHORT"
-        self._breakout_price: Optional[float] = None
-        self._breakout_time: Optional[datetime] = None
-
-        self._breakout_attempts = 0
-
-        # VWAP confirmation state
-        self._vwap_confirms = False
-
         # Indicators Tracking
         self._indicators: Dict = {}
+        self._prev_indicators: Dict = {}
 
-        # Filter Tracking
-        self._vwap_dev_min: float = float('inf')
-        self._vwap_dev_max: float = float('-inf')
-        self._sideways_start_time: Optional[datetime] = None
-        self._daily_high: float = float('-inf')
-        self._daily_low: float = float('inf')
-        self._prev_day_range: float = 0.0
-
-        # Trade Peak/Valley Tracking (for Index Trailing)
-        self._peak_index: Optional[float] = None
-        self._valley_index: Optional[float] = None
+        # Trade Tracking
+        self._last_5min_timestamp: Optional[str] = None
 
         # Reset tracking
         self._last_tick_date: Optional[str] = None
+
+        # Auto-Compounding
+        self.todays_lots = 0
+        self.capital = 100000.0
+        self.capital_history = []
+        self.compounding_baseline_capital = 100000.0
+        self._effective_backtest_start: Optional[str] = None
+        self._first_ever_trade_date: Optional[str] = None
 
     @property
     def is_running(self) -> bool:
@@ -115,7 +104,6 @@ class TradingBot:
         """Merge all indicator data for the UI."""
         return {
             **self._indicators,
-            **self._orb_data,
             "phase": self._strategy_phase,
         }
 
@@ -125,30 +113,11 @@ class TradingBot:
         return {
             "phase": self._strategy_phase,
             "phase_description": self._phase_description,
-            "breakout_direction": self._breakout_direction,
-            "breakout_price": self._breakout_price,
-            "breakout_time": self._breakout_time.isoformat() if self._breakout_time else None,
-            "vwap": self._indicators.get("vwap"),
-            "vwap_confirms": self._vwap_confirms,
+            "ema_short": self._indicators.get("ema_short"),
+            "ema_long": self._indicators.get("ema_long"),
+            "supertrend": self._indicators.get("supertrend"),
+            "adx": self._indicators.get("adx"),
         }
-
-    @property
-    def orb_api_data(self) -> Dict:
-        """ORB data for the /orb endpoint."""
-        skip_reason = None
-        is_valid = self._orb_data.get("orb_status") == "READY"
-        if self._orb_data.get("orb_status") == "TOO_FLAT":
-            skip_reason = "ORB range too small"
-        elif self._orb_data.get("orb_status") == "TOO_WIDE":
-            skip_reason = "ORB range too wide"
-        return {
-            "orb_high": self._orb_data.get("orb_high"),
-            "orb_low": self._orb_data.get("orb_low"),
-            "orb_range": self._orb_data.get("orb_range"),
-            "is_valid": is_valid,
-            "skip_reason": skip_reason,
-        }
-
 
     def _get_current_time(self) -> datetime:
         """Get current time, respecting playback mode."""
@@ -183,13 +152,43 @@ class TradingBot:
         if data_source == "playback":
             feed_args["playback_file"] = playback_file
             feed_args["playback_speed"] = playback_speed
-            feed_args["playback_start_date"] = get_setting("playback_start_date") or ""
+            
+            start_date = get_setting("playback_start_date") or ""
+            if not start_date:
+                from database import get_last_trade_date
+                last_trade_date = get_last_trade_date(mode=mode)
+                if last_trade_date:
+                    try:
+                        last_dt = datetime.strptime(last_trade_date, "%Y-%m-%d")
+                        start_date = (last_dt + timedelta(days=1)).strftime("%Y-%m-%d")
+                        self.logger.info(f"Auto-resuming backtest from {start_date} (Last trade was {last_trade_date})")
+                    except Exception:
+                        pass
+            
+            self._effective_backtest_start = start_date
+            feed_args["playback_start_date"] = start_date
+            feed_args["playback_end_date"] = get_setting("playback_end_date") or ""
             feed_args["playback_period"] = get_setting("playback_period") or "all"
         else:
+            self._effective_backtest_start = None
             feed_args["api_key"] = get_setting("api_key")
             feed_args["client_id"] = get_setting("client_id")
 
         self.data_feed = get_data_feed(**feed_args)
+
+        # Restore Capital and Duration Metrics from Database
+        from database import get_first_trade_date, get_all_time_pnl, get_fixed_lot_pnl
+        self._first_ever_trade_date = get_first_trade_date(mode=mode)
+        
+        initial_cap = float(get_setting("initial_capital") or "100000")
+        pnl_stats = get_all_time_pnl(mode=mode)
+        self.capital = initial_cap + pnl_stats.get("all_time_pnl", 0)
+        
+        # Restore compounding baseline (fixed lots)
+        f_lots = int(get_setting("fixed_lots") or "2")
+        l_size = int(get_setting("lot_size") or "65")
+        baseline_pnl = get_fixed_lot_pnl(mode=mode, fixed_lots=f_lots, lot_size=l_size)
+        self.compounding_baseline_capital = initial_cap + baseline_pnl
 
         smart_api = None
         if mode == "live" or (mode == "paper" and data_source != "playback"):
@@ -207,6 +206,9 @@ class TradingBot:
         self.order_manager = get_order_manager()
         if smart_api:
             self.order_manager.set_smart_api(smart_api)
+        
+        # Sync context for margin checks
+        self.order_manager.update_context(data_feed=self.data_feed, capital=self.capital)
 
         # Reset strategy state for new session
         self._reset_strategy_state()
@@ -228,28 +230,9 @@ class TradingBot:
             active_trade = get_active_trade()
             if active_trade:
                 self.logger.info(f"Recovery: Found active trade {active_trade['id']} ({active_trade['type']})")
-                
-                # Restore phase
                 self._strategy_phase = PHASE_IN_TRADE
                 self._phase_description = PHASE_DESCRIPTIONS[PHASE_IN_TRADE]
-                
-                # Restore breakout info
-                self._breakout_direction = "LONG" if "CE" in active_trade["type"] else "SHORT"
-                self._breakout_price = active_trade.get("breakout_price")
-                self._breakout_time = None # We don't have this in DB but it's okay for Phase 6
-                
-                # Restore ORB
-                self._orb_data = {
-                    "orb_high": active_trade.get("orb_high"),
-                    "orb_low": active_trade.get("orb_low"),
-                    "orb_range": (active_trade["orb_high"] - active_trade["orb_low"]) if active_trade.get("orb_high") and active_trade.get("orb_low") else 0,
-                    "orb_status": "READY"
-                }
-
                 self.logger.info("Bot state restored. Resuming trade monitoring.")
-            else:
-                # No active trade, reset breakout attempts for today
-                self._breakout_attempts = 0
         except Exception as e:
             self.logger.error(f"Error during state restoration: {e}")
 
@@ -264,38 +247,13 @@ class TradingBot:
 
     def _reset_strategy_state(self):
         """Reset all strategy state for a new trading day."""
-        # Strategy Phase & Status
         self._strategy_phase = PHASE_WATCHING
         self._phase_description = PHASE_DESCRIPTIONS[PHASE_WATCHING]
         self._current_signal = "WAIT"
-
-        # Strategy Data
-        self._orb_data = {"orb_high": None, "orb_low": None, "orb_range": None, "orb_status": "BUILDING"}
-        self._breakout_direction = None # "LONG" or "SHORT"
-        self._breakout_price = None
-        self._breakout_time = None
-        self._breakout_attempts = 0 # Track attempts per day (max 2)
-        self._vwap_confirms = False
-
-        # Indicators tracking
         self._indicators = {}
-
-        # Filter tracking
-        self._vwap_dev_min = float('inf')
-        self._vwap_dev_max = float('-inf')
-        self._sideways_start_time = None
-        
-        # Reset Peak/Valley
-        self._peak_index = None
-        self._valley_index = None
-
-        # Reset Daily Tracking (Carry last day H/L to Prev Day Range)
-        if self._daily_high > float('-inf') and self._daily_low < float('inf'):
-            self._prev_day_range = round(self._daily_high - self._daily_low, 2)
-            self.logger.info(f"Day Reset: Previous Day Range = {self._prev_day_range}")
-        
-        self._daily_high = float('-inf')
-        self._daily_low = float('inf')
+        self._prev_indicators = {}
+        self._last_5min_timestamp = None
+        self.todays_lots = 0 
 
     def _set_phase(self, phase: str):
         """Update strategy phase with logging."""
@@ -328,17 +286,12 @@ class TradingBot:
         current_time_str = now.strftime("%H:%M")
         current_price = self.data_feed.current_price if self.data_feed else 0
 
-        # Track Daily H/L
-        if now.hour >= 9 and current_price > 0: # Only track during market or pre-market hours
-             self._daily_high = max(self._daily_high, current_price)
-             self._daily_low = min(self._daily_low, current_price)
-
         # 1. Day Reset Check
         current_date = now.strftime("%Y-%m-%d")
         if self._last_tick_date and self._last_tick_date != current_date:
             self.logger.info(f"New day detected ({current_date}). Resetting strategy state.")
             self._reset_strategy_state()
-            self._breakout_attempts = 0
+            self._pre_market_setup(now)
         self._last_tick_date = current_date
 
         # Market Calendar Guard
@@ -347,400 +300,343 @@ class TradingBot:
             self._set_phase(PHASE_CLOSED)
             self._current_signal = "MARKET_CLOSED"
             return
+        
 
         if current_price <= 0 and current_time_str >= "09:15":
+            return
+
+        # 2. Daily Loss Kill Switch
+        max_loss = float(get_setting("max_daily_loss") or "10000")
+        pnl_summary = get_today_pnl()
+        if pnl_summary["total_pnl"] <= -max_loss:
+            self._set_phase(PHASE_DAILY_LOSS_LIMIT)
+            self._current_signal = "KILL_SWITCH_ACTIVE"
             return
 
         # Update indicators continuously
         self._update_indicators()
 
-        # ----------------------------------------
-        # No Trade Zone (Sideways) Filter
-        # Monitor 9:15 - 10:00 (45 mins)
-        # ----------------------------------------
-        if "09:15" <= current_time_str <= "10:00":
-            vwap = self._indicators.get("vwap")
-            if vwap and current_price > 0:
-                dev = (current_price - vwap) / vwap * 100
-                self._vwap_dev_min = min(self._vwap_dev_min, dev)
-                self._vwap_dev_max = max(self._vwap_dev_max, dev)
-        
-        if current_time_str == "10:00" and self._strategy_phase != PHASE_SKIP_TODAY:
-            spread = self._vwap_dev_max - self._vwap_dev_min
-            threshold = float(get_setting("sideways_threshold_pct") or "0.2")
-            if spread < threshold:
-                self.logger.warning(f"SIDEWAYS FILTER: Spread {spread:.3f}% < {threshold}%. NO TRADE ZONE. Skipping.")
-                self._set_phase(PHASE_SKIP_TODAY)
-
-        # 1. Square-off check
+        # 3. Square-off check
         if is_square_off_time(now):
             self._handle_square_off(current_price)
             return
 
-        # 2. If there's an active trade, manage it
+        # 4. If there's an active trade, manage it
         active_trade = get_active_trade()
         if active_trade:
             self._set_phase(PHASE_IN_TRADE)
-            self._manage_trade(active_trade, current_price)
+            self._manage_trade(active_trade, current_price, now)
             return
 
-        # 3. Phase-based strategy logic
+        # 5. Phase-based strategy logic
         if current_time_str < "09:15":
             self._set_phase(PHASE_WATCHING)
             self._current_signal = "WAIT"
-
-        elif "09:15" <= current_time_str < "09:30":
-            # PHASE 1: Building ORB
-            self._set_phase(PHASE_BUILDING_ORB)
-            self._build_orb(now)
-            self._current_signal = "WAIT"
-
-        elif current_time_str >= "09:30":
-            # Finalize ORB if just transitioning
-            if self._orb_data.get("orb_status") == "BUILDING":
-                self._finalize_orb()
-
-            # Check if we should skip today
-            if self._strategy_phase == PHASE_SKIP_TODAY:
-                self._current_signal = "WAIT"
-                return
-
-            # Check risk limits
-            if not self._can_trade():
+        elif current_time_str >= "09:15":
+            if self._strategy_phase == PHASE_WATCHING:
+                self._set_phase(PHASE_WAITING_FOR_ALIGNMENT)
+            
+            # Cooldown check: 5 minutes after signal_flip
+            if self._last_exit_time and self._last_exit_reason == "signal_flip":
+                cooldown_remaining = 300 - (now - self._last_exit_time).total_seconds()
+                if cooldown_remaining > 0:
+                    self._current_signal = f"COOLDOWN ({int(cooldown_remaining)}s)"
+                    return
+            
+            # Risk check: Max trades
+            max_trades = int(get_setting("max_trades_per_day") or "2")
+            trades_today = get_today_trade_count(date_override=now.strftime("%Y-%m-%d"))
+            if trades_today >= max_trades:
+                if self._strategy_phase != PHASE_MAX_TRADES_DONE:
+                    self.logger.info(f"Max trades reached for today ({trades_today}/{max_trades}). Skipping signal.")
                 self._set_phase(PHASE_MAX_TRADES_DONE)
-                self._current_signal = "WAIT"
+                self._current_signal = "MAX_TRADES_DONE"
                 return
 
-            # Check signal cutoff
-            cutoff = get_setting("signal_cutoff_time") or "14:30"
-            if current_time_str >= cutoff:
-                self._current_signal = "WAIT"
-                return
-
-            # Run the multi-phase strategy
             self._run_strategy(current_price, now)
 
-    def _build_orb(self, now: datetime):
-        """PHASE 1: Track ORB during 9:15-9:30."""
-        candles = self.data_feed.get_all_candles(interval="1minute") if self.data_feed else []
-        if not candles:
-            candles = self.data_feed.get_all_candles() if self.data_feed else []
-
-        orb_data = calculate_orb(candles)
-        # During building, keep updating live
-        if self._orb_data.get("orb_status") == "BUILDING":
-            self._orb_data = orb_data
-            self._orb_data["orb_status"] = "BUILDING"
-
-    def _finalize_orb(self):
-        """Finalize ORB at 9:30 and validate range."""
-        candles = self.data_feed.get_all_candles(interval="1minute") if self.data_feed else []
-        if not candles:
-            candles = self.data_feed.get_all_candles() if self.data_feed else []
-
-        orb_data = calculate_orb(candles)
-        self._orb_data = orb_data
-
-        orb_high = orb_data["orb_high"]
-        orb_low = orb_data["orb_low"]
-        orb_range = orb_data["orb_range"]
-
-        if orb_high and orb_low:
-            self.logger.info(f"ORB calculated: High={orb_high} Low={orb_low} Range={orb_range}")
-
-            min_range = float(get_setting("min_orb_range") or "30")
-            max_range = float(get_setting("max_orb_range") or "300")
-            
-            # 1. Strict Range Filter
-            if orb_range < min_range:
-                self._orb_data["orb_status"] = "TOO_FLAT"
-                self.logger.warning(f"STRICT RANGE FILTER: Range {orb_range} < {min_range} min. NO TRADE DAY.")
-                self._set_phase(PHASE_SKIP_TODAY)
-                return
-
-            # 2. Volatility (ATR) Filter
-            atr = self._indicators.get("atr")
-            atr_threshold = float(get_setting("atr_threshold") or "11")
-            if atr and atr < atr_threshold:
-                self._orb_data["orb_status"] = "LOW_VOLATILITY"
-                self.logger.warning(f"VOLATILITY FILTER: ATR {atr} < {atr_threshold} threshold. Skipping today.")
-                self._set_phase(PHASE_SKIP_TODAY)
-                return
-
-            if orb_range > max_range:
-                self._orb_data["orb_status"] = "TOO_WIDE"
-                self.logger.warning(f"ORB range too wide ({orb_range} pts), skipping today")
-                self._set_phase(PHASE_SKIP_TODAY)
-            else:
-                self._orb_data["orb_status"] = "READY"
-                self.logger.info("ORB status: READY for trading")
-                self._set_phase(PHASE_WAITING_BREAKOUT)
-        else:
-            self.logger.error("ORB calculation failed: Insufficient data between 9:15-9:30")
-            self._set_phase(PHASE_SKIP_TODAY)
-
     def _run_strategy(self, current_price: float, now: datetime):
-        """Run the multi-phase ORB strategy."""
-
-        orb_high = self._orb_data.get("orb_high")
-        orb_low = self._orb_data.get("orb_low")
-
-        if not orb_high or not orb_low:
+        """Supertrend + EMA Crossover + ADX Strategy."""
+        if not self._indicators.get("ready"):
             return
 
-        buffer = float(get_setting("breakout_buffer") or "5")
+        st_dir = self._indicators.get("supertrend_direction")
+        ema_short = self._indicators.get("ema_short")
+        ema_long = self._indicators.get("ema_long")
+        adx = self._indicators.get("adx")
+        
+        prev_ema_short = self._prev_indicators.get("ema_short")
+        prev_ema_long = self._prev_indicators.get("ema_long")
 
-        # Get the last completed candle's close for candle-close breakout
-        candles = self.data_feed.get_all_candles() if self.data_feed else []
-        last_candle_close = candles[-2]["close"] if len(candles) >= 2 else None
+        signal = "WAIT"
+        skip_reason = None
 
-        # ----------------------------------------
-        # VWAP Confirmation Logic
-        # ----------------------------------------
-        vwap = self._indicators.get("vwap")
-        vwap_enabled = get_setting("vwap_confirmation") != "false"  # Enabled by default
+        # 1. EMA Crossover check
+        bullish_cross = False
+        bearish_cross = False
+        if prev_ema_short is not None and prev_ema_long is not None:
+            if ema_short > ema_long and prev_ema_short <= prev_ema_long:
+                bullish_cross = True
+            elif ema_short < ema_long and prev_ema_short >= prev_ema_long:
+                bearish_cross = True
 
-        # ----------------------------------------
-        # PHASE 2: Detect Breakout
-        # ----------------------------------------
-        if self._strategy_phase == PHASE_WAITING_BREAKOUT:
-            # Risk Guard: Max 2 attempts per day, but RE-ENTRY ONLY IF PREVIOUS WAS WIN
-            if self._breakout_attempts >= 2:
-                self._current_signal = "WAIT (Max Attempts reached)"
-                return
+        # 2. ADX Filter
+        adx_threshold = float(get_setting("adx_threshold") or "25")
+        is_trending = adx is not None and adx >= adx_threshold
 
-            if self._breakout_attempts == 1:
-                from database import get_today_trades
-                mode = get_setting("trading_mode") or "paper"
-                trades = get_today_trades(mode=mode, date_override=now.strftime("%Y-%m-%d"))
-                if trades:
-                    last_trade = trades[0] # Sorted DESC
-                    if last_trade["status"] != "win":
-                        self._current_signal = "WAIT (No re-entry after loss)"
-                        return
-                    else:
-                        self.logger.info("RE-ENTRY MODE: Previous trade was a WIN. Watching for next breakout.")
-
-            # Breakout UP: candle close above ORB high OR price > ORB high + buffer
-            candle_break_up = last_candle_close is not None and last_candle_close > orb_high
-            price_break_up = current_price > orb_high + buffer
-
-            if candle_break_up and price_break_up:
-                # 3. Candle Strength Filter
-                strength = self._indicators.get("candle_strength", {})
-                if not strength.get("strength_pass", False):
-                    self.logger.info(f"CANDLE STRENGTH FILTER: Body {strength.get('current_body')} <= Avg {strength.get('avg_body')}. Skipping entry.")
-                    return
-
-                # VWAP Confirmation: For LONG breakout, price must be above VWAP
-                if vwap_enabled and vwap:
-                    self._vwap_confirms = current_price > vwap
-                    if not self._vwap_confirms:
-                        self._current_signal = "WAIT (VWAP: Price below VWAP)"
-                        return
+        if bullish_cross:
+            if st_dir == 1:
+                if is_trending:
+                    signal = "BUY_CE"
                 else:
-                    self._vwap_confirms = True  # Disabled or no data, auto-pass
-
-                trigger = "candle close + buffer"
-                self._breakout_direction = "LONG"
-                self._breakout_price = current_price
-                self._breakout_time = now
-                self._breakout_attempts += 1
-                self._set_phase(PHASE_ORDER_PLACED)
-                self.logger.info(f"BREAKOUT UP at {current_price} ({trigger}, ORB High {orb_high}, VWAP {vwap}) - Attempt {self._breakout_attempts}")
-                
-                signal = "BUY_CE"
-                self._current_signal = signal
-                self._execute_trade(signal, current_price, now)
-                return
-
-            # Breakout DOWN: candle close below ORB low OR price < ORB low - buffer
-            candle_break_down = last_candle_close is not None and last_candle_close < orb_low
-            price_break_down = current_price < orb_low - buffer
-
-            if candle_break_down and price_break_down:
-                # 3. Candle Strength Filter
-                strength = self._indicators.get("candle_strength", {})
-                if not strength.get("strength_pass", False):
-                    self.logger.info(f"CANDLE STRENGTH FILTER: Body {strength.get('current_body')} <= Avg {strength.get('avg_body')}. Skipping entry.")
-                    return
-
-                if vwap_enabled and vwap:
-                    self._vwap_confirms = current_price < vwap
-                    if not self._vwap_confirms:
-                        self._current_signal = "WAIT (VWAP: Price above VWAP)"
-                        return
+                    skip_reason = f"ADX {adx} < {adx_threshold} (Choppy)"
+            else:
+                skip_reason = "Supertrend Bearish (Red)"
+        elif bearish_cross:
+            if st_dir == -1:
+                if is_trending:
+                    signal = "BUY_PE"
                 else:
-                    self._vwap_confirms = True  # Disabled or no data, auto-pass
+                    skip_reason = f"ADX {adx} < {adx_threshold} (Choppy)"
+            else:
+                skip_reason = "Supertrend Bullish (Green)"
 
-                trigger = "candle close + buffer"
-                self._breakout_direction = "SHORT"
-                self._breakout_price = current_price
-                self._breakout_time = now
-                self._breakout_attempts += 1
-                self._set_phase(PHASE_ORDER_PLACED)
-                self.logger.info(f"BREAKOUT DOWN at {current_price} ({trigger}, ORB Low {orb_low}, VWAP {vwap}) - Attempt {self._breakout_attempts}")
-                
-                signal = "BUY_PE"
-                self._current_signal = signal
-                self._execute_trade(signal, current_price, now)
-                return
+        # Log to signal_logs
+        if bullish_cross or bearish_cross or skip_reason:
+            insert_signal_log({
+                "price": current_price,
+                "supertrend": self._indicators.get("supertrend"),
+                "supertrend_direction": st_dir,
+                "ema_short": ema_short,
+                "ema_long": ema_long,
+                "adx_threshold": float(get_setting("adx_threshold") or "25"),
+                "signal": signal if signal != "WAIT" else None,
+                "skip_reason": skip_reason
+            }, timestamp=now)
 
-            self._current_signal = "WAIT"
-            return
-
-        # Fallback
-        self._current_signal = "WAIT"
+        if signal != "WAIT":
+            self.logger.info(f"STRATEGY SIGNAL: {signal} at {current_price} (ADX: {adx})")
+            self._execute_trade(signal, current_price, now)
 
     def _update_indicators(self):
-        """Calculate Opening Range indicators only."""
+        """Update indicators and keep track of previous values for crossover."""
         feed = self.data_feed
         if feed:
-            candles = feed.get_all_candles()
+            # Shift current to previous
+            if self._indicators:
+                self._prev_indicators = self._indicators.copy()
+            
+            # Use 5-minute candles for the indicator engine
+            candles = feed.get_all_candles(interval="5minute")
             self._indicators = get_latest_indicators(candles)
 
+    def calculate_dynamic_lots(self, sl_distance_option: float = 0) -> int:
+        """
+        Calculate lots based on true risk-based sizing using SL distance.
+        lots = Risk Amount / (SL Distance * Lot Size)
+        """
+        try:
+            mode = get_setting("trading_mode") or "paper"
+            risk_pct = float(get_setting("risk_percent_per_trade") or "5.0")
+            min_lots = int(get_setting("min_lots") or "1")
+            lot_size = int(get_setting("lot_size") or "65")
+            
+            # Auto max_lots from initial_capital
+            max_lots_setting = (get_setting("max_lots") or "").strip()
+            if not max_lots_setting or max_lots_setting == "10":
+                initial_cap = float(get_setting("initial_capital") or "100000")
+                max_lots = max(10, int(initial_cap / 10000))
+            else:
+                try:
+                    max_lots = int(max_lots_setting)
+                except:
+                    initial_cap = float(get_setting("initial_capital") or "100000")
+                    max_lots = max(10, int(initial_cap / 10000))
+
+            # Get current capital
+            if self.data_feed and self.data_feed.playback_file:
+                balance = self.capital
+            elif mode == "paper":
+                initial_paper = float(get_setting("paper_capital") or "100000")
+                pnl_data = get_all_time_pnl(mode="paper")
+                balance = initial_paper + pnl_data.get("all_time_pnl", 0)
+            else:
+                margin_info = self.order_manager.check_margin()
+                balance = margin_info.get("available", 0)
+
+            if balance <= 0: return min_lots
+
+            risk_amount = balance * (risk_pct / 100.0)
+            
+            if sl_distance_option > 0:
+                # True risk-based: how many lots before max loss is hit
+                lots = int(risk_amount / (sl_distance_option * lot_size))
+                calc_type = "risk-based"
+            else:
+                # Fallback: use 5% of capital / estimated premium
+                current_price = (
+                    self.data_feed.current_price 
+                    if self.data_feed and self.data_feed.current_price > 100 
+                    else 20000
+                )
+                est_premium = current_price * 0.015
+                lots = int(risk_amount / (est_premium * lot_size))
+                calc_type = "premium-fallback"
+                
+            final_lots = max(min_lots, min(lots, max_lots))
+            
+            self.logger.info(
+                f"Lots Calc ({calc_type}): balance={balance:.0f}, risk={risk_amount:.0f}, "
+                f"sl_dist={sl_distance_option:.1f}, raw_lots={lots}, max={max_lots}, final={final_lots}"
+            )
+            return final_lots
+        except Exception as e:
+            self.logger.error("Error calculating dynamic lots", e)
+            return int(get_setting("min_lots") or "1")
+
+    def _pre_market_setup(self, now: datetime):
+        """Prepare for the day, lock lots if auto-compounding is enabled."""
+        mode = get_setting("position_sizing_mode")
+        if mode == "auto_compound":
+            self.todays_lots = self.calculate_dynamic_lots()
+            self.logger.info(f"Daily Lots Locked: {self.todays_lots} (Mode: auto_compound)")
+        else:
+            self.todays_lots = int(get_setting("fixed_lots") or "2")
+            self.logger.info(f"Daily Lots Locked: {self.todays_lots} (Mode: fixed_lots)")
+
     def _execute_trade(self, signal: str, current_price: float, now: datetime):
-        """Execute a trade with targets and SL."""
+        """Execute a trade with 1:2 RR Target and Supertrend SL."""
         mode = get_setting("trading_mode") or "paper"
-
-        # 1. ORB Range Guard (Secondary Safety)
-        orb_range = self._orb_data.get("orb_range", 0)
-        max_range = float(get_setting("max_orb_range") or "150")
-        
-        if orb_range > max_range:
-            self.logger.warning(f"ORB range too wide ({orb_range} pts), skipping trade")
-            self._set_phase(PHASE_SKIP_TODAY)
-            return
-
-        # 2. Position Sizing
         lot_size = int(get_setting("lot_size") or "65")
         
-        position_size_mode = get_setting("position_size_mode") or "fixed"
+        # 1. SL Distance calculation
+        st_value = self._indicators.get("supertrend") or current_price
+        sl_distance = abs(current_price - st_value)
+        sl_pts_option = sl_distance * 0.5 # Assuming Delta 0.5
         
-        if position_size_mode == "fixed":
-            fixed_lots = int(get_setting("fixed_lots") or "2")
-            quantity = fixed_lots * lot_size
+        # Fetch hard ceiling from settings
+        hard_limit = float(get_setting("max_sl_distance_pts") or "50")
+        
+        if sl_distance > hard_limit:
+            self.logger.info(f"Signal skipped: SL distance {sl_distance:.1f} pts exceeds max {hard_limit} pts")
+            return
+
+        # 2. Determine Quantity (Risk-based)
+        pos_mode = get_setting("position_sizing_mode")
+        if pos_mode == "auto_compound":
+            lots = self.calculate_dynamic_lots(sl_distance_option=sl_pts_option)
         else:
-            # Calculate Quantity based on Max Capital Risk %
-            max_risk_pct = float(get_setting("max_capital_risk_pct") or "1.0")
-            capital = float(get_setting("paper_capital") or "100000")
+            lots = int(get_setting("fixed_lots") or "1")
 
-            total_risk_allowance = capital * (max_risk_pct / 100)
-
-            # Estimated entry premium
-            est_entry = round(current_price * 0.015, 2)
-            # Default fallback SL for qty calculation only 
-            sl_pct_est = 40.0 
-
-            # Risk per unit
-            risk_per_unit = est_entry * (sl_pct_est / 100)
-
-            # Calculated quantity (rounded down to nearest lot size)
-            if risk_per_unit > 0:
-                raw_qty = total_risk_allowance / risk_per_unit
-                quantity = (int(raw_qty) // lot_size) * lot_size
-                quantity = max(lot_size, quantity)
-            else:
-                quantity = lot_size
+        quantity = lots * lot_size
 
         # 3. Place order
         result = self.order_manager.place_order(signal, current_price, mode, timestamp=now, quantity=quantity)
 
         if result:
-            # IMMEDIATELY update phase to prevent LOOP if DB update fails later
             self._set_phase(PHASE_IN_TRADE)
-            
             trade_id = result["trade_id"]
             entry_price = result["entry_price"]
-
-            # Reset Peak/Valley for the new trade
-            self._peak_index = current_price
-            self._valley_index = current_price
-
-            # 4. Dynamic Range-Based Target and SL
-            delta = float(get_setting("atm_delta") or "0.5")
             
-            # Strategy SL
-            strategy_sl = round(entry_price - (orb_range * delta * 0.8), 2)
-
-            # Hard SL Caps
-            max_loss_inr = float(get_setting("max_trade_loss_inr") or "3000")
-            max_sl_pts = float(get_setting("hard_sl_option_pts") or "25")
+            # 2. Risk Management Calculation (at Entry)
+            # st_value and sl_distance already calculated above
             
-            # Pts-based hard SL (e.g. entry - 25)
-            hard_pts_sl = round(entry_price - max_sl_pts, 2)
-            # Capital-based hard SL (e.g. entry - (3000/qty))
-            hard_capital_sl = round(entry_price - (max_loss_inr / quantity), 2)
-
-            # Final SL is the TIGHTEST of all three (Maximum price)
-            final_sl = max(strategy_sl, hard_pts_sl, hard_capital_sl)
+            # Convert to Option SL (assuming Delta 0.5)
+            sl_pts_option = sl_distance * 0.5
+            initial_sl = round(entry_price - sl_pts_option, 2)
             
-            # Target = Entry + (Range * Delta * 1.5)
-            final_target = round(entry_price + (orb_range * delta * 1.5), 2)
-
-            vwap_at_entry = self._indicators.get("vwap")
+            # Target 1:2 RR
+            target_pts_option = sl_pts_option * 2
+            target_price = round(entry_price + target_pts_option, 2)
 
             update_trade(trade_id, {
-                "target": final_target,
-                "stop_loss": final_sl,
-                "trailing_sl": final_sl,
+                "target": target_price,
+                "stop_loss": initial_sl,
+                "trailing_sl": initial_sl,
                 "quantity": quantity,
-                "orb_high": self._orb_data["orb_high"],
-                "orb_low": self._orb_data["orb_low"],
-                "orb_range": self._orb_data["orb_range"],
-                "breakout_price": self._breakout_price,
-                "trailing_sl_used": 1 if get_setting("trailing_sl_enabled") == "true" else 0,
-                "vwap_at_entry": vwap_at_entry,
+                "supertrend_at_entry": st_value,
+                "adx_at_entry": self._indicators.get("adx"),
+                "ema_short_at_entry": self._indicators.get("ema_short"),
+                "ema_long_at_entry": self._indicators.get("ema_long"),
+                "underlying_entry_price": current_price,
+                "initial_risk_pts": sl_pts_option,
             })
 
             self.logger.info(
-                f"Natural ORB Entry: {signal} at {entry_price}. "
-                f"Qty: {quantity}, Target: {final_target}, SL: {final_sl}. "
-                f"Breakout: {self._breakout_price}, VWAP: {vwap_at_entry}"
+                f"Supertrend Entry: {signal} at {entry_price}. "
+                f"Qty: {quantity}, Target: {target_price}, SL: {initial_sl}. "
+                f"Index Entry: {current_price}, Supertrend: {st_value}"
             )
 
-    def _manage_trade(self, trade: Dict, current_price: float):
-        """PHASE 6: Manage active trade with Trailing SL."""
-        simulated_price = self.calculate_option_price(trade, current_price)
+    def _manage_trade(self, trade: Dict, current_index_price: float, now: datetime):
+        """Manage active trade with Signal Exit and Candle-Close Supertrend SL trailing."""
+        simulated_price = self.calculate_option_price(trade, current_index_price)
         trade_type = trade.get("type", "CE")
-
-        # 1. Trailing Stop Loss Logic (Index-based 20 pts)
-        trailing_enabled = get_setting("trailing_sl_enabled") == "true"
+        current_sl = trade.get("trailing_sl") or trade.get("stop_loss") or 0
         
-        if trailing_enabled:
-            index_trail_pts = float(get_setting("index_trailing_sl_pts") or "20")
+        # 1. Signal-based Exit (Immediate Exit on Repaint/Direction Flip)
+        st_dir = self._indicators.get("supertrend_direction")
+        ema_short = self._indicators.get("ema_short")
+        ema_long = self._indicators.get("ema_long")
+
+        signal_exit = False
+        exit_reason = "signal"
+
+        if trade_type == "CE":
+            if st_dir == -1 or (ema_short is not None and ema_long is not None and ema_short < ema_long):
+                signal_exit = True
+                exit_reason = "signal_flip"
+        else: # PE
+            if st_dir == 1 or (ema_short is not None and ema_long is not None and ema_short > ema_long):
+                signal_exit = True
+                exit_reason = "signal_flip"
+
+        if signal_exit:
+            # FIX: Only trigger signal_flip exit if current P&L is negative or less than 0.5x the initial risk.
+            # If trade is profitable, let trailing SL or target exit instead to avoid 'tiny winners'.
+            pnl_per_unit = simulated_price - trade["entry_price"]
+            initial_risk_per_unit = trade.get("initial_risk_pts") or 0
             
-            if trade_type == "CE":
-                if self._peak_index is None or current_price > self._peak_index:
-                    self._peak_index = current_price
-                if current_price <= self._peak_index - index_trail_pts:
-                    self.logger.info(f"INDEX TRAILING SL (CE): Exit at {current_price} (Peak: {self._peak_index})")
-                    self._close_active_trade(trade, simulated_price, "trailing_sl")
-                    return
+            if pnl_per_unit < (initial_risk_per_unit * 0.5):
+                self.logger.info(f"SIGNAL EXIT: {exit_reason} (P&L: {pnl_per_unit:.2f}, Risk: {initial_risk_per_unit:.2f})")
+                self._close_active_trade(trade, simulated_price, exit_reason)
+                return
             else:
-                if self._valley_index is None or current_price < self._valley_index:
-                    self._valley_index = current_price
-                if current_price >= self._valley_index + index_trail_pts:
-                    self.logger.info(f"INDEX TRAILING SL (PE): Exit at {current_price} (Valley: {self._valley_index})")
-                    self._close_active_trade(trade, simulated_price, "trailing_sl")
-                    return
+                self.logger.info(f"SIGNAL FLIP IGNORED: Profitable trade (P&L: {pnl_per_unit:.1f}). Letting Trailing SL work.")
 
-        # 2. Exit checks
-        current_sl = trade.get("trailing_sl") or trade.get("stop_loss")
+        # 2. Candle-Close Trailing SL Update (Every 5 minutes)
+        candles_5m = self.data_feed.get_all_candles(interval="5minute") if self.data_feed else []
+        if len(candles_5m) >= 2:
+            last_closed_candle = candles_5m[-2]
+            last_candle_time = last_closed_candle.get("time_key")
+            
+            # Only update SL on confirmed candle close
+            if self._last_5min_timestamp != last_candle_time:
+                self._last_5min_timestamp = last_candle_time
+                
+                # Get current Supertrend line value
+                st_value = self._indicators.get("supertrend")
+                if st_value:
+                    # Trailing should only move in favor of the trade
+                    new_sl_index = st_value
+                    new_sl_option = self.calculate_option_price(trade, new_sl_index)
+                    
+                    if new_sl_option > current_sl:
+                        self.logger.info(f"SUPERTREND TRAIL: Moving SL to {new_sl_option} (Index ST: {new_sl_index})")
+                        update_trade(trade["id"], {"trailing_sl": new_sl_option})
+                        current_sl = new_sl_option
 
-        # 2a. Stop loss hit
+        # 3. Target/SL Hits
         if simulated_price <= current_sl:
             self.logger.info(f"Stop loss hit: {simulated_price} <= {current_sl}")
             self._close_active_trade(trade, simulated_price, "stoploss")
             return
 
-        # 2b. Target hit
         if simulated_price >= trade["target"]:
             self.logger.info(f"Target hit: {simulated_price} >= {trade['target']}")
             self._close_active_trade(trade, simulated_price, "target")
             return
 
-        # 2c. Time checks — no new logic needed here, just track state
         self._current_signal = f"ACTIVE_{trade_type}"
 
     def calculate_option_price(self, trade: Dict, current_index_price: float) -> float:
@@ -771,16 +667,39 @@ class TradingBot:
     def _close_active_trade(self, trade: Dict, exit_price: float, reason: str):
         """Exit trade and update state."""
         now = self._get_current_time()
-        self.order_manager.exit_trade(trade["id"], exit_price, reason, trade.get("mode", "paper"), timestamp=now)
+        pnl = self.order_manager.exit_trade(trade["id"], exit_price, reason, trade.get("mode", "paper"), timestamp=now)
+        
+        # Update capital for backtest compounding tracking
+        if self.data_feed and self.data_feed.playback_file:
+            self.capital += pnl
+            self.capital_history.append(self.capital)
+            # Sync with order manager for next margin check
+            if self.order_manager:
+                self.order_manager.update_context(capital=self.capital)
+            
+            # Track fixed lot baseline for "Compounding Advantage" metric
+            lot_size = int(get_setting("lot_size") or "65")
+            fixed_lots_val = int(get_setting("fixed_lots") or "2")
+            entry_price = trade.get("entry_price", 0)
+            fixed_pnl = (exit_price - entry_price) * (fixed_lots_val * lot_size)
+            self.compounding_baseline_capital += fixed_pnl
+
+        # Track exit for cooldown
+        self._last_exit_time = now
+        self._last_exit_reason = reason
+
+        # Log capital update
+        if trade.get("mode") == "paper" or (self.data_feed and self.data_feed.playback_file):
+            initial = float(get_setting("paper_capital") or "100000") if trade.get("mode") == "paper" else float(get_setting("initial_capital") or "100000")
+            total_pnl = get_all_time_pnl(mode=trade.get("mode")).get("all_time_pnl", 0)
+            self.logger.info(f"Updated capital: \u20b9{initial + total_pnl} (Initial: \u20b9{initial} + PnL: \u20b9{total_pnl})")
+
         if trade.get("mode") == "live" and trade.get("token") and self.data_feed:
             self.data_feed.unsubscribe_token(trade["token"])
         self._current_signal = "WAIT"
 
-        # Reset to look for next breakout (if still within trading hours)
-        self._breakout_direction = None
-        self._breakout_price = None
-        self._breakout_time = None
-        self._set_phase(PHASE_WAITING_BREAKOUT)
+        # Reset to look for next entry
+        self._set_phase(PHASE_WAITING_FOR_ALIGNMENT)
 
     def _handle_square_off(self, current_price: float):
         """Auto square-off at 3:15 PM."""
@@ -792,43 +711,17 @@ class TradingBot:
         self._set_phase(PHASE_CLOSED)
         self._current_signal = "SQUARED_OFF"
 
-    def _can_trade(self) -> bool:
-        """PHASE 7: Risk management rules."""
-        # 1. Previous Day Range Filter
-        min_prev_range = float(get_setting("min_prev_day_range") or "150")
-        
-        # In playback, if we just started, try to fetch it from history
-        if self._prev_day_range <= 0 and self.data_feed:
-             # Look back 1-3 days for the previous trading day
-             for d_back in range(1, 4):
-                 prev_dt = self._get_current_time() - timedelta(days=d_back)
-                 prev_date_str = prev_dt.strftime("%Y-%m-%d")
-                 stats = self.data_feed.get_daily_range(prev_date_str)
-                 if stats:
-                     self._prev_day_range = stats["range"]
-                     self.logger.info(f"Identified Previous Day ({prev_date_str}) Range: {self._prev_day_range}")
-                     break
-
-        if self._prev_day_range > 0 and self._prev_day_range < min_prev_range:
-            self._current_signal = f"SKIP (Prev Day Range {self._prev_day_range} < {min_prev_range})"
-            return False
-
-        max_trades = int(get_setting("max_trades_per_day") or "2")
-        today_count = get_today_trade_count()
-        if today_count >= max_trades:
-            return False
-
-        consecutive_losses = get_consecutive_losses()
-        if consecutive_losses >= 2:
-            return False
-
-        return True
-
     def get_status(self) -> Dict:
         from database import get_today_pnl, get_active_trade, get_all_time_pnl
-        pnl_summary = get_today_pnl()
         mode = get_setting("trading_mode") or "paper"
-        all_time_summary = get_all_time_pnl(mode=mode)
+        
+        # If in backtest mode, filter all stats by current backtest date
+        date_to = None
+        if self.data_feed and self.data_feed.playback_file:
+            date_to = self._get_current_time().strftime("%Y-%m-%d")
+            
+        pnl_summary = get_today_pnl(mode=mode, date_override=date_to)
+        all_time_summary = get_all_time_pnl(mode=mode, date_to=date_to)
         active_trade = get_active_trade()
         price_info = self.data_feed.get_price_info() if self.data_feed else {}
 
@@ -844,11 +737,46 @@ class TradingBot:
             "win_rate": pnl_summary.get("win_rate", 0),
             "total_pnl": all_time_summary.get("all_time_pnl", 0),
             "total_trades": all_time_summary.get("all_time_trades", 0),
+            "total_wins": all_time_summary.get("wins", 0),
+            "total_losses": all_time_summary.get("losses", 0),
             "all_time_win_rate": all_time_summary.get("all_time_win_rate", 0),
             "mode": mode,
             "phase": self._strategy_phase,
-            "orb_status": self._orb_data["orb_status"]
+            # Compounding stats
+            "backtest_capital": self.capital,
+            "capital_history": self.capital_history,
+            "compounding_advantage": self.capital - self.compounding_baseline_capital,
+            "backtest_start": self._first_ever_trade_date or self._effective_backtest_start or get_setting("playback_start_date") or "2015-10-01",
+            "backtest_current": self._get_current_time().strftime("%Y-%m-%d") if self.data_feed and self.data_feed.playback_file else None,
+            "backtest_duration": "",
+            "initial_capital": float(get_setting("initial_capital") or "100000"),
         }
+
+        if status.get("backtest_current") and status.get("backtest_start"):
+            try:
+                from datetime import datetime
+                # Strip potential spaces or time data
+                s_str = str(status["backtest_start"]).split(' ')[0]
+                c_str = str(status["backtest_current"]).split(' ')[0]
+                
+                d1 = datetime.strptime(s_str, "%Y-%m-%d")
+                d2 = datetime.strptime(c_str, "%Y-%m-%d")
+                delta = d2 - d1
+                
+                days_total = max(0, delta.days)
+                years = days_total // 365
+                months = (days_total % 365) // 30
+                days = (days_total % 365) % 30
+                
+                parts = []
+                if years > 0: parts.append(f"{years}y")
+                if months > 0: parts.append(f"{months}m")
+                if days > 0 or not parts: parts.append(f"{days}d")
+                status["backtest_duration"] = " ".join(parts)
+            except Exception as e:
+                status["backtest_duration"] = "calc_err"
+        elif self.data_feed and self.data_feed.playback_file:
+             status["backtest_duration"] = "0d"
 
         if active_trade and price_info.get("price"):
             simulated_price = self.calculate_option_price(active_trade, price_info["price"])

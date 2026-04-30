@@ -1,7 +1,7 @@
 """
 FastAPI Server for the Trading Bot.
 Provides REST API endpoints for the Next.js frontend.
-Strategy: ORB + Fibonacci Pullback + MACD Confirmation.
+Strategy: Supertrend + EMA Crossover + ADX Filter.
 """
 
 import sys
@@ -24,6 +24,7 @@ from database import (
 )
 from logger import get_logger
 from market_calendar import should_bot_run, is_trading_day, get_ist_now
+from indicators import sanitize_nan
 
 # Initialize
 init_db()
@@ -54,7 +55,7 @@ class ExitTradeRequest(BaseModel):
 
 @app.get("/")
 async def root():
-    return {"status": "ok", "service": "Nifty 50 Trading Bot", "strategy": "Natural ORB"}
+    return {"status": "ok", "service": "Nifty 50 Trading Bot", "strategy": "Supertrend + EMA"}
 
 
 @app.post("/start")
@@ -122,64 +123,44 @@ async def get_price():
 
     indicators = bot.indicators
 
-    return {
+    return sanitize_nan({
         **price_info,
         "indicators": {
-            "orb_high": indicators.get("orb_high"),
-            "orb_low": indicators.get("orb_low"),
-            "orb_range": indicators.get("orb_range"),
-            "orb_status": indicators.get("orb_status"),
-            "vwap": indicators.get("vwap"),
+            "ema_short": indicators.get("ema_short"),
+            "ema_long": indicators.get("ema_long"),
+            "supertrend": indicators.get("supertrend"),
+            "supertrend_direction": indicators.get("supertrend_direction"),
+            "adx": indicators.get("adx"),
             "phase": indicators.get("phase", "WATCHING"),
             "ready": indicators.get("ready", False),
         }
-    }
+    })
 
 
 @app.get("/signal")
 async def get_signal():
-    """Get current trade signal with strategy checklist."""
+    """Get current trade signal with strategy confluence data."""
     bot = get_bot()
     phase_data = bot.strategy_phase_data
     indicators = bot.indicators
 
-    current_price = bot.data_feed.current_price if bot.data_feed else 0
-    orb_high = indicators.get("orb_high")
-    orb_low = indicators.get("orb_low")
-
-    # Determine breakout state
-    breakout_dir = "NONE"
-    orb_breakout = False
-    buffer = float(get_all_settings().get("breakout_buffer", "5"))
-    if orb_high and current_price > orb_high + buffer:
-        breakout_dir = "UP"
-        orb_breakout = True
-    elif orb_low and current_price < orb_low - buffer:
-        breakout_dir = "DOWN"
-        orb_breakout = True
-
-    return {
+    return sanitize_nan({
         "signal": bot.current_signal,
         "phase": phase_data.get("phase"),
         "phase_description": phase_data.get("phase_description"),
-        "orb_status": indicators.get("orb_status"),
-        "orb_high": orb_high,
-        "orb_low": orb_low,
-        "orb_range": indicators.get("orb_range"),
-        "breakout_direction": breakout_dir,
-        "breakout_price": phase_data.get("breakout_price"),
-        "breakout_time": phase_data.get("breakout_time"),
-        "vwap": phase_data.get("vwap"),
-        "vwap_confirms": phase_data.get("vwap_confirms", False),
+        "ema_short": indicators.get("ema_short"),
+        "ema_long": indicators.get("ema_long"),
+        "supertrend": indicators.get("supertrend"),
+        "supertrend_direction": indicators.get("supertrend_direction"),
+        "adx": indicators.get("adx"),
         "timestamp": get_ist_now().isoformat()
-    }
+    })
 
 
 @app.get("/orb")
 async def get_orb():
-    """Get Opening Range Breakout data."""
-    bot = get_bot()
-    return bot.orb_api_data
+    """Deprecated: Formerly Opening Range Breakout data."""
+    return {"status": "deprecated", "message": "Strategy migrated to Supertrend"}
 
 
 
@@ -198,7 +179,7 @@ async def get_candles():
     feed = bot.data_feed
 
     if feed:
-        candles = feed.get_all_candles()
+        candles = feed.get_all_candles(interval="5minute")
         chart_candles = [
             {
                 "time": c["time"],
@@ -211,41 +192,53 @@ async def get_candles():
             if "time" in c
         ]
 
-        indicators = bot.indicators
-        orb_high = indicators.get("orb_high")
-        orb_low = indicators.get("orb_low")
+        # Calculate indicators for the entire history for chart lines
+        from indicators import calculate_ema, calculate_supertrend
+        
+        closes = [c["close"] for c in candles]
+        highs = [c["high"] for c in candles]
+        lows = [c["low"] for c in candles]
 
-        orb_high_line = []
-        orb_low_line = []
+        # EMA Lines
+        ema9 = calculate_ema(closes, 9)
+        ema21 = calculate_ema(closes, 21)
+        
+        # Supertrend Line
+        from indicators import calculate_supertrend_series
+        st_data = calculate_supertrend_series(candles, 10, 3)
+        st_line = st_data["supertrend"]
+        st_dir = st_data["direction"]
 
-        if orb_high and orb_low:
-            for c in candles:
-                if "time" in c:
-                    orb_high_line.append({"time": c["time"], "value": orb_high})
-                    orb_low_line.append({"time": c["time"], "value": orb_low})
+        ema9_series = []
+        ema21_series = []
+        st_series = []
 
-        # VWAP line data
-        vwap_line = []
-        vwap_values = []
-        if candles:
-            from indicators import calculate_vwap
-            vwap_values = calculate_vwap(candles)
-            for i, c in enumerate(candles):
-                if "time" in c and i < len(vwap_values):
-                    vwap_line.append({"time": c["time"], "value": vwap_values[i]})
+        import math
+        for i, c in enumerate(candles):
+            if "time" in c:
+                if i < len(ema9) and not math.isnan(ema9[i]):
+                    ema9_series.append({"time": c["time"], "value": ema9[i]})
+                if i < len(ema21) and not math.isnan(ema21[i]):
+                    ema21_series.append({"time": c["time"], "value": ema21[i]})
+                if i < len(st_line) and not math.isnan(st_line[i]):
+                    st_series.append({
+                        "time": c["time"], 
+                        "value": st_line[i],
+                        "color": "#10b981" if st_dir[i] == 1 else "#ef4444"
+                    })
 
-        return {
+        return sanitize_nan({
             "candles": chart_candles,
-            "orb_high": orb_high_line,
-            "orb_low": orb_low_line,
-            "vwap": vwap_line,
-        }
+            "ema9": ema9_series,
+            "ema21": ema21_series,
+            "supertrend": st_series,
+        })
     else:
         return {
             "candles": [],
-            "orb_high": [],
-            "orb_low": [],
-            "vwap": [],
+            "ema9": [],
+            "ema21": [],
+            "supertrend": [],
         }
 
 
@@ -256,9 +249,10 @@ async def list_trades(mode: Optional[str] = None,
                       limit: int = 100):
     """Get trade history."""
     trades = get_trades(mode=mode, date_from=date_from, date_to=date_to, limit=limit)
-    from database import get_all_time_pnl
+    from database import get_all_time_pnl, get_yearly_summary
     summary = get_all_time_pnl(mode=mode, date_from=date_from, date_to=date_to)
-    return {"trades": trades, "summary": summary}
+    yearly_summary = get_yearly_summary(mode=mode, date_from=date_from, date_to=date_to)
+    return {"trades": trades, "summary": summary, "yearly_summary": yearly_summary}
 
 
 @app.get("/trades/active")
@@ -332,6 +326,13 @@ async def get_logs(limit: int = 200, category: Optional[str] = None):
     return {"logs": logs}
 
 
+@app.get("/logs/margin-failures")
+async def get_margin_failures(limit: int = 100):
+    """Get logs where margin check failed."""
+    logs = logger.get_margin_failures(limit=limit)
+    return {"logs": logs}
+
+
 @app.get("/margin")
 async def get_margin():
     """Get available margin."""
@@ -344,5 +345,5 @@ async def get_margin():
 
 if __name__ == "__main__":
     print("🚀 Starting Nifty 50 Trading Bot Server on port 8000...")
-    print("📊 Strategy: Natural Opening Range Breakout")
+    print("📊 Strategy: Supertrend + EMA Crossover")
     uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")

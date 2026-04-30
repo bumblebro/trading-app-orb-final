@@ -22,9 +22,9 @@ export default function Chart({ data }: ChartProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
-  const orbHighRef = useRef<ISeriesApi<'Line'> | null>(null);
-  const orbLowRef = useRef<ISeriesApi<'Line'> | null>(null);
-  const vwapRef = useRef<ISeriesApi<'Line'> | null>(null);
+  const ema9Ref = useRef<ISeriesApi<'Line'> | null>(null);
+  const ema21Ref = useRef<ISeriesApi<'Line'> | null>(null);
+  const supertrendRef = useRef<ISeriesApi<'Line'> | null>(null);
   const [initialized, setInitialized] = useState(false);
 
   const initChart = useCallback(() => {
@@ -107,34 +107,31 @@ export default function Chart({ data }: ChartProps) {
       wickDownColor: '#ef4444',
     });
 
-    // ORB Lines - Cyan
-    const orbHigh = chart.addSeries(LineSeries, {
-      color: '#06b6d4',
+    // EMA Lines
+    const ema9Line = chart.addSeries(LineSeries, {
+      color: '#60a5fa',
       lineWidth: 1,
-      lineStyle: 2, // Dashed
-      title: 'ORB High',
+      title: 'EMA 9',
     });
 
-    const orbLow = chart.addSeries(LineSeries, {
-      color: '#06b6d4',
+    const ema21Line = chart.addSeries(LineSeries, {
+      color: '#f472b6',
       lineWidth: 1,
-      lineStyle: 2, // Dashed
-      title: 'ORB Low',
+      title: 'EMA 21',
     });
 
-    // VWAP Line - Yellow/Amber
-    const vwapLine = chart.addSeries(LineSeries, {
-      color: '#eab308',
+    // Supertrend Line
+    const supertrendLine = chart.addSeries(LineSeries, {
       lineWidth: 2,
-      lineStyle: 0, // Solid
-      title: 'VWAP',
+      lineStyle: 0,
+      title: 'Supertrend',
     });
 
     chartRef.current = chart;
     candleSeriesRef.current = candleSeries;
-    orbHighRef.current = orbHigh;
-    orbLowRef.current = orbLow;
-    vwapRef.current = vwapLine;
+    ema9Ref.current = ema9Line;
+    ema21Ref.current = ema21Line;
+    supertrendRef.current = supertrendLine;
     setInitialized(true);
 
     const handleResize = () => {
@@ -170,28 +167,19 @@ export default function Chart({ data }: ChartProps) {
       }
     }
 
-    if (orbHighRef.current) {
-      if (data.orb_high && data.orb_high.length > 0) {
-        orbHighRef.current.setData(data.orb_high as LineData<Time>[]);
-      } else {
-        orbHighRef.current.setData([]);
-      }
+    if (ema9Ref.current) {
+      const filtered = data.ema9 ? (data.ema9 as LineData<Time>[]).filter(d => d.value !== null) : [];
+      ema9Ref.current.setData(filtered);
     }
 
-    if (orbLowRef.current) {
-      if (data.orb_low && data.orb_low.length > 0) {
-        orbLowRef.current.setData(data.orb_low as LineData<Time>[]);
-      } else {
-        orbLowRef.current.setData([]);
-      }
+    if (ema21Ref.current) {
+      const filtered = data.ema21 ? (data.ema21 as LineData<Time>[]).filter(d => d.value !== null) : [];
+      ema21Ref.current.setData(filtered);
     }
 
-    if (vwapRef.current) {
-      if (data.vwap && data.vwap.length > 0) {
-        vwapRef.current.setData(data.vwap as LineData<Time>[]);
-      } else {
-        vwapRef.current.setData([]);
-      }
+    if (supertrendRef.current) {
+      const filtered = data.supertrend ? (data.supertrend as LineData<Time>[]).filter(d => d.value !== null) : [];
+      supertrendRef.current.setData(filtered);
     }
 
     if (chartRef.current) {
@@ -207,17 +195,23 @@ export default function Chart({ data }: ChartProps) {
     <div className="chart-container">
       <div className="chart-header">
         <div className="flex flex-col gap-1">
-          <h3>NIFTY 50 — Natural ORB Strategy</h3>
+          <h3>NIFTY 50 — Supertrend Strategy</h3>
           <p className="text-xs text-gray-500">
-            Strategy: Standard 15-Minute Opening Range Breakout
+            EMA Crossover + Supertrend + ADX Filter
           </p>
         </div>
         <div className="chart-legend flex flex-wrap gap-x-4 gap-y-1 justify-end max-w-[50%]">
-          <span className="legend-item flex items-center gap-1" style={{ color: '#06b6d4' }}>
-            <span className="w-3 h-1 bg-[#06b6d4]"></span> ORB High/Low
+          <span className="legend-item flex items-center gap-1" style={{ color: '#60a5fa' }}>
+            <span className="w-3 h-1 bg-[#60a5fa]"></span> EMA 9
           </span>
-          <span className="legend-item flex items-center gap-1" style={{ color: '#eab308' }}>
-            <span className="w-3 h-1 bg-[#eab308]"></span> VWAP
+          <span className="legend-item flex items-center gap-1" style={{ color: '#f472b6' }}>
+            <span className="w-3 h-1 bg-[#f472b6]"></span> EMA 21
+          </span>
+          <span className="legend-item flex items-center gap-1" style={{ color: '#10b981' }}>
+            <span className="w-3 h-1 bg-[#10b981]"></span> Supertrend (Long)
+          </span>
+          <span className="legend-item flex items-center gap-1" style={{ color: '#ef4444' }}>
+            <span className="w-3 h-1 bg-[#ef4444]"></span> Supertrend (Short)
           </span>
         </div>
       </div>

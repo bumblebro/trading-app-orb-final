@@ -88,6 +88,11 @@ export const api = {
     return fetchAPI(`/logs${query ? `?${query}` : ''}`);
   },
 
+  getMarginLogs: (limit?: number) => {
+    const query = limit ? `?limit=${limit}` : '';
+    return fetchAPI(`/logs/margin-failures${query}`);
+  },
+
   // Margin
   getMargin: () => fetchAPI('/margin'),
 };

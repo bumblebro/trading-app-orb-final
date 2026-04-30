@@ -5,145 +5,209 @@ ORB + VWAP Confirmation strategy.
 """
 
 import numpy as np
-from typing import List, Optional, Dict
+import math
+from typing import List, Optional, Dict, Any
 
 
-def calculate_orb(candles: List[dict], start_time: str = "09:15", end_time: str = "09:30") -> dict:
+def sanitize_nan(value: Any) -> Any:
+    """Convert NaN or Inf to None for JSON compliance."""
+    if isinstance(value, float):
+        if math.isnan(value) or math.isinf(value):
+            return None
+    elif isinstance(value, dict):
+        return {k: sanitize_nan(v) for k, v in value.items()}
+    elif isinstance(value, list):
+        return [sanitize_nan(v) for v in value]
+    return value
+
+
+def calculate_ema(prices: List[float], period: int) -> List[float]:
     """
-    Calculate the Opening Range Breakout levels for the CURRENT day.
-    Finds the high and low between the specified start and end time (IST) 
-    only for the most recent date in the candles list.
-
-    candles: List of 1-minute OHLCV dicts.
-    Returns: {orb_high, orb_low, orb_range, orb_status}
+    Calculate Exponential Moving Average.
     """
-    if not candles:
-        return {"orb_high": None, "orb_low": None, "orb_range": None, "orb_status": "BUILDING"}
-
-    # Identify the latest date in the list to avoid mixing multi-day data
-    dates = [c.get("time_key", "").split(" ")[0] for c in candles if c.get("time_key")]
-    if not dates:
-        return {"orb_high": None, "orb_low": None, "orb_range": None, "orb_status": "BUILDING"}
+    if len(prices) < period:
+        return [float('nan')] * len(prices)
     
-    latest_date = max(dates)
+    ema_values = [float('nan')] * (period - 1)
+    
+    # First EMA value is SMA
+    sma = sum(prices[:period]) / period
+    ema_values.append(sma)
+    
+    multiplier = 2 / (period + 1)
+    
+    for i in range(period, len(prices)):
+        ema = (prices[i] - ema_values[-1]) * multiplier + ema_values[-1]
+        ema_values.append(ema)
+        
+    return ema_values
 
-    # Filter candles within the window for the latest date only
-    window_candles = []
-    for c in candles:
-        time_key = c.get("time_key", "")
-        if not time_key or not time_key.startswith(latest_date):
-            continue
+
+def calculate_adx(candles: List[dict], period: int = 14) -> List[float]:
+    """
+    Calculate Average Directional Index (ADX).
+    Standard Welles Wilder implementation.
+    """
+    if len(candles) < period * 2:
+        return [float('nan')] * len(candles)
+
+    highs = [c['high'] for c in candles]
+    lows = [c['low'] for c in candles]
+    closes = [c['close'] for c in candles]
+
+    # 1. TR, +DM, -DM
+    tr_all = []
+    dm_plus_all = []
+    dm_minus_all = []
+
+    for i in range(1, len(candles)):
+        h, l, pc = highs[i], lows[i], closes[i-1]
+        tr = max(h - l, abs(h - pc), abs(l - pc))
+        tr_all.append(tr)
+
+        move_up = h - highs[i-1]
+        move_down = lows[i-1] - l
+
+        if move_up > move_down and move_up > 0:
+            dm_plus_all.append(move_up)
+        else:
+            dm_plus_all.append(0)
+
+        if move_down > move_up and move_down > 0:
+            dm_minus_all.append(move_down)
+        else:
+            dm_minus_all.append(0)
+
+    # 2. Smooth TR, DM+, DM- using Wilder's Smoothing
+    def wilder_smoothing(data, p):
+        smoothed = [float('nan')] * (p - 1)
+        # Initial SMA
+        smoothed.append(sum(data[:p]))
+        for j in range(p, len(data)):
+            # Wilder's Smoothing: Current = Prev - (Prev/p) + Current
+            val = smoothed[-1] - (smoothed[-1] / p) + data[j]
+            smoothed.append(val)
+        return smoothed
+
+    tr_smoothed = wilder_smoothing(tr_all, period)
+    dm_plus_smoothed = wilder_smoothing(dm_plus_all, period)
+    dm_minus_smoothed = wilder_smoothing(dm_minus_all, period)
+
+    adx_values = [float('nan')] * (period * 2 - 1)
+    
+    dx_all = []
+    for i in range(len(tr_smoothed)):
+        if tr_smoothed[i] > 0 and not math.isnan(tr_smoothed[i]):
+            di_plus = 100 * (dm_plus_smoothed[i] / tr_smoothed[i])
+            di_minus = 100 * (dm_minus_smoothed[i] / tr_smoothed[i])
             
-        time_part = c.get("time_str", "")
-        if start_time <= time_part < end_time:
-            window_candles.append(c)
+            denominator = di_plus + di_minus
+            if denominator > 0:
+                dx = 100 * abs(di_plus - di_minus) / denominator
+            else:
+                dx = 0
+            dx_all.append(dx)
+        else:
+            dx_all.append(float('nan'))
 
-    if not window_candles:
-        return {"orb_high": None, "orb_low": None, "orb_range": None, "orb_status": "BUILDING"}
+    # Final ADX (SMA of DX)
+    # Filter out initial NaNs
+    start_idx = period - 1
+    valid_dx = dx_all[start_idx:]
+    
+    # First ADX is SMA of first 'period' DX values
+    first_adx = sum(valid_dx[:period]) / period
+    adx_values.append(first_adx)
+    
+    # Subsequent ADX values
+    for i in range(period, len(valid_dx)):
+        current_adx = (adx_values[-1] * (period - 1) + valid_dx[i]) / period
+        adx_values.append(current_adx)
 
-    highs = [c["high"] for c in window_candles]
-    lows = [c["low"] for c in window_candles]
+    return adx_values
 
-    orb_high = max(highs)
-    orb_low = min(lows)
-    orb_range = round(orb_high - orb_low, 2)
+
+def calculate_supertrend_series(candles: List[dict], period: int = 10, multiplier: float = 3.0) -> Dict[str, List]:
+    """
+    Calculate Supertrend indicator series.
+    Returns: {supertrend: List, direction: List, upper_band: List, lower_band: List}
+    """
+    if len(candles) < period:
+        empty = [float('nan')] * len(candles)
+        return {"supertrend": empty, "direction": [0] * len(candles), "upper_band": empty, "lower_band": empty}
+
+    atr_vals = calculate_atr(candles, period)
+    hl2 = [(c['high'] + c['low']) / 2 for c in candles]
+    
+    supertrend = [0.0] * len(candles)
+    direction = [1] * len(candles)
+    upper_band = [0.0] * len(candles)
+    lower_band = [0.0] * len(candles)
+
+    for i in range(len(candles)):
+        if i < period: continue
+            
+        atr = atr_vals[i]
+        if math.isnan(atr): continue
+
+        basic_upper = hl2[i] + (multiplier * atr)
+        basic_lower = hl2[i] - (multiplier * atr)
+
+        if i > 0:
+            if basic_upper < upper_band[i-1] or candles[i-1]['close'] > upper_band[i-1]:
+                upper_band[i] = basic_upper
+            else:
+                upper_band[i] = upper_band[i-1]
+
+            if basic_lower > lower_band[i-1] or candles[i-1]['close'] < lower_band[i-1]:
+                lower_band[i] = basic_lower
+            else:
+                lower_band[i] = lower_band[i-1]
+        else:
+            upper_band[i] = basic_upper
+            lower_band[i] = basic_lower
+
+        if i > 0:
+            if direction[i-1] == 1:
+                if candles[i]['close'] < lower_band[i]:
+                    direction[i] = -1
+                    supertrend[i] = upper_band[i]
+                else:
+                    direction[i] = 1
+                    supertrend[i] = lower_band[i]
+            else:
+                if candles[i]['close'] > upper_band[i]:
+                    direction[i] = 1
+                    supertrend[i] = lower_band[i]
+                else:
+                    direction[i] = -1
+                    supertrend[i] = upper_band[i]
+        else:
+            supertrend[i] = lower_band[i]
 
     return {
-        "orb_high": orb_high,
-        "orb_low": orb_low,
-        "orb_range": orb_range,
-        "orb_status": "READY"
+        "supertrend": supertrend,
+        "direction": direction,
+        "upper_band": upper_band,
+        "lower_band": lower_band
     }
 
-
-def calculate_vwap(candles: List[dict]) -> List[float]:
+def calculate_supertrend(candles: List[dict], period: int = 10, multiplier: float = 3.0) -> Dict:
     """
-    Calculate Volume Weighted Average Price.
-    VWAP = Σ(Typical Price × Volume) / Σ(Volume)
-    where Typical Price = (High + Low + Close) / 3.
-    Resets at the start of each trading day (based on date in candle data).
-
-    candles: list of dicts with keys: high, low, close, volume (and optionally time_key)
-    Returns list of VWAP values (same length as candles).
+    Calculate late Supertrend indicator (single value).
     """
-    if not candles:
-        return []
-
-    vwap_values = []
-    cumulative_tp_vol = 0.0
-    cumulative_vol = 0.0
-    current_date = None
-
-    for candle in candles:
-        # Detect day change and reset accumulators
-        candle_date = candle.get("time_key", "").split(" ")[0] if candle.get("time_key") else None
-        if candle_date and candle_date != current_date:
-            cumulative_tp_vol = 0.0
-            cumulative_vol = 0.0
-            current_date = candle_date
-
-        # Typical Price = (High + Low + Close) / 3
-        typical_price = (candle["high"] + candle["low"] + candle["close"]) / 3
-        volume = candle.get("volume", 1)  # Default volume if not available
-
-        cumulative_tp_vol += typical_price * volume
-        cumulative_vol += volume
-
-        if cumulative_vol > 0:
-            vwap = cumulative_tp_vol / cumulative_vol
-        else:
-            vwap = typical_price
-
-        vwap_values.append(round(vwap, 2))
-
-    return vwap_values
-
-
-def calculate_rsi(prices: List[float], period: int = 14) -> List[float]:
-    """
-    Calculate Relative Strength Index.
-    Returns list of RSI values (same length as prices).
-    Used as optional confirmation filter.
-    """
-    if len(prices) < period + 1:
-        return [float('nan')] * len(prices)
-
-    rsi_values = [float('nan')] * period
-
-    deltas = [prices[i] - prices[i - 1] for i in range(1, len(prices))]
-
-    gains = [max(d, 0) for d in deltas[:period]]
-    losses = [abs(min(d, 0)) for d in deltas[:period]]
-    avg_gain = sum(gains) / period
-    avg_loss = sum(losses) / period
-
-    if avg_loss == 0:
-        rsi_values.append(100.0)
-    else:
-        rs = avg_gain / avg_loss
-        rsi_values.append(100 - (100 / (1 + rs)))
-
-    for i in range(period, len(deltas)):
-        gain = max(deltas[i], 0)
-        loss = abs(min(deltas[i], 0))
-
-        avg_gain = (avg_gain * (period - 1) + gain) / period
-        avg_loss = (avg_loss * (period - 1) + loss) / period
-
-        if avg_loss == 0:
-            rsi_values.append(100.0)
-        else:
-            rs = avg_gain / avg_loss
-            rsi_values.append(100 - (100 / (1 + rs)))
-
-    return rsi_values
+    series = calculate_supertrend_series(candles, period, multiplier)
+    return {
+        "value": round(series["supertrend"][-1], 2) if series["supertrend"][-1] > 0 else None,
+        "direction": series["direction"][-1],
+        "upper_band": round(series["upper_band"][-1], 2),
+        "lower_band": round(series["lower_band"][-1], 2)
+    }
 
 
 def calculate_atr(candles: List[dict], period: int = 14) -> List[float]:
     """
     Calculate Average True Range.
-    TR = max(High-Low, abs(High-PrevClose), abs(Low-PrevClose))
-    ATR = Simple Moving Average of TR.
     """
     if len(candles) < period + 1:
         return [float('nan')] * len(candles)
@@ -165,54 +229,38 @@ def calculate_atr(candles: List[dict], period: int = 14) -> List[float]:
     return atr_values
 
 
-def get_candle_strength(candles: List[dict], window: int = 3) -> Dict:
-    """
-    Compare current candle body vs average of previous 'window' bodies.
-    Body = abs(Open - Close)
-    """
-    if len(candles) < window + 1:
-        return {"current_body": 0, "avg_body": 0, "strength_pass": False}
-
-    bodies = [abs(c['open'] - c['close']) for c in candles]
-    current_body = bodies[-1]
-    prev_bodies = bodies[-(window+1):-1]
-    avg_prev_body = sum(prev_bodies) / window
-
-    return {
-        "current_body": round(current_body, 2),
-        "avg_body": round(avg_prev_body, 2),
-        "strength_pass": current_body > avg_prev_body
-    }
-
-
 def get_latest_indicators(candles: List[dict]) -> dict:
     """
-    Calculate ORB + VWAP indicators for the Natural ORB strategy.
+    Calculate Supertrend, EMA, and ADX indicators for the new strategy.
     """
     if not candles:
-        return {"orb_status": "BUILDING", "vwap": None, "ready": False}
+        return {"ready": False}
 
-    orb_results = calculate_orb(candles)
+    closes = [c['close'] for c in candles]
 
-    # Calculate VWAP
-    vwap_values = calculate_vwap(candles)
-    current_vwap = vwap_values[-1] if vwap_values else None
+    # 1. EMA Crossover (Momentum)
+    ema_short = calculate_ema(closes, period=9)
+    ema_long = calculate_ema(closes, period=21)
+    
+    # 2. Supertrend (Trend Direction)
+    st_data = calculate_supertrend(candles, period=10, multiplier=3.0)
+    
+    # 3. ADX (Market Choppiness Filter)
+    adx_values = calculate_adx(candles, period=14)
+    current_adx = adx_values[-1] if adx_values else None
 
-    # Calculate ATR
-    # Use standard 14 period or whatever is in settings
-    atr_values = calculate_atr(candles, period=14)
-    current_atr = atr_values[-1] if atr_values else None
+    # Calculate ATR for other volatility checks
+    atr_vals = calculate_atr(candles, period=14)
+    current_atr = atr_vals[-1] if atr_vals else None
 
-    # Calculate Candle Strength
-    strength_info = get_candle_strength(candles, window=3)
-
-    return {
-        "orb_high": orb_results["orb_high"],
-        "orb_low": orb_results["orb_low"],
-        "orb_range": orb_results["orb_range"],
-        "orb_status": orb_results["orb_status"],
-        "vwap": current_vwap,
+    results = {
+        "ema_short": round(ema_short[-1], 2) if not math.isnan(ema_short[-1]) else None,
+        "ema_long": round(ema_long[-1], 2) if not math.isnan(ema_long[-1]) else None,
+        "supertrend": st_data["value"],
+        "supertrend_direction": st_data["direction"], # 1 for Long, -1 for Short
+        "adx": round(current_adx, 2) if current_adx is not None and not math.isnan(current_adx) else None,
         "atr": current_atr,
-        "candle_strength": strength_info,
         "ready": True
     }
+
+    return sanitize_nan(results)

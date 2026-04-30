@@ -30,6 +30,7 @@ class DataFeed:
                  playback_file: Optional[str] = None,
                  playback_speed: float = 1.0,
                  playback_start_date: str = "",
+                 playback_end_date: str = "",
                  playback_period: str = "all"):
         self.api_key = api_key
         self.client_id = client_id
@@ -37,6 +38,7 @@ class DataFeed:
         self.playback_file = playback_file
         self.playback_speed = playback_speed
         self.playback_start_date = playback_start_date
+        self.playback_end_date = playback_end_date
         self.playback_period = playback_period
 
         # Price state
@@ -166,15 +168,19 @@ class DataFeed:
                 pass
         
         end_dt = None
-        # We'll calculate end_dt once we find the first valid row_time >= start_dt
+        if self.playback_end_date:
+            try:
+                end_dt = datetime.strptime(self.playback_end_date, "%Y-%m-%d").replace(hour=23, minute=59, second=59, tzinfo=IST)
+            except ValueError:
+                pass
 
-        self._playback_thread = threading.Thread(target=self._play_csv_data, args=(start_dt,), daemon=True)
+        self._playback_thread = threading.Thread(target=self._play_csv_data, args=(start_dt, end_dt), daemon=True)
         self._playback_thread.start()
 
-    def _play_csv_data(self, start_dt: Optional[datetime] = None):
+    def _play_csv_data(self, start_dt: Optional[datetime] = None, end_dt_override: Optional[datetime] = None):
         """Read CSV and emit prices."""
         try:
-            end_dt = None
+            end_dt = end_dt_override
             period_started = False
 
             with open(self.playback_file, 'r') as f:

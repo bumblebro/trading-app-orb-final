@@ -33,9 +33,9 @@ export default function SignalCard({ signal }: SignalCardProps) {
 
     switch (sig) {
       case 'BUY_CE':
-        return { label: 'BUY CE', color: 'var(--green)', glow: '0 0 30px rgba(34, 197, 94, 0.5)', emoji: '🎯', desc: 'All conditions met — LONG' };
+        return { label: 'BUY CE', color: 'var(--green)', glow: '0 0 30px rgba(34, 197, 94, 0.5)', emoji: '🎯', desc: 'EMA Cross + Supertrend Bullish' };
       case 'BUY_PE':
-        return { label: 'BUY PE', color: 'var(--red)', glow: '0 0 30px rgba(239, 68, 68, 0.5)', emoji: '🎯', desc: 'All conditions met — SHORT' };
+        return { label: 'BUY PE', color: 'var(--red)', glow: '0 0 30px rgba(239, 68, 68, 0.5)', emoji: '🎯', desc: 'EMA Cross + Supertrend Bearish' };
       case 'ACTIVE_CE':
         return { label: 'IN TRADE (CE)', color: 'var(--green)', glow: '0 0 20px rgba(34, 197, 94, 0.3)', emoji: '📈', desc: 'Call position active' };
       case 'ACTIVE_PE':
@@ -44,27 +44,19 @@ export default function SignalCard({ signal }: SignalCardProps) {
         return { label: 'MARKET CLOSED', color: '#6b7280', glow: 'none', emoji: '🌙', desc: 'Outside market hours' };
       case 'SQUARED_OFF':
         return { label: 'SQUARED OFF', color: '#6b7280', glow: 'none', emoji: '✅', desc: 'Session complete' };
+      case 'KILL_SWITCH_ACTIVE':
+        return { label: 'KILL SWITCH', color: '#ef4444', glow: '0 0 20px rgba(239, 68, 68, 0.4)', emoji: '🛑', desc: 'Daily loss limit reached' };
       default:
         // Phase-based WAIT states
         switch (phase) {
           case 'WATCHING':
             return { label: 'WATCHING', color: '#6b7280', glow: 'none', emoji: '⏳', desc: 'Waiting for 9:15 AM' };
-          case 'BUILDING_ORB':
-            return { label: 'BUILDING ORB', color: 'var(--blue)', glow: '0 0 20px rgba(59, 130, 246, 0.3)', emoji: '📊', desc: 'Analyzing opening 15m range' };
-          case 'WAITING_BREAKOUT':
-            return { label: 'WAITING BREAKOUT', color: '#06b6d4', glow: '0 0 20px rgba(6, 182, 212, 0.3)', emoji: '👀', desc: 'Watching high/low levels' };
-          case 'BREAKOUT_DETECTED':
-            return { label: 'BREAKOUT!', color: 'var(--yellow)', glow: '0 0 25px rgba(234, 179, 8, 0.4)', emoji: '⚡', desc: 'Price broke range — Calculating Fibs' };
-          case 'WAITING_PULLBACK':
-            return { label: 'WAITING PULLBACK', color: 'var(--yellow)', glow: '0 0 20px rgba(234, 179, 8, 0.3)', emoji: '⏳', desc: 'Price must return to entry zone' };
-          case 'IN_ENTRY_ZONE':
-            return { label: 'IN ENTRY ZONE', color: 'var(--purple)', glow: '0 0 25px rgba(168, 85, 247, 0.4)', emoji: '💎', desc: 'Pullback reached! Checking MACD...' };
-          case 'MACD_CONFIRMING':
-            return { label: 'CONFIRMING...', color: 'var(--purple)', glow: '0 0 25px rgba(168, 85, 247, 0.5)', emoji: '🔄', desc: 'Waiting for MACD momentum/curl' };
-          case 'SKIP_TODAY':
-            return { label: 'SKIP TODAY', color: '#ef4444', glow: 'none', emoji: '🚫', desc: 'ORB range invalid or too wide' };
+          case 'WAITING_FOR_ALIGNMENT':
+            return { label: 'SCANNING', color: 'var(--blue)', glow: '0 0 20px rgba(59, 130, 246, 0.3)', emoji: '📡', desc: 'Waiting for Crossover Alignment' };
+          case 'DAILY_LOSS_LIMIT':
+            return { label: 'LIMIT REACHED', color: '#ef4444', glow: 'none', emoji: '🚫', desc: 'Daily loss limit reached' };
           case 'MAX_TRADES_DONE':
-            return { label: 'LIMIT REACHED', color: '#6b7280', glow: 'none', emoji: '🛑', desc: 'Max daily trades completed' };
+            return { label: 'TRADES DONE', color: '#6b7280', glow: 'none', emoji: '🛑', desc: 'Max daily trades completed' };
           default:
             return { label: 'WAITING', color: 'var(--yellow)', glow: '0 0 20px rgba(234, 179, 8, 0.3)', emoji: '⏳', desc: 'Initializing system...' };
         }
@@ -86,28 +78,24 @@ export default function SignalCard({ signal }: SignalCardProps) {
       <div className="signal-desc">{config.desc}</div>
       
       {/* Logic Checklist */}
-      {currentPhase !== 'WATCHING' && currentPhase !== 'CLOSED' && currentPhase !== 'SKIP_TODAY' && (
+      {currentPhase !== 'WATCHING' && currentPhase !== 'CLOSED' && (
         <div className="signal-checklist">
-          <div className={`check-item ${strategyInfo?.breakout_direction !== 'NONE' ? 'checked' : ''}`}>
-            {strategyInfo?.breakout_direction !== 'NONE' ? '✅' : '⚪'} 1. ORB Breakout Detected
+          <div className={`check-item ${strategyInfo?.supertrend_direction !== 0 ? 'checked' : ''}`}>
+            {strategyInfo?.supertrend_direction !== 0 ? '✅' : '⚪'} 1. Supertrend Trend: 
+            <span className="check-detail" style={{ color: strategyInfo?.supertrend_direction === 1 ? 'var(--green)' : 'var(--red)' }}>
+              {strategyInfo?.supertrend_direction === 1 ? ' BULLISH' : ' BEARISH'}
+            </span>
           </div>
-          <div className={`check-item ${strategyInfo?.vwap_confirms ? 'checked' : ''}`}>
-            {strategyInfo?.vwap_confirms ? '✅' : '⚪'} 2. VWAP Confirmation
-            {strategyInfo?.vwap && (
-              <span className="check-detail"> ({strategyInfo.vwap.toFixed(2)})</span>
+          <div className={`check-item ${strategyInfo?.adx && strategyInfo.adx >= 20 ? 'checked' : ''}`}>
+            {strategyInfo?.adx && strategyInfo.adx >= 20 ? '✅' : '⚪'} 2. Volatility Filter (ADX &gt; 20)
+            {strategyInfo?.adx && (
+              <span className="check-detail"> (Curr: {strategyInfo.adx.toFixed(1)})</span>
             )}
           </div>
-        </div>
-      )}
-
-      {/* ORB Info Pill */}
-      {strategyInfo?.orb_range && (
-          <div className="orb-stats">
-              <span>ORB Range: <strong>{strategyInfo.orb_range.toFixed(2)}</strong></span>
-              <span className={`status-pill ${strategyInfo.orb_status}`}>
-                  {strategyInfo.orb_status}
-              </span>
+          <div className={`check-item`}>
+            ⚪ 3. Waiting for EMA 9/21 Cross
           </div>
+        </div>
       )}
 
       {/* Pulse effect for signals */}

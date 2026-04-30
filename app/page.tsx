@@ -7,6 +7,7 @@ import SignalCard from '@/components/SignalCard';
 import StatsGrid from '@/components/StatsGrid';
 import ConnectionStatus from '@/components/ConnectionStatus';
 import LogViewer from '@/components/LogViewer';
+import MarginLogViewer from '@/components/MarginLogViewer';
 import TradeModeToggle from '@/components/TradeModeToggle';
 import TradeCard from '@/components/TradeCard';
 import StrategyFlow from '@/components/StrategyFlow';
@@ -87,33 +88,66 @@ export default function DashboardPage() {
                 <div className="flex flex-col gap-4">
                   <Chart data={chartData} />
                   
-                  {/* Info Cards Row */}
+                  {/* Indicator & Backtest Info Cards */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="stat-info-card">
-                       <span className="info-label">ORB RANGE</span>
-                       <span className="info-value">{signalInfo?.orb_range?.toFixed(2) || '0.00'} pts</span>
-                       <span className={`info-sub ${signalInfo?.orb_status === 'READY' ? 'text-green-500' : 'text-blue-400'}`}>
-                         {signalInfo?.orb_status || '--'}
-                       </span>
-                    </div>
-                    <div className="stat-info-card">
-                       <span className="info-label">MACD STATUS</span>
-                       <span className="info-value">
-                         {signalInfo?.macd?.histogram?.toFixed(4) || '0.000'}
-                       </span>
-                       <span className={`info-sub ${signalInfo?.macd?.is_bullish ? 'text-green-500' : 'text-red-500'}`}>
-                         {signalInfo?.macd?.is_bullish ? 'BULLISH' : 'BEARISH'}
-                       </span>
-                    </div>
-                    <div className="stat-info-card">
-                       <span className="info-label">BREAKOUT</span>
-                       <span className="info-value">
-                         {signalInfo?.breakout_price?.toFixed(2) || '---'}
-                       </span>
-                       <span className={`info-sub ${signalInfo?.breakout_direction === 'UP' ? 'text-green-500' : signalInfo?.breakout_direction === 'DOWN' ? 'text-red-500' : 'text-gray-500'}`}>
-                         {signalInfo?.breakout_direction === 'UP' ? 'UPWARD' : signalInfo?.breakout_direction === 'DOWN' ? 'DOWNWARD' : 'WATCHING'}
-                       </span>
-                    </div>
+                    {status?.backtest_capital && status.backtest_capital !== (status.initial_capital || 100000) ? (
+                      <>
+                        <div className="stat-info-card border-cyan-500/20">
+                           <span className="info-label text-cyan-400">Backtest Capital</span>
+                           <span className="info-value">₹{status.backtest_capital.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
+                           <span className="info-sub text-gray-400 font-mono text-[10px]">
+                             📅 {status.backtest_start} → {status.backtest_current} {status.backtest_duration ? `(${status.backtest_duration})` : ''}
+                           </span>
+                        </div>
+                        <div className="stat-info-card border-purple-500/20">
+                           <span className="info-label text-purple-400">Total Return</span>
+                           <span className="info-value">
+                             {(((status.backtest_capital - (status.initial_capital || 100000)) / (status.initial_capital || 100000)) * 100).toFixed(1)}%
+                           </span>
+                           <span className={`info-sub ${status.compounding_advantage && status.compounding_advantage > 0 ? 'text-green-500' : 'text-gray-500'}`}>
+                             Advantage: +₹{status.compounding_advantage?.toLocaleString() || '0'}
+                           </span>
+                        </div>
+                        <div className="stat-info-card">
+                           <span className="info-label">Max Drawdown</span>
+                           <span className="info-value text-red-400">
+                             {/* Calculated purely on capital history */}
+                             {status.capital_history && status.capital_history.length > 0 ? 
+                               (Math.min(...status.capital_history) < (status.initial_capital || 100000) ? 
+                                 ((1 - Math.min(...status.capital_history) / Math.max(...status.capital_history)) * 100).toFixed(1) : '0.0') : '0.0'}%
+                           </span>
+                           <span className="info-sub text-gray-500">Peak to Trough</span>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="stat-info-card">
+                           <span className="info-label">Supertrend</span>
+                           <span className="info-value">{status?.indicators?.supertrend?.toFixed(2) || '0.00'}</span>
+                           <span className={`info-sub ${status?.indicators?.supertrend_direction === 1 ? 'text-green-500' : 'text-red-500'}`}>
+                             {status?.indicators?.supertrend_direction === 1 ? '🟢 BULLISH TREND' : status?.indicators?.supertrend_direction === -1 ? '🔴 BEARISH TREND' : '--'}
+                           </span>
+                        </div>
+                        <div className="stat-info-card">
+                           <span className="info-label">EMA 9 / 21</span>
+                           <span className="info-value">
+                             {status?.indicators?.ema_short?.toFixed(1) || '0.0'} / {status?.indicators?.ema_long?.toFixed(1) || '0.0'}
+                           </span>
+                           <span className={`info-sub ${status?.indicators?.ema_short > status?.indicators?.ema_long ? 'text-green-500' : 'text-red-500'}`}>
+                             {status?.indicators?.ema_short > status?.indicators?.ema_long ? 'UPWARD CROSS' : 'DOWNWARD CROSS'}
+                           </span>
+                        </div>
+                        <div className="stat-info-card">
+                           <span className="info-label">ADX Filter</span>
+                           <span className="info-value">
+                             {status?.indicators?.adx?.toFixed(1) || '0.0'}
+                           </span>
+                           <span className={`info-sub ${status?.indicators?.adx > 20 ? 'text-green-400 font-bold' : 'text-yellow-500'}`}>
+                             {status?.indicators?.adx > 20 ? '🔥 STRONG TREND' : '❄️ CHOPPY MARKET'}
+                           </span>
+                        </div>
+                      </>
+                    )}
                   </div>
 
                   {/* Stats Grid */}
@@ -125,6 +159,8 @@ export default function DashboardPage() {
                     losses={status?.losses || 0}
                     totalAllTimePnl={status?.total_pnl || 0}
                     totalAllTimeTrades={status?.total_trades || 0}
+                    totalAllTimeWins={status?.total_wins || 0}
+                    totalAllTimeLosses={status?.total_losses || 0}
                     allTimeWinRate={status?.all_time_win_rate || 0}
                     mode={mode}
                   />
@@ -173,12 +209,61 @@ export default function DashboardPage() {
                   >
                     {status?.running ? '⏹ Stop Bot' : '▶ Start Bot'}
                   </button>
+
+                  <button
+                    className="w-full mt-4 py-2 px-4 rounded-xl border border-blue-500/30 bg-blue-500/10 text-blue-400 font-bold hover:bg-blue-500/20 transition-all text-sm flex items-center justify-center gap-2"
+                    onClick={async () => {
+                        try {
+                            const [tradesData, logsData, settingsData] = await Promise.all([
+                                api.getTrades({ mode: status?.mode || 'paper' }),
+                                api.getLogs(50),
+                                api.getSettings()
+                            ]);
+                            
+                            // Sanitize settings (remove secrets)
+                            const sanitizedSettings = { ...settingsData.settings };
+                            delete sanitizedSettings.api_key;
+                            delete sanitizedSettings.pin;
+                            delete sanitizedSettings.totp_secret;
+
+                            const report = {
+                                export_time: new Date().toLocaleString(),
+                                bot_status: {
+                                    running: status?.running,
+                                    mode: status?.mode,
+                                    phase: status?.phase,
+                                    signal: status?.signal,
+                                    backtest_range: status?.backtest_start ? `${status.backtest_start} to ${status.backtest_current} (${status.backtest_duration})` : 'N/A'
+                                },
+                                strategy_config: sanitizedSettings,
+                                performance: {
+                                    today_pnl: status?.today_pnl,
+                                    total_pnl: status?.total_pnl,
+                                    win_rate: status?.all_time_win_rate,
+                                    yearly_breakdown: tradesData.yearly_summary || []
+                                },
+                                latest_indicators: status?.indicators,
+                                active_trade: status?.active_trade,
+                                recent_trades: (tradesData.trades || []).slice(0, 50),
+                                recent_logs: (logsData.logs || []).slice(0, 30)
+                            };
+                            
+                            await navigator.clipboard.writeText(JSON.stringify(report, null, 2));
+                            alert('📑 Trading Intelligence copied to clipboard!');
+                        } catch (e) {
+                            alert('Failed to copy trading data.');
+                        }
+                    }}
+                  >
+                    📋 Copy History for Analysis
+                  </button>
                 </div>
               </div>
             </div>
 
-            {/* Log Viewer */}
+            {/* Log Viewers */}
             <LogViewer />
+            <MarginLogViewer />
           </>
         )}
       </div>

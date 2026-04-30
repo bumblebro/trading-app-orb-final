@@ -220,6 +220,21 @@ class TradingLogger:
         except Exception:
             return []
 
+    def get_margin_failures(self, limit: int = 100) -> list:
+        """Get logs where margin check failed."""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            conn.row_factory = sqlite3.Row
+            # Filter specifically for margin failures stored in details
+            rows = conn.execute(
+                "SELECT * FROM logs WHERE category = 'SYSTEM' AND message LIKE 'Margin Check%' AND details LIKE '%\"sufficient\": false%' ORDER BY id DESC LIMIT ?",
+                (limit,)
+            ).fetchall()
+            conn.close()
+            return [dict(row) for row in rows]
+        except Exception:
+            return []
+
 
 # Global logger instance
 _logger = None

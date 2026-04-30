@@ -63,22 +63,22 @@ export default function TradeCard({ trade, onExit, currentPrice }: TradeCardProp
           </span>
         </div>
         <div className="trade-stat">
-          <span className="stat-label">Stop Loss (Trailing)</span>
+          <span className="stat-label">Dynamic Stop Loss</span>
           <span className="stat-value sl">₹{slPrice.toFixed(2)} ({slDistance.toFixed(1)}%)</span>
         </div>
         <div className="trade-stat">
-          <span className="stat-label">Target (80%)</span>
+          <span className="stat-label">Target (1:2 RR)</span>
           <span className="stat-value tgt">₹{targetPrice.toFixed(2)} (+{targetDistance.toFixed(1)}%)</span>
         </div>
         
-        {/* New Strategy Specific Stats */}
+        {/* New Strategy Specific Stats at Entry */}
         <div className="trade-stat border-t border-white/5 pt-2 mt-1">
-          <span className="stat-label">Breakout Point</span>
-          <span className="stat-value text-cyan-400">₹{trade.breakout_price?.toFixed(2) || '—'}</span>
+          <span className="stat-label">Entry Supertrend</span>
+          <span className="stat-value text-cyan-400">₹{trade.supertrend_at_entry?.toFixed(2) || '—'}</span>
         </div>
         <div className="trade-stat border-t border-white/5 pt-2 mt-1">
-          <span className="stat-label">Fib Level</span>
-          <span className="stat-value text-yellow-500">{trade.fib_entry_level || '—'}%</span>
+          <span className="stat-label">Entry ADX</span>
+          <span className="stat-value text-yellow-500">{trade.adx_at_entry?.toFixed(1) || '—'}</span>
         </div>
 
         <div className="trade-stat pnl full">

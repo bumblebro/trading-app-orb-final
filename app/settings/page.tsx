@@ -7,17 +7,22 @@ import type { Settings } from '@/lib/types';
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Settings>({
     api_key: '', client_id: '', pin: '', totp_secret: '',
-    orb_duration: '15', min_orb_range: '30', max_orb_range: '150', breakout_buffer: '5',
-    vwap_confirmation: 'true', sideways_threshold_pct: '0.2', atr_period: '14', atr_threshold: '11',
-    min_prev_day_range: '150',
-    primary_fib_level: '61.8', secondary_fib_level: '50.0', fib_sl_level: '78.6', pullback_timeout: '45',
-    macd_fast_period: '12', macd_slow_period: '26', macd_signal_period: '9',
-    rsi_filter_enabled: 'false', rsi_period: '14', rsi_min_ce: '45', rsi_max_pe: '55',
-    atm_delta: '0.5', trailing_sl_enabled: 'true', trailing_sl_pct: '20', index_trailing_sl_pts: '20',
-    max_trades_per_day: '2', max_trade_loss_inr: '3000', hard_sl_option_pts: '25',
-    signal_cutoff_time: '14:30', square_off_time: '15:15', lot_size: '65', position_size_mode: 'fixed',
-    fixed_lots: '2', max_capital_risk_pct: '1', trading_mode: 'paper', paper_capital: '100000', playback_file: 'bot/data/nifty_sample.csv', playback_speed: '1',
+    supertrend_period: '10', supertrend_multiplier: '3.0',
+    ema_9_period: '9', ema_21_period: '21',
+    adx_threshold: '20',
+    max_trades_per_day: '2', max_daily_loss: '10000',
+    signal_cutoff_time: '15:00', square_off_time: '15:15', lot_size: '65', 
+    position_size_mode: 'fixed', fixed_lots: '2', max_capital_risk_pct: '1', 
+    trading_mode: 'paper', paper_capital: '100000', 
+    playback_file: 'bot/data/nifty_sample.csv', playback_speed: '1',
     playback_start_date: '', playback_period: 'all',
+    initial_capital: '100000',
+    position_sizing_mode: 'auto_compound',
+    risk_percent_per_trade: '5.0',
+    min_lots: '1',
+    max_lots: '',
+    max_sl_distance_pts: '50',
+    trailing_sl_enabled: 'true',
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -137,7 +142,7 @@ export default function SettingsPage() {
       <div className="settings-section border-l-4 border-indigo-500">
         <h3 className="text-indigo-500">🧪 Backtest Configuration</h3>
         <div className="form-grid">
-          <div className="form-group">
+          <div className="form-group sm:col-span-1">
             <label className="form-label">Playback Start Date</label>
             <input 
               type="date" 
@@ -145,8 +150,17 @@ export default function SettingsPage() {
               value={settings.playback_start_date} 
               onChange={(e) => handleChange('playback_start_date', e.target.value)} 
             />
-            <p className="text-[10px] text-gray-400 mt-1">Leave empty to start from first row</p>
           </div>
+          <div className="form-group sm:col-span-1">
+            <label className="form-label">Playback End Date (Optional)</label>
+            <input 
+              type="date" 
+              className="form-input" 
+              value={settings.playback_end_date} 
+              onChange={(e) => handleChange('playback_end_date', e.target.value)} 
+            />
+          </div>
+          <p className="col-span-2 text-[10px] text-gray-400 -mt-2">Leave dates empty to process the entire file.</p>
           <div className="form-group">
             <label className="form-label">Backtest Duration</label>
             <select 
@@ -161,63 +175,44 @@ export default function SettingsPage() {
               <option value="1 year">📅 1 Year</option>
             </select>
           </div>
+          <div className="form-group sm:col-span-1">
+            <label className="form-label text-indigo-400 font-bold">Initial Capital (₹)</label>
+            <input 
+              type="number" 
+              className="form-input border-indigo-500/30" 
+              value={settings.initial_capital} 
+              onChange={(e) => handleChange('initial_capital', e.target.value)} 
+            />
+          </div>
         </div>
       </div>
 
-      {/* 3. ORB Parameters */}
+      {/* 3. Strategy Parameters */}
       <div className="settings-section border-l-4 border-cyan-500">
-        <h3 className="text-cyan-400">📊 1. Opening Range (ORB)</h3>
+        <h3 className="text-cyan-400">📊 Strategy Parameters (EMA + Supertrend)</h3>
         <div className="form-grid">
           <div className="form-group">
-            <label className="form-label">ORB Duration (Minutes)</label>
-            <select className="form-input" value={settings.orb_duration} onChange={(e) => handleChange('orb_duration', e.target.value)}>
-              <option value="5">5 Mins</option>
-              <option value="15">15 Mins (Recommended)</option>
-              <option value="30">30 Mins</option>
-            </select>
+            <label className="form-label">Supertrend Period</label>
+            <input type="number" className="form-input" value={settings.supertrend_period} onChange={(e) => handleChange('supertrend_period', e.target.value)} />
           </div>
           <div className="form-group">
-            <label className="form-label">Breakout Buffer (Pts)</label>
-            <input type="number" className="form-input" value={settings.breakout_buffer} onChange={(e) => handleChange('breakout_buffer', e.target.value)} />
+            <label className="form-label">Supertrend Multiplier</label>
+            <input type="number" step="0.1" className="form-input" value={settings.supertrend_multiplier} onChange={(e) => handleChange('supertrend_multiplier', e.target.value)} />
           </div>
-          <div className="form-group">
-            <label className="form-label">Min Range Filter (Pts)</label>
-            <input type="number" className="form-input" value={settings.min_orb_range} onChange={(e) => handleChange('min_orb_range', e.target.value)} />
+          <div className="form-group border-l-2 border-blue-500/30 pl-4">
+            <label className="form-label">Short EMA Period</label>
+            <input type="number" className="form-input" value={settings.ema_9_period} onChange={(e) => handleChange('ema_9_period', e.target.value)} />
           </div>
-          <div className="form-group">
-            <label className="form-label">Max Range Filter (Pts)</label>
-            <input type="number" className="form-input" value={settings.max_orb_range} onChange={(e) => handleChange('max_orb_range', e.target.value)} />
+          <div className="form-group border-l-2 border-blue-500/30 pl-4">
+            <label className="form-label">Long EMA Period</label>
+            <input type="number" className="form-input" value={settings.ema_21_period} onChange={(e) => handleChange('ema_21_period', e.target.value)} />
           </div>
           <div className="form-group col-span-2">
             <label className="form-label flex items-center gap-1">
-              VWAP Confirmation
-              <span className="text-[10px] bg-yellow-500/20 text-yellow-400 px-1 rounded border border-yellow-500/30 cursor-help" title="When enabled, breakout UP requires price above VWAP (bullish bias), and breakout DOWN requires price below VWAP (bearish bias). This filters out false breakouts against the intraday trend.">i</span>
+              ADX Choppiness Filter (Threshold)
+              <span className="text-[10px] bg-yellow-500/20 text-yellow-400 px-1 rounded border border-yellow-500/30 cursor-help" title="Only trades when ADX is above this value. Prevents entry in sideways/range-bound markets. (Default 20)">i</span>
             </label>
-            <select className="form-input" value={settings.vwap_confirmation} onChange={(e) => handleChange('vwap_confirmation', e.target.value)}>
-              <option value="true">✅ Enabled (Recommended)</option>
-              <option value="false">❌ Disabled</option>
-            </select>
-          </div>
-          <div className="form-group">
-            <label className="form-label flex items-center gap-1">
-              Sideways Filter (%)
-              <span className="text-[10px] bg-purple-500/20 text-purple-400 px-1 rounded border border-purple-500/30 cursor-help" title="If price stays within this % of VWAP for the first 45 mins, it marks the day as 'Sideways' and skips trading (No Trade Zone).">i</span>
-            </label>
-            <input type="number" step="0.01" className="form-input" value={settings.sideways_threshold_pct} onChange={(e) => handleChange('sideways_threshold_pct', e.target.value)} />
-          </div>
-          <div className="form-group">
-            <label className="form-label flex items-center gap-1">
-              ATR Volatility Limit
-              <span className="text-[10px] bg-red-500/20 text-red-400 px-1 rounded border border-red-500/30 cursor-help" title="Average True Range (14 periods). If ATR is below this value, the day is considered too low-volatility for ORB and will be skipped.">i</span>
-            </label>
-            <input type="number" className="form-input" value={settings.atr_threshold} onChange={(e) => handleChange('atr_threshold', e.target.value)} />
-          </div>
-          <div className="form-group border-l-2 border-yellow-500/30 pl-4">
-            <label className="form-label flex items-center gap-1">
-              Min Prev Day Range
-              <span className="text-[10px] bg-yellow-500/20 text-yellow-400 px-1 rounded border border-yellow-500/30 cursor-help" title="Only trade if the previous day's Nifty range (High - Low) was greater than this value. Helps avoid trading after boring 'inside' days.">i</span>
-            </label>
-            <input type="number" className="form-input" value={settings.min_prev_day_range} onChange={(e) => handleChange('min_prev_day_range', e.target.value)} />
+            <input type="number" className="form-input" value={settings.adx_threshold} onChange={(e) => handleChange('adx_threshold', e.target.value)} />
           </div>
         </div>
       </div>
@@ -228,13 +223,13 @@ export default function SettingsPage() {
         <div className="form-grid">
           <div className="form-group col-span-2">
             <label className="form-label">Position Sizing Mode</label>
-            <select className="form-input" value={settings.position_size_mode} onChange={(e) => handleChange('position_size_mode', e.target.value)}>
-              <option value="fixed">📍 Fixed Lots</option>
-              <option value="risk">⚖️ Auto (Capital Risk %)</option>
+            <select className="form-input" value={settings.position_sizing_mode} onChange={(e) => handleChange('position_sizing_mode', e.target.value)}>
+              <option value="fixed_lots">📍 Fixed Lots</option>
+              <option value="auto_compound">⚖️ Auto-Compounding ( compounding)</option>
             </select>
           </div>
           
-          {settings.position_size_mode === 'fixed' ? (
+          {settings.position_sizing_mode === 'fixed_lots' ? (
             <div className="form-group">
               <label className="form-label">Fixed Lots</label>
               <input type="number" className="form-input" value={settings.fixed_lots} onChange={(e) => handleChange('fixed_lots', e.target.value)} />
@@ -242,40 +237,36 @@ export default function SettingsPage() {
           ) : (
             <>
               <div className="form-group">
-                <label className="form-label">Capital Management (₹)</label>
-                <input type="number" className="form-input" value={settings.paper_capital} onChange={(e) => handleChange('paper_capital', e.target.value)} />
+                <label className="form-label text-cyan-400">Risk Per Trade (%)</label>
+                <input type="number" step="0.1" className="form-input" value={settings.risk_percent_per_trade} onChange={(e) => handleChange('risk_percent_per_trade', e.target.value)} />
               </div>
               <div className="form-group">
-                <label className="form-label">Risk Per Trade (%)</label>
-                <input type="number" step="0.1" className="form-input" value={settings.max_capital_risk_pct} onChange={(e) => handleChange('max_capital_risk_pct', e.target.value)} />
+                <label className="form-label">Min Lots</label>
+                <input type="number" className="form-input" value={settings.min_lots} onChange={(e) => handleChange('min_lots', e.target.value)} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Max Lots</label>
+                <input type="number" className="form-input" value={settings.max_lots} onChange={(e) => handleChange('max_lots', e.target.value)} placeholder="Auto (₹10k/lot, min 10)" />
               </div>
             </>
           )}
           <div className="form-group">
             <label className="form-label flex items-center gap-1">
-              ATM Delta
-              <span className="text-[10px] bg-blue-500/20 text-blue-400 px-1 rounded border border-blue-500/30 cursor-help" title="How much option premium moves per 1 point Nifty move. ATM is typically 0.5.">i</span>
-            </label>
-            <input type="number" step="0.01" className="form-input" value={settings.atm_delta} onChange={(e) => handleChange('atm_delta', e.target.value)} />
-          </div>
-          <p className="col-span-2 text-xs text-gray-400 italic mt-2">
-            ℹ️ Target & SL are automatically calculated: <br/>
-            Target = Entry + (Range × Delta × 1.5) | SL = Entry - (Range × Delta × 0.8)
-          </p>
-          <div className="form-group">
-            <label className="form-label flex items-center gap-1">
-              Trailing SL
-              <span className="text-[10px] bg-blue-500/20 text-blue-400 px-1 rounded border border-blue-500/30 cursor-help" title="Static SL stays fixed. Trailing SL moves up with the price to protect profits.">i</span>
+              Stop Loss Trailing
+              <span className="text-[10px] bg-blue-500/20 text-blue-400 px-1 rounded border border-blue-500/30 cursor-help" title="Static SL stays fixed. Trailing SL moves up with the Supertrend line on every 5-min candle close.">i</span>
             </label>
             <select className="form-input" value={settings.trailing_sl_enabled} onChange={(e) => handleChange('trailing_sl_enabled', e.target.value)}>
               <option value="false">🛡️ Static SL (Fixed Position)</option>
-              <option value="true">📈 Trailing SL (Locks in Profits)</option>
+              <option value="true">📈 Trailing SL (Follow Supertrend)</option>
             </select>
           </div>
-          <div className="form-group">
-            <label className="form-label">Index Trailing (Pts)</label>
-            <input type="number" className="form-input" value={settings.index_trailing_sl_pts} onChange={(e) => handleChange('index_trailing_sl_pts', e.target.value)} />
-            <p className="text-[9px] text-indigo-400 mt-1">Trails by Nifty Points (e.g. 20)</p>
+
+          <div className="form-group border-l-2 border-red-500/30 pl-4">
+            <label className="form-label text-red-400 flex items-center gap-1">
+              Max SL Distance Filter
+              <span className="text-[10px] bg-red-500/20 text-red-400 px-1 rounded border border-red-500/30 cursor-help" title="Skips trades if the distance from entry price to Supertrend SL is wider than this value. (Default 35 pts)">i</span>
+            </label>
+            <input type="number" className="form-input border-red-500/20" value={settings.max_sl_distance_pts} onChange={(e) => handleChange('max_sl_distance_pts', e.target.value)} placeholder="Max SL distance in pts" />
           </div>
         </div>
       </div>
@@ -297,12 +288,8 @@ export default function SettingsPage() {
             <input type="time" className="form-input" value={settings.square_off_time} onChange={(e) => handleChange('square_off_time', e.target.value)} />
           </div>
           <div className="form-group bg-red-500/5 p-2 rounded border border-red-500/10">
-            <label className="form-label text-red-400 font-bold">Max Trade Loss (₹)</label>
-            <input type="number" className="form-input border-red-500/30" value={settings.max_trade_loss_inr} onChange={(e) => handleChange('max_trade_loss_inr', e.target.value)} />
-          </div>
-          <div className="form-group bg-red-500/5 p-2 rounded border border-red-500/10">
-            <label className="form-label text-red-400">Hard Option SL (Pts)</label>
-            <input type="number" className="form-input border-red-500/30" value={settings.hard_sl_option_pts} onChange={(e) => handleChange('hard_sl_option_pts', e.target.value)} />
+            <label className="form-label text-red-400 font-bold">Daily Loss Kill Switch (₹)</label>
+            <input type="number" className="form-input border-red-500/30" value={settings.max_daily_loss} onChange={(e) => handleChange('max_daily_loss', e.target.value)} />
           </div>
           <div className="form-group">
             <label className="form-label">Lot Size (NIFTY)</label>

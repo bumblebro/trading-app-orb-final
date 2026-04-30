@@ -22,10 +22,19 @@ class OrderManager:
         self.logger = get_logger()
         self.instrument_mgr = get_instrument_manager()
         self._lock = threading.Lock()
+        self.data_feed = None
+        self.capital = 0
 
     def set_smart_api(self, smart_api):
         """Set/update the SmartConnect instance."""
         self.smart_api = smart_api
+
+    def update_context(self, data_feed=None, capital: float = 0):
+        """Update data feed and capital context for margin checks."""
+        if data_feed:
+            self.data_feed = data_feed
+        if capital > 0:
+            self.capital = capital
 
     def check_margin(self, required_amount: float = 0) -> Dict:
         """
@@ -35,14 +44,21 @@ class OrderManager:
         try:
             if self.smart_api is None:
                 # Paper trading — return virtual capital
-                paper_capital = float(get_setting("paper_capital") or "100000")
+                if self.data_feed and self.data_feed.playback_file:
+                    available = self.capital  # use compounding tracker
+                else:
+                    from database import get_all_time_pnl
+                    initial = float(get_setting("paper_capital") or "100000")
+                    pnl = get_all_time_pnl(mode="paper").get("all_time_pnl", 0)
+                    available = initial + pnl
+
                 result = {
-                    "available": paper_capital,
+                    "available": available,
                     "required": required_amount,
-                    "sufficient": paper_capital >= required_amount,
+                    "sufficient": available >= required_amount,
                     "mode": "paper"
                 }
-                self.logger.margin_check(paper_capital, required_amount, result["sufficient"])
+                self.logger.margin_check(available, required_amount, result["sufficient"])
                 return result
 
             # Live trading — call Angel One RMS
@@ -156,7 +172,8 @@ class OrderManager:
                     "target": target,
                     "underlying_entry_price": current_price,
                     "token": token,
-                    "entry_quality": entry_quality
+                    "entry_quality": entry_quality,
+                    "capital_used": round(entry_price * quantity, 2)
                 }
 
                 if mode == "live" and self.smart_api:
@@ -184,7 +201,8 @@ class OrderManager:
                     "target": target,
                     "underlying_entry_price": current_price,
                     "token": token,
-                    "entry_quality": entry_quality
+                    "entry_quality": entry_quality,
+                    "capital_used": round(entry_price * quantity, 2)
                 }
                 trade_id = insert_trade(trade_data, timestamp=timestamp)
 
@@ -203,6 +221,7 @@ class OrderManager:
                     "stop_loss": stop_loss,
                     "target": target,
                     "mode": mode,
+                    "capital_used": round(entry_price * quantity, 2),
                     "expiry": str(expiry) if expiry else None
                 }
 
@@ -269,6 +288,79 @@ class OrderManager:
         except Exception as e:
             self.logger.error(f"Exit trade {trade_id} failed", e)
             return 0
+
+    def partial_exit(self, trade_id: int, quantity: int, exit_price: float, 
+                     reason: str = "partial_target", mode: str = "paper", 
+                     timestamp: Optional[datetime] = None) -> float:
+        """
+        Exits a portion of an active trade.
+        Records realized P&L by updating existing trade qty and inserting a closed record.
+        """
+        try:
+            from database import update_trade, get_ist_now
+            active = get_active_trade()
+            if not active or active["id"] != trade_id:
+                self.logger.warning(f"Partial exit failed: Trade {trade_id} not found or not active")
+                return 0
+
+            if quantity >= active["quantity"]:
+                self.logger.info("Partial quantity >= total. Closing entire trade instead.")
+                return self.exit_trade(trade_id, exit_price, reason, mode, timestamp)
+
+            if mode == "live" and self.smart_api:
+                # Place partial exit order
+                self._place_partial_sell_order(active, quantity, exit_price)
+
+            # Realized P&L for this portion
+            realized_pnl = round((exit_price - active["entry_price"]) * quantity, 2)
+            
+            # 1. Update active trade (decrease quantity, mark partial_booked)
+            remaining_qty = active["quantity"] - quantity
+            update_trade(trade_id, {
+                "quantity": remaining_qty,
+                "partial_booked": 1
+            })
+
+            # 2. Insert a "Closed" trade record for the partial exit portion to track P&L
+            now = timestamp or get_ist_now()
+            partial_record = dict(active)
+            partial_record["exit_time"] = now.strftime("%H:%M:%S")
+            
+            # Remove ID so it inserts as new
+            if "id" in partial_record: del partial_record["id"]
+            partial_record["quantity"] = quantity
+            partial_record["status"] = "win" if realized_pnl > 0 else "loss"
+            partial_record["exit_price"] = exit_price
+            partial_record["pnl"] = realized_pnl
+            partial_record["exit_reason"] = reason
+            
+            insert_trade(partial_record, timestamp=now)
+
+            self.logger.info(f"PARTIAL BOOKED: Sold {quantity} units at {exit_price}. Realized P&L: {realized_pnl}")
+            return realized_pnl
+
+        except Exception as e:
+            self.logger.error(f"Partial exit for trade {trade_id} failed", e)
+            return 0
+
+    def _place_partial_sell_order(self, trade: Dict, quantity: int, price: float):
+        """Place a partial exit order via Angel One (Market Sell)."""
+        try:
+            order_params = {
+                "variety": "NORMAL",
+                "tradingsymbol": trade["trading_symbol"],
+                "symboltoken": trade.get("token", ""),
+                "transactiontype": "SELL",
+                "exchange": "NFO",
+                "ordertype": "MARKET",
+                "producttype": "INTRADAY",
+                "duration": "DAY",
+                "quantity": str(quantity),
+            }
+            result = self.smart_api.placeOrder(order_params)
+            self.logger.info(f"Partial live exit order placed: {result}")
+        except Exception as e:
+            self.logger.error("Partial exit order failed", e)
 
     def _place_exit_order(self, trade: Dict, price: float):
         """Place an exit order via Angel One."""

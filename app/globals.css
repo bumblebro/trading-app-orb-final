@@ -564,6 +564,33 @@ body {
 
 .log-controls { display: flex; align-items: center; gap: 0.75rem; }
 
+.copy-logs-btn {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.copy-logs-btn:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-glow);
+  color: var(--text-primary);
+}
+
+.copy-logs-btn.success {
+  background: var(--green-dim);
+  border-color: var(--green);
+  color: var(--green);
+}
+
 .log-filter {
   background: var(--bg-secondary);
   border: 1px solid var(--border);

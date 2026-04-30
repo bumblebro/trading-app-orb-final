@@ -20,7 +20,9 @@ def get_ist_now():
 
 def get_connection(db_path: str = None) -> sqlite3.Connection:
     """Get SQLite connection with row factory."""
-    conn = sqlite3.connect(db_path or DB_PATH)
+    target_path = db_path or DB_PATH
+    # print(f"[DEBUG] Opening database at: {target_path}")
+    conn = sqlite3.connect(target_path)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
     return conn
@@ -64,6 +66,7 @@ def init_db(db_path: str = None):
             trailing_sl_final REAL,
             rsi_at_entry REAL,
             vwap_at_entry REAL,
+            capital_used REAL,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
     """)
@@ -86,6 +89,21 @@ def init_db(db_path: str = None):
         )
     """)
 
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS signal_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT NOT NULL,
+            price REAL,
+            supertrend REAL,
+            supertrend_direction INTEGER,
+            ema_short REAL,
+            ema_long REAL,
+            adx REAL,
+            signal TEXT,
+            skip_reason TEXT
+        )
+    """)
+
     # Migration: Add columns if they don't exist (for existing databases)
     for column, col_type in [
         ("underlying_entry_price", "REAL"),
@@ -104,6 +122,18 @@ def init_db(db_path: str = None):
         ("trailing_sl_final", "REAL"),
         ("rsi_at_entry", "REAL"),
         ("vwap_at_entry", "REAL"),
+        ("initial_risk_pts", "REAL"),
+        ("trailing_activated", "INTEGER DEFAULT 0"),
+        ("entry_type", "TEXT"),
+        ("partial_booked", "INTEGER DEFAULT 0"),
+        ("volume_at_entry", "REAL"),
+        ("score_breakdown", "TEXT"),
+        ("adx_at_entry", "REAL"),
+        ("supertrend_at_entry", "REAL"),
+        ("ema_short_at_entry", "REAL"),
+        ("ema_long_at_entry", "REAL"),
+        ("exit_time", "TEXT"),
+        ("capital_used", "REAL"),
     ]:
         try:
             conn.execute(f"ALTER TABLE trades ADD COLUMN {column} {col_type}")
@@ -121,21 +151,24 @@ def insert_trade(trade: Dict[str, Any], timestamp: datetime = None, db_path: str
     conn = get_connection(db_path)
     now = timestamp or get_ist_now()
     cursor = conn.execute("""
-        INSERT INTO trades (date, time, type, strike_price, trading_symbol, entry_price,
+        INSERT INTO trades (date, time, type, strike_price, trading_symbol, entry_price, 
                           quantity, lot_size, status, mode, stop_loss, target, underlying_entry_price,
                           token, entry_quality, orb_high, orb_low, orb_range,
                           breakout_price, fib_entry_level, fib_entry_price, fib_sl_price,
-                          macd_at_entry, trailing_sl_used, rsi_at_entry, vwap_at_entry)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'open', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                          macd_at_entry, trailing_sl_used, rsi_at_entry, vwap_at_entry,
+                          entry_type, partial_booked, volume_at_entry, score_breakdown,
+                          adx_at_entry, supertrend_at_entry, ema_short_at_entry, ema_long_at_entry, exit_time, capital_used)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
-        now.strftime("%Y-%m-%d"),
-        now.strftime("%H:%M:%S"),
+        trade.get("date", now.strftime("%Y-%m-%d")),
+        trade.get("time", now.strftime("%H:%M:%S")),
         trade["type"],
         trade["strike_price"],
         trade.get("trading_symbol", ""),
         trade["entry_price"],
         trade["quantity"],
         trade.get("lot_size", 65),
+        trade.get("status", "open"),
         trade.get("mode", "paper"),
         trade.get("stop_loss"),
         trade.get("target"),
@@ -153,6 +186,16 @@ def insert_trade(trade: Dict[str, Any], timestamp: datetime = None, db_path: str
         trade.get("trailing_sl_used", 0),
         trade.get("rsi_at_entry"),
         trade.get("vwap_at_entry"),
+        trade.get("entry_type", "breakout"),
+        trade.get("partial_booked", 0),
+        trade.get("volume_at_entry"),
+        trade.get("score_breakdown"),
+        trade.get("adx_at_entry"),
+        trade.get("supertrend_at_entry"),
+        trade.get("ema_short_at_entry"),
+        trade.get("ema_long_at_entry"),
+        trade.get("exit_time"),
+        trade.get("capital_used"),
     ))
     trade_id = cursor.lastrowid
     conn.commit()
@@ -187,12 +230,35 @@ def close_trade(trade_id: int, exit_price: float, exit_reason: str, timestamp: d
         now = timestamp or get_ist_now()
 
         conn.execute("""
-            UPDATE trades SET exit_price = ?, pnl = ?, status = ?, exit_reason = ?
+            UPDATE trades SET exit_price = ?, pnl = ?, status = ?, exit_reason = ?, exit_time = ?
             WHERE id = ?
-        """, (exit_price, pnl, status, exit_reason, trade_id))
+        """, (exit_price, pnl, status, exit_reason, now.strftime("%H:%M:%S"), trade_id))
         conn.commit()
     conn.close()
     return pnl if trade else 0
+
+
+def insert_signal_log(data: Dict[str, Any], timestamp: datetime = None, db_path: str = None):
+    """Log indicator values and signal decisions for every tick."""
+    conn = get_connection(db_path)
+    now = timestamp or get_ist_now()
+    conn.execute("""
+        INSERT INTO signal_logs (timestamp, price, supertrend, supertrend_direction, 
+                               ema_short, ema_long, adx, signal, skip_reason)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        now.strftime("%Y-%m-%d %H:%M:%S"),
+        data.get("price"),
+        data.get("supertrend"),
+        data.get("supertrend_direction"),
+        data.get("ema_short"),
+        data.get("ema_long"),
+        data.get("adx"),
+        data.get("signal"),
+        data.get("skip_reason")
+    ))
+    conn.commit()
+    conn.close()
 
 
 def get_active_trade(db_path: str = None) -> Optional[Dict]:
@@ -253,6 +319,47 @@ def get_today_pnl(mode: str = None, date_override: str = None, db_path: str = No
     }
 
 
+def get_last_trade_date(mode: str = None, db_path: str = None) -> Optional[str]:
+    """Get the date of the last closed trade."""
+    conn = get_connection(db_path)
+    query = "SELECT date FROM trades WHERE status != 'open'"
+    params = []
+    if mode:
+        query += " AND mode = ?"
+        params.append(mode)
+    query += " ORDER BY date DESC, id DESC LIMIT 1"
+    row = conn.execute(query, params).fetchone()
+    conn.close()
+    return row["date"] if row else None
+
+
+def get_first_trade_date(mode: str = None, db_path: str = None) -> Optional[str]:
+    """Get the date of the first closed trade."""
+    conn = get_connection(db_path)
+    query = "SELECT date FROM trades WHERE status != 'open'"
+    params = []
+    if mode:
+        query += " AND mode = ?"
+        params.append(mode)
+    query += " ORDER BY date ASC, id ASC LIMIT 1"
+    row = conn.execute(query, params).fetchone()
+    conn.close()
+    return row["date"] if row else None
+
+
+def get_fixed_lot_pnl(mode: str = None, fixed_lots: int = 2, lot_size: int = 65, db_path: str = None) -> float:
+    """Calculate what the P&L would have been with fixed lot sizing."""
+    conn = get_connection(db_path)
+    query = "SELECT SUM((exit_price - entry_price) * ? * ?) as pnl FROM trades WHERE status != 'open' AND entry_price IS NOT NULL AND exit_price IS NOT NULL"
+    params = [fixed_lots, lot_size]
+    if mode:
+        query += " AND mode = ?"
+        params.append(mode)
+    row = conn.execute(query, params).fetchone()
+    conn.close()
+    return row["pnl"] or 0.0
+
+
 def get_all_time_pnl(mode: str = None, date_from: str = None, date_to: str = None, db_path: str = None) -> Dict:
     """Get all-time P&L summary with optional filters."""
     conn = get_connection(db_path)
@@ -291,9 +398,43 @@ def get_all_time_pnl(mode: str = None, date_from: str = None, date_to: str = Non
     return {
         "all_time_pnl": round(total_pnl, 2),
         "all_time_trades": total_trades,
-        "all_time_win_rate": round(win_rate, 1)
+        "all_time_win_rate": round(win_rate, 1),
+        "wins": wins,
+        "losses": losses
     }
 
+
+def get_yearly_summary(mode: str = None, date_from: str = None, date_to: str = None, db_path: str = None) -> List[Dict]:
+    """Get yearly P&L summary."""
+    conn = get_connection(db_path)
+    query = """
+        SELECT 
+            STRFTIME('%Y', date) as year,
+            SUM(pnl) as pnl,
+            COUNT(*) as trades,
+            SUM(CASE WHEN status = 'win' THEN 1 ELSE 0 END) as wins,
+            SUM(CASE WHEN status = 'loss' THEN 1 ELSE 0 END) as losses,
+            SUM(CASE WHEN pnl > 0 THEN pnl ELSE 0 END) as gross_profit,
+            SUM(CASE WHEN pnl < 0 THEN ABS(pnl) ELSE 0 END) as gross_loss
+        FROM trades
+        WHERE status != 'open'
+    """
+    params = []
+    if mode:
+        query += " AND mode = ?"
+        params.append(mode)
+    if date_from:
+        query += " AND date >= ?"
+        params.append(date_from)
+    if date_to:
+        query += " AND date <= ?"
+        params.append(date_to)
+    
+    query += " GROUP BY year ORDER BY year DESC"
+    
+    rows = conn.execute(query, params).fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
 
 def get_today_trade_count(date_override: str = None, db_path: str = None) -> int:
     """Get count of trades placed on a specific date (defaults to today)."""
@@ -331,30 +472,16 @@ DEFAULT_SETTINGS = {
     "client_id": "",
     "pin": "",
     "totp_secret": "",
-    # ORB Parameters
-    "orb_duration": "15",
-    "min_orb_range": "30",
-    "max_orb_range": "150",
-    "breakout_buffer": "5",
-    # Advanced Filters
-    "vwap_confirmation": "true",
-    "sideways_threshold_pct": "0.2",
-    "atr_period": "14",
-    "atr_threshold": "11",
     # Trade Management
     "atm_delta": "0.5",
     "trailing_sl_enabled": "true",
-    "trailing_sl_pct": "20",
-    "index_trailing_sl_pts": "20",
     "max_trades_per_day": "2",
-    "max_trade_loss_inr": "3000",
-    "hard_sl_option_pts": "25",
-    "min_prev_day_range": "150",
-    "signal_cutoff_time": "14:30",
+    "max_daily_loss": "10000",
+    "signal_cutoff_time": "15:00",
     "square_off_time": "15:15",
     "lot_size": "65",
     # Capital & Risk
-    "position_size_mode": "fixed",
+    "position_size_mode": "auto_compound",
     "fixed_lots": "2",
     "max_capital_risk_pct": "1",
     "trading_mode": "paper",
@@ -364,7 +491,22 @@ DEFAULT_SETTINGS = {
     "playback_file": "bot/data/nifty_sample.csv",
     "playback_speed": "1",
     "playback_start_date": "",
+    "playback_end_date": "",
     "playback_period": "all",
+    "initial_capital": "100000",
+    # Auto-Compounding Position Sizing
+    "position_sizing_mode": "auto_compound", # options: "fixed_lots", "auto_compound"
+    "risk_percent_per_trade": "5.0",
+    "min_lots": "1",
+    "max_lots": "",
+    # Supertrend Strategy Parameters
+    "supertrend_period": "10",
+    "supertrend_multiplier": "3.0",
+    "ema_short_period": "9",
+    "ema_long_period": "21",
+    "adx_threshold": "25",
+    "max_sl_distance_pts": "50",
+    "max_daily_loss": "10000", # New kill switch
 }
 
 
