@@ -264,7 +264,7 @@ export default function SettingsPage() {
           <div className="form-group border-l-2 border-red-500/30 pl-4">
             <label className="form-label text-red-400 flex items-center gap-1">
               Max SL Distance Filter
-              <span className="text-[10px] bg-red-500/20 text-red-400 px-1 rounded border border-red-500/30 cursor-help" title="Skips trades if the distance from entry price to Supertrend SL is wider than this value. (Default 35 pts)">i</span>
+              <span className="text-[10px] bg-red-500/20 text-red-400 px-1 rounded border border-red-500/30 cursor-help" title="Skips trades if the distance from entry price to Supertrend SL is wider than this value. (Default 50 pts)">i</span>
             </label>
             <input type="number" className="form-input border-red-500/20" value={settings.max_sl_distance_pts} onChange={(e) => handleChange('max_sl_distance_pts', e.target.value)} placeholder="Max SL distance in pts" />
           </div>

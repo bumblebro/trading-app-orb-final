@@ -441,19 +441,7 @@ class TradingBot:
             min_lots = int(get_setting("min_lots") or "1")
             lot_size = int(get_setting("lot_size") or "65")
             
-            # Auto max_lots from initial_capital
-            max_lots_setting = (get_setting("max_lots") or "").strip()
-            if not max_lots_setting or max_lots_setting == "10":
-                initial_cap = float(get_setting("initial_capital") or "100000")
-                max_lots = max(10, int(initial_cap / 10000))
-            else:
-                try:
-                    max_lots = int(max_lots_setting)
-                except:
-                    initial_cap = float(get_setting("initial_capital") or "100000")
-                    max_lots = max(10, int(initial_cap / 10000))
-
-            # Get current capital
+            # 1. Determine Balance
             if self.data_feed and self.data_feed.playback_file:
                 balance = self.capital
             elif mode == "paper":
@@ -466,6 +454,14 @@ class TradingBot:
 
             if balance <= 0: return min_lots
 
+            # 2. Max Lots Safeguard
+            max_lots_setting = (get_setting("max_lots") or "").strip()
+            if not max_lots_setting or max_lots_setting == "10":
+                max_lots = max(10, int(balance / 10000)) # Default 1 lot per 10k
+            else:
+                max_lots = int(max_lots_setting)
+
+            # 3. Risk-Based Calculation
             risk_amount = balance * (risk_pct / 100.0)
             
             if sl_distance_option > 0:
@@ -473,12 +469,8 @@ class TradingBot:
                 lots = int(risk_amount / (sl_distance_option * lot_size))
                 calc_type = "risk-based"
             else:
-                # Fallback: use 5% of capital / estimated premium
-                current_price = (
-                    self.data_feed.current_price 
-                    if self.data_feed and self.data_feed.current_price > 100 
-                    else 20000
-                )
+                # Fallback: use capital usage (5% of capital / estimated premium)
+                current_price = self.data_feed.current_price if (self.data_feed and self.data_feed.current_price > 0) else 20000
                 est_premium = current_price * 0.015
                 lots = int(risk_amount / (est_premium * lot_size))
                 calc_type = "premium-fallback"
@@ -487,9 +479,10 @@ class TradingBot:
             
             self.logger.info(
                 f"Lots Calc ({calc_type}): balance={balance:.0f}, risk={risk_amount:.0f}, "
-                f"sl_dist={sl_distance_option:.1f}, raw_lots={lots}, max={max_lots}, final={final_lots}"
+                f"sl_dist={sl_distance_option:.1f}, final={final_lots}"
             )
             return final_lots
+            
         except Exception as e:
             self.logger.error("Error calculating dynamic lots", e)
             return int(get_setting("min_lots") or "1")
@@ -521,12 +514,13 @@ class TradingBot:
             self.logger.info(f"Signal skipped: SL distance {sl_distance:.1f} pts exceeds max {hard_limit} pts")
             return
 
-        # 2. Determine Quantity (Risk-based)
+        # 2. Determine Quantity
         pos_mode = get_setting("position_sizing_mode")
         if pos_mode == "auto_compound":
+            # True risk-based: calibrate lots to SL distance
             lots = self.calculate_dynamic_lots(sl_distance_option=sl_pts_option)
         else:
-            lots = int(get_setting("fixed_lots") or "1")
+            lots = int(get_setting("fixed_lots") or "2")
 
         quantity = lots * lot_size
 

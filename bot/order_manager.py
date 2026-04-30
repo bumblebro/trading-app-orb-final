@@ -8,7 +8,7 @@ import threading
 from datetime import datetime, timezone, timedelta
 from typing import Optional, Dict
 from logger import get_logger
-from database import insert_trade, close_trade, get_setting, get_active_trade
+from database import insert_trade, close_trade, get_setting, get_active_trade, get_all_time_pnl
 from instrument_manager import get_instrument_manager
 
 IST = timezone(timedelta(hours=5, minutes=30))
@@ -47,7 +47,6 @@ class OrderManager:
                 if self.data_feed and self.data_feed.playback_file:
                     available = self.capital  # use compounding tracker
                 else:
-                    from database import get_all_time_pnl
                     initial = float(get_setting("paper_capital") or "100000")
                     pnl = get_all_time_pnl(mode="paper").get("all_time_pnl", 0)
                     available = initial + pnl
