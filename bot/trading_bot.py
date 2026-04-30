@@ -742,35 +742,8 @@ class TradingBot:
             "compounding_advantage": self.capital - self.compounding_baseline_capital,
             "backtest_start": self._first_ever_trade_date or self._effective_backtest_start or get_setting("playback_start_date") or "2015-10-01",
             "backtest_current": self._get_current_time().strftime("%Y-%m-%d") if self.data_feed and self.data_feed.playback_file else None,
-            "backtest_duration": "",
-            "initial_capital": float(get_setting("initial_capital") or "100000"),
+            "backtest_duration": ""
         }
-
-        if status.get("backtest_current") and status.get("backtest_start"):
-            try:
-                from datetime import datetime
-                # Strip potential spaces or time data
-                s_str = str(status["backtest_start"]).split(' ')[0]
-                c_str = str(status["backtest_current"]).split(' ')[0]
-                
-                d1 = datetime.strptime(s_str, "%Y-%m-%d")
-                d2 = datetime.strptime(c_str, "%Y-%m-%d")
-                delta = d2 - d1
-                
-                days_total = max(0, delta.days)
-                years = days_total // 365
-                months = (days_total % 365) // 30
-                days = (days_total % 365) % 30
-                
-                parts = []
-                if years > 0: parts.append(f"{years}y")
-                if months > 0: parts.append(f"{months}m")
-                if days > 0 or not parts: parts.append(f"{days}d")
-                status["backtest_duration"] = " ".join(parts)
-            except Exception as e:
-                status["backtest_duration"] = "calc_err"
-        elif self.data_feed and self.data_feed.playback_file:
-             status["backtest_duration"] = "0d"
 
         if active_trade and price_info.get("price"):
             simulated_price = self.calculate_option_price(active_trade, price_info["price"])
@@ -779,15 +752,6 @@ class TradingBot:
             status["active_trade"] = active_trade
 
         return status
-
-    def manual_exit(self, current_price: float = None) -> Dict:
-        active_trade = get_active_trade()
-        if not active_trade:
-            return {"success": False, "message": "No active trade"}
-        if current_price is None:
-            current_price = self.data_feed.current_price if self.data_feed else 0
-        pnl = self.order_manager.exit_trade(active_trade["id"], current_price, "manual", active_trade["mode"])
-        return {"success": True, "pnl": pnl, "message": "Manual exit completed"}
 
 
 _bot = None
