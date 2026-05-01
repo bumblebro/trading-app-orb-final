@@ -760,3 +760,4 @@ def get_bot() -> TradingBot:
     if _bot is None:
         _bot = TradingBot()
     return _bot
+
