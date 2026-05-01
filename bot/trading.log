@@ -3730,3 +3730,18 @@
 [2026-05-01 10:58:10 IST] [INFO] [SYSTEM] Lots Calc (premium-fallback): balance=207184, risk=10359, sl_dist=0.0, final=1
 [2026-05-01 10:58:10 IST] [INFO] [SYSTEM] Daily Lots Locked: 1 (Mode: auto_compound)
 [2026-05-01 10:58:10 IST] [INFO] [SYSTEM] Strategy phase → WAITING_FOR_ALIGNMENT: Waiting for Supertrend & EMA Alignment
+[2026-05-01 10:58:15 IST] [INFO] [SYSTEM] Strategy phase → CLOSED: Market session closed
+[2026-05-01 10:58:15 IST] [INFO] [SYSTEM] New day detected (2017-02-02). Resetting strategy state.
+[2026-05-01 10:58:15 IST] [INFO] [SYSTEM] Lots Calc (premium-fallback): balance=207184, risk=10359, sl_dist=0.0, final=1
+[2026-05-01 10:58:15 IST] [INFO] [SYSTEM] Daily Lots Locked: 1 (Mode: auto_compound)
+[2026-05-01 10:58:15 IST] [INFO] [SYSTEM] Strategy phase → WAITING_FOR_ALIGNMENT: Waiting for Supertrend & EMA Alignment
+[2026-05-01 10:58:19 IST] [INFO] [SYSTEM] Strategy phase → CLOSED: Market session closed
+[2026-05-01 10:58:19 IST] [INFO] [SYSTEM] New day detected (2017-02-03). Resetting strategy state.
+[2026-05-01 10:58:19 IST] [INFO] [SYSTEM] Lots Calc (premium-fallback): balance=207184, risk=10359, sl_dist=0.0, final=1
+[2026-05-01 10:58:19 IST] [INFO] [SYSTEM] Daily Lots Locked: 1 (Mode: auto_compound)
+[2026-05-01 10:58:19 IST] [INFO] [SYSTEM] Strategy phase → WAITING_FOR_ALIGNMENT: Waiting for Supertrend & EMA Alignment
+[2026-05-01 10:58:24 IST] [INFO] [SYSTEM] Strategy phase → CLOSED: Market session closed
+[2026-05-01 10:58:24 IST] [INFO] [SYSTEM] New day detected (2017-02-06). Resetting strategy state.
+[2026-05-01 10:58:24 IST] [INFO] [SYSTEM] Lots Calc (premium-fallback): balance=207184, risk=10359, sl_dist=0.0, final=1
+[2026-05-01 10:58:24 IST] [INFO] [SYSTEM] Daily Lots Locked: 1 (Mode: auto_compound)
+[2026-05-01 10:58:24 IST] [INFO] [SYSTEM] Strategy phase → WAITING_FOR_ALIGNMENT: Waiting for Supertrend & EMA Alignment
