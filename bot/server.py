@@ -243,16 +243,13 @@ async def get_candles():
 
 
 @app.get("/trades")
-async def list_trades(mode: Optional[str] = None,
-                      date_from: Optional[str] = None,
-                      date_to: Optional[str] = None,
-                      limit: int = 100):
-    """Get trade history."""
+async def trades(mode: str = None, date_from: str = None, date_to: str = None, limit: int = 100):
+    from database import get_trades, get_all_time_pnl, get_yearly_summary
     trades = get_trades(mode=mode, date_from=date_from, date_to=date_to, limit=limit)
-    from database import get_all_time_pnl, get_yearly_summary
     summary = get_all_time_pnl(mode=mode, date_from=date_from, date_to=date_to)
     yearly_summary = get_yearly_summary(mode=mode, date_from=date_from, date_to=date_to)
     return {"trades": trades, "summary": summary, "yearly_summary": yearly_summary}
+
 
 
 @app.get("/trades/active")

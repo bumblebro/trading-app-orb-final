@@ -22,14 +22,12 @@ export default function HistoryPage() {
 
   const fetchTrades = useCallback(async () => {
     try {
-      const data = await api.getTrades({
-        mode: modeFilter || undefined,
-        date_from: dateFrom || undefined,
-        date_to: dateTo || undefined,
-      });
-      setTrades(data.trades || []);
-      setSummary(data.summary || null);
-      setYearlyStats(data.yearly_summary || []);
+      // Inside the fetchTrades function:
+const data = await api.getTrades(mode, dateFrom, dateTo);
+setTrades(data.trades || []);
+setSummary(data.summary || null);
+setYearlyStats(data.yearly_summary || []); // Use the server-side yearly breakdown
+
     } catch {
       // Bot not connected
     } finally {
