@@ -706,52 +706,62 @@ class TradingBot:
         self._current_signal = "SQUARED_OFF"
 
     def get_status(self) -> Dict:
-        from database import get_today_pnl, get_active_trade, get_all_time_pnl
-        mode = get_setting("trading_mode") or "paper"
-        
-        # If in backtest mode, filter all stats by current backtest date
-        date_to = None
-        if self.data_feed and self.data_feed.playback_file:
-            date_to = self._get_current_time().strftime("%Y-%m-%d")
+        try:
+            from database import get_today_pnl, get_active_trade, get_all_time_pnl
+            mode = get_setting("trading_mode") or "paper"
             
-        pnl_summary = get_today_pnl(mode=mode, date_override=date_to)
-        all_time_summary = get_all_time_pnl(mode=mode, date_to=date_to)
-        active_trade = get_active_trade()
-        price_info = self.data_feed.get_price_info() if self.data_feed else {}
+            # If in backtest mode, filter all stats by current backtest date
+            date_to = None
+            if self.data_feed and self.data_feed.playback_file:
+                date_to = self._get_current_time().strftime("%Y-%m-%d")
+                
+            pnl_summary = get_today_pnl(mode=mode, date_override=date_to)
+            all_time_summary = get_all_time_pnl(mode=mode, date_to=date_to)
+            active_trade = get_active_trade()
+            price_info = self.data_feed.get_price_info() if self.data_feed else {}
 
-        status = {
-            "running": self._running,
-            "signal": self._current_signal,
-            "indicators": self.indicators,
-            "price": price_info,
-            "today_pnl": pnl_summary.get("total_pnl", 0),
-            "today_trades": pnl_summary.get("total_trades", 0),
-            "wins": pnl_summary.get("wins", 0),
-            "losses": pnl_summary.get("losses", 0),
-            "win_rate": pnl_summary.get("win_rate", 0),
-            "total_pnl": all_time_summary.get("all_time_pnl", 0),
-            "total_trades": all_time_summary.get("all_time_trades", 0),
-            "total_wins": all_time_summary.get("wins", 0),
-            "total_losses": all_time_summary.get("losses", 0),
-            "all_time_win_rate": all_time_summary.get("all_time_win_rate", 0),
-            "mode": mode,
-            "phase": self._strategy_phase,
-            # Compounding stats
-            "backtest_capital": self.capital,
-            "capital_history": self.capital_history,
-            "compounding_advantage": self.capital - self.compounding_baseline_capital,
-            "backtest_start": self._first_ever_trade_date or self._effective_backtest_start or get_setting("playback_start_date") or "2015-10-01",
-            "backtest_current": self._get_current_time().strftime("%Y-%m-%d") if self.data_feed and self.data_feed.playback_file else None,
-            "backtest_duration": ""
-        }
+            status = {
+                "running": self._running,
+                "signal": self._current_signal,
+                "indicators": self.indicators,
+                "price": price_info,
+                "today_pnl": pnl_summary.get("total_pnl", 0),
+                "today_trades": pnl_summary.get("total_trades", 0),
+                "wins": pnl_summary.get("wins", 0),
+                "losses": pnl_summary.get("losses", 0),
+                "win_rate": pnl_summary.get("win_rate", 0),
+                "total_pnl": all_time_summary.get("all_time_pnl", 0),
+                "total_trades": all_time_summary.get("all_time_trades", 0),
+                "total_wins": all_time_summary.get("wins", 0),
+                "total_losses": all_time_summary.get("losses", 0),
+                "all_time_win_rate": all_time_summary.get("all_time_win_rate", 0),
+                "mode": mode,
+                "phase": self._strategy_phase,
+                # Compounding stats
+                "backtest_capital": self.capital,
+                "capital_history": self.capital_history,
+                "compounding_advantage": self.capital - self.compounding_baseline_capital,
+                "backtest_start": self._first_ever_trade_date or self._effective_backtest_start or get_setting("playback_start_date") or "2015-10-01",
+                "backtest_current": self._get_current_time().strftime("%Y-%m-%d") if self.data_feed and self.data_feed.playback_file else None,
+                "backtest_duration": ""
+            }
 
-        if active_trade and price_info.get("price"):
-            simulated_price = self.calculate_option_price(active_trade, price_info["price"])
-            active_trade["current_price"] = simulated_price
-            active_trade["live_pnl"] = round((simulated_price - active_trade["entry_price"]) * active_trade["quantity"], 2)
-            status["active_trade"] = active_trade
+            if active_trade and price_info.get("price"):
+                simulated_price = self.calculate_option_price(active_trade, price_info["price"])
+                active_trade["current_price"] = simulated_price
+                active_trade["live_pnl"] = round((simulated_price - active_trade["entry_price"]) * active_trade["quantity"], 2)
+                status["active_trade"] = active_trade
 
-        return status
+            return status
+        except Exception as e:
+            self.logger.error(f"Error getting bot status: {e}")
+            return {
+                "running": self._running,
+                "error": str(e),
+                "mode": "paper",
+                "phase": self._strategy_phase,
+                "signal": self._current_signal
+            }
 
 
 _bot = None

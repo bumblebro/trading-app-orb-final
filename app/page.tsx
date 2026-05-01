@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import PriceDisplay from '@/components/PriceDisplay';
 import SignalCard from '@/components/SignalCard';
@@ -22,9 +22,13 @@ export default function DashboardPage() {
   const [signalInfo, setSignalInfo] = useState<Signal | null>(null);
   const [chartData, setChartData] = useState<ChartData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
+  const isFetching = useRef(false);
 
   const fetchData = useCallback(async () => {
+    if (isFetching.current) return;
     try {
+      isFetching.current = true;
       const [statusRes, candlesRes, signalRes] = await Promise.all([
         api.getBotStatus(),
         api.getCandles(),
@@ -33,16 +37,18 @@ export default function DashboardPage() {
       setStatus(statusRes);
       setChartData(candlesRes);
       setSignalInfo(signalRes);
-    } catch {
-      // Bot server not available
+    } catch (err) {
+      console.error('[Dashboard] Fetch error:', err);
     } finally {
+      isFetching.current = false;
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
+    setMounted(true);
     fetchData();
-    const interval = setInterval(fetchData, 1000);
+    const interval = setInterval(fetchData, 2000); // 2s is safer
     return () => clearInterval(interval);
   }, [fetchData]);
 
@@ -71,6 +77,12 @@ export default function DashboardPage() {
   const priceInfo = status?.price || {} as Record<string, unknown>;
   const mode = status?.mode || 'paper';
   const phase = status?.phase || 'WATCHING';
+
+  if (!mounted) return (
+    <div className="page-container flex items-center justify-center p-32">
+      <span className="animate-pulse text-gray-500">Initializing Dashboard...</span>
+    </div>
+  );
 
   return (
     <>

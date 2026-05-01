@@ -16,11 +16,16 @@ def get_ist_now():
     return datetime.now(IST)
 
 def get_connection(db_path: str = None) -> sqlite3.Connection:
-    """Get SQLite connection with row factory."""
+    """Get SQLite connection with row factory and increased timeout."""
     target_path = db_path or DB_PATH
-    conn = sqlite3.connect(target_path)
+    # Increase timeout to 30s to prevent 'database is locked' during concurrent access
+    conn = sqlite3.connect(target_path, timeout=30.0)
     conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode=WAL")
+    try:
+        conn.execute("PRAGMA journal_mode=WAL")
+    except sqlite3.OperationalError:
+        # WAL might fail on some filesystems, ignore if so
+        pass
     return conn
 
 def init_db(db_path: str = None):
@@ -45,6 +50,7 @@ def init_db(db_path: str = None):
             stop_loss REAL,
             target REAL,
             trailing_sl REAL,
+            capital_used REAL,
             underlying_entry_price REAL,
             token TEXT,
             adx_at_entry REAL,
@@ -55,7 +61,10 @@ def init_db(db_path: str = None):
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
     """)
+    
+    # Ensure settings table exists immediately
     conn.execute("CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)")
+    
     conn.execute("""
         CREATE TABLE IF NOT EXISTS signal_logs (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -79,7 +88,8 @@ def init_db(db_path: str = None):
         ("ema_long_at_entry", "REAL"),
         ("exit_time", "TEXT"),
         ("trailing_sl", "REAL"),
-        ("initial_risk_pts", "REAL"),  # The missing column
+        ("capital_used", "REAL"),
+        ("initial_risk_pts", "REAL"),
         ("partial_booked", "INTEGER DEFAULT 0"),
         ("underlying_entry_price", "REAL"),
         ("token", "TEXT")
@@ -99,17 +109,19 @@ def insert_trade(trade: Dict[str, Any], timestamp: datetime = None, db_path: str
     now = timestamp or get_ist_now()
     cursor = conn.execute("""
         INSERT INTO trades (date, time, type, strike_price, trading_symbol, entry_price, 
-                          quantity, lot_size, status, mode, stop_loss, target, underlying_entry_price,
-                          token, adx_at_entry, supertrend_at_entry, ema_short_at_entry, ema_long_at_entry)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                          quantity, lot_size, status, mode, stop_loss, target, capital_used,
+                          underlying_entry_price, token, adx_at_entry, supertrend_at_entry, 
+                          ema_short_at_entry, ema_long_at_entry)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         trade.get("date", now.strftime("%Y-%m-%d")),
         trade.get("time", now.strftime("%H:%M:%S")),
         trade["type"], trade["strike_price"], trade.get("trading_symbol", ""),
         trade["entry_price"], trade["quantity"], trade.get("lot_size", 65),
         trade.get("status", "open"), trade.get("mode", "paper"),
-        trade.get("stop_loss"), trade.get("target"), trade.get("underlying_entry_price"),
-        trade.get("token"), trade.get("adx_at_entry"), trade.get("supertrend_at_entry"),
+        trade.get("stop_loss"), trade.get("target"), trade.get("capital_used"),
+        trade.get("underlying_entry_price"), trade.get("token"), 
+        trade.get("adx_at_entry"), trade.get("supertrend_at_entry"),
         trade.get("ema_short_at_entry"), trade.get("ema_long_at_entry")
     ))
     trade_id = cursor.lastrowid
@@ -256,10 +268,21 @@ def save_settings(settings, db_path=None):
     conn.commit(); conn.close()
 
 def get_setting(k, db_path=None):
-    conn = get_connection(db_path)
-    row = conn.execute("SELECT value FROM settings WHERE key = ?", (k,)).fetchone()
-    conn.close()
-    return row["value"] if row else DEFAULT_SETTINGS.get(k, "")
+    try:
+        conn = get_connection(db_path)
+        row = conn.execute("SELECT value FROM settings WHERE key = ?", (k,)).fetchone()
+        conn.close()
+        return row["value"] if row else DEFAULT_SETTINGS.get(k, "")
+    except sqlite3.OperationalError as e:
+        if "no such table: settings" in str(e):
+            # Self-healing: if settings table is missing, try to initialize it
+            init_db(db_path)
+            # Re-try once
+            conn = get_connection(db_path)
+            row = conn.execute("SELECT value FROM settings WHERE key = ?", (k,)).fetchone()
+            conn.close()
+            return row["value"] if row else DEFAULT_SETTINGS.get(k, "")
+        raise
 
 def get_all_settings(db_path=None) -> Dict[str, str]:
     conn = get_connection(db_path)

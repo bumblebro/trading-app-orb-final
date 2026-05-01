@@ -11,8 +11,10 @@ export async function GET(request: NextRequest) {
     if (searchParams.get('date_to')) params.set('date_to', searchParams.get('date_to')!);
     const query = params.toString();
 
+    console.log(`[API] Fetching trades from bot with query: ${query}`);
     const res = await fetch(`${BOT_URL}/trades${query ? `?${query}` : ''}`, { cache: 'no-store' });
     const data = await res.json();
+    console.log(`[API] Bot responded with ${data?.trades?.length || 0} trades`);
     return NextResponse.json(data);
   } catch {
     return NextResponse.json({ trades: [] }, { status: 503 });

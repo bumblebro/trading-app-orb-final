@@ -12,34 +12,46 @@ export default function HistoryPage() {
   const [modeFilter, setModeFilter] = useState('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
 
-  // Set default mode from status
   useEffect(() => {
+    setMounted(true);
     api.getBotStatus().then(status => {
-      if (status?.mode) setModeFilter(status.mode);
+      if (status?.mode) setModeFilter(prev => prev !== status.mode ? status.mode : prev);
     }).catch(() => {});
   }, []);
 
-  const fetchTrades = useCallback(async () => {
+  // Stable fetch function
+  const fetchTrades = useCallback(async (isInitial = false) => {
     try {
-      // Inside the fetchTrades function:
-const data = await api.getTrades(mode, dateFrom, dateTo);
-setTrades(data.trades || []);
-setSummary(data.summary || null);
-setYearlyStats(data.yearly_summary || []); // Use the server-side yearly breakdown
-
-    } catch {
-      // Bot not connected
+      if (isInitial) setLoading(true);
+      console.log(`[Frontend] Fetching trades:`, { mode: modeFilter, dateFrom, dateTo });
+      const data = await api.getTrades({ 
+        mode: modeFilter, 
+        date_from: dateFrom, 
+        date_to: dateTo 
+      });
+      console.log(`[Frontend] Got trades:`, data?.trades?.length);
+      setTrades(data?.trades || []);
+      setSummary(data?.summary || null);
+      setYearlyStats(data?.yearly_summary || []);
+      setError(null);
+    } catch (err: any) {
+      console.error('[Frontend] Error:', err);
+      setError(err.message || 'Failed to fetch trades');
     } finally {
       setLoading(false);
     }
   }, [modeFilter, dateFrom, dateTo]);
 
+  // Initial fetch and interval
   useEffect(() => {
-    fetchTrades();
-    const interval = setInterval(fetchTrades, 3000); // Sync with dashboard every 3s
+    fetchTrades(true);
+    const interval = setInterval(() => fetchTrades(false), 5000); // 5s to be safer
     return () => clearInterval(interval);
-  }, [fetchTrades]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [modeFilter, dateFrom, dateTo]);
 
   const totalTrades = summary?.all_time_trades ?? trades.filter(t => t.status !== 'open').length;
   const wins = summary?.wins ?? trades.filter(t => t.status === 'win').length;
@@ -49,6 +61,12 @@ setYearlyStats(data.yearly_summary || []); // Use the server-side yearly breakdo
 
   // Yearly stats are now provided directly by the API to ensure synchronization with all-time data
   // and are stored in the yearlyStats state.
+
+  if (!mounted) return (
+    <div className="page-container flex items-center justify-center p-32">
+      <span className="animate-pulse text-gray-500">Initializing...</span>
+    </div>
+  );
 
   return (
     <div className="page-container">
@@ -199,6 +217,21 @@ setYearlyStats(data.yearly_summary || []); // Use the server-side yearly breakdo
         </div>
       )}
 
+      {error && (
+        <div className="bg-red-900/20 border border-red-500/50 text-red-200 p-4 rounded-xl mb-6 flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <span className="text-xl">⚠️</span>
+            <span>{error}</span>
+          </div>
+          <button 
+            onClick={() => fetchTrades(true)}
+            className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg text-sm flex items-center gap-2 transition-colors"
+          >
+            🔄 Refresh
+          </button>
+        </div>
+      )}
+
       {loading ? (
         <div className="flex items-center justify-center p-32 text-gray-500">
            <span className="animate-pulse">Loading trade data...</span>
@@ -250,14 +283,14 @@ setYearlyStats(data.yearly_summary || []); // Use the server-side yearly breakdo
                       {trade.type}
                     </td>
                     <td>{trade.strike_price}</td>
-                    <td className="text-cyan-400">₹{trade.supertrend_at_entry?.toFixed(2) || '—'}</td>
-                    <td className="text-yellow-500">{trade.adx_at_entry?.toFixed(1) || '—'}</td>
-                    <td className="font-bold">₹{trade.entry_price.toFixed(2)}</td>
-                    <td>{trade.exit_price ? `₹${trade.exit_price.toFixed(2)}` : '—'}</td>
+                    <td className="text-cyan-400">₹{typeof trade.supertrend_at_entry === 'number' ? trade.supertrend_at_entry.toFixed(2) : '—'}</td>
+                    <td className="text-yellow-500">{typeof trade.adx_at_entry === 'number' ? trade.adx_at_entry.toFixed(1) : '—'}</td>
+                    <td className="font-bold">₹{typeof trade.entry_price === 'number' ? trade.entry_price.toFixed(2) : '—'}</td>
+                    <td>{typeof trade.exit_price === 'number' ? `₹${trade.exit_price.toFixed(2)}` : '—'}</td>
                     <td>
                       <div className="flex flex-col">
                         <span>{trade.quantity}</span>
-                        <span className="text-[10px] text-gray-500">{trade.mode.toUpperCase()}</span>
+                        <span className="text-[10px] text-gray-500">{trade.mode?.toUpperCase() || 'PAPER'}</span>
                       </div>
                     </td>
                     <td className="text-gray-400">₹{trade.capital_used?.toLocaleString('en-IN') || '—'}</td>
