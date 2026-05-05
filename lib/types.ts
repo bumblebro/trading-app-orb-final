@@ -88,6 +88,7 @@ export interface Trade {
   current_price?: number;
   live_pnl?: number;
   capital_used?: number;
+  total_capital?: number;
 }
 
 export interface PnLSummary {

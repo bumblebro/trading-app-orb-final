@@ -58,6 +58,7 @@ def init_db(db_path: str = None):
             ema_short_at_entry REAL,
             ema_long_at_entry REAL,
             exit_time TEXT,
+            total_capital REAL,
             created_at TEXT DEFAULT CURRENT_TIMESTAMP
         )
     """)
@@ -92,7 +93,8 @@ def init_db(db_path: str = None):
         ("initial_risk_pts", "REAL"),
         ("partial_booked", "INTEGER DEFAULT 0"),
         ("underlying_entry_price", "REAL"),
-        ("token", "TEXT")
+        ("token", "TEXT"),
+        ("total_capital", "REAL")
     ]
     
     for col, ctype in migrations:
@@ -111,8 +113,8 @@ def insert_trade(trade: Dict[str, Any], timestamp: datetime = None, db_path: str
         INSERT INTO trades (date, time, type, strike_price, trading_symbol, entry_price, 
                           quantity, lot_size, status, mode, stop_loss, target, capital_used,
                           underlying_entry_price, token, adx_at_entry, supertrend_at_entry, 
-                          ema_short_at_entry, ema_long_at_entry)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                          ema_short_at_entry, ema_long_at_entry, total_capital)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         trade.get("date", now.strftime("%Y-%m-%d")),
         trade.get("time", now.strftime("%H:%M:%S")),
@@ -122,7 +124,8 @@ def insert_trade(trade: Dict[str, Any], timestamp: datetime = None, db_path: str
         trade.get("stop_loss"), trade.get("target"), trade.get("capital_used"),
         trade.get("underlying_entry_price"), trade.get("token"), 
         trade.get("adx_at_entry"), trade.get("supertrend_at_entry"),
-        trade.get("ema_short_at_entry"), trade.get("ema_long_at_entry")
+        trade.get("ema_short_at_entry"), trade.get("ema_long_at_entry"),
+        trade.get("total_capital")
     ))
     trade_id = cursor.lastrowid
     conn.commit()

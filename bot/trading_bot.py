@@ -743,7 +743,8 @@ class TradingBot:
                 "compounding_advantage": self.capital - self.compounding_baseline_capital,
                 "backtest_start": self._first_ever_trade_date or self._effective_backtest_start or get_setting("playback_start_date") or "2015-10-01",
                 "backtest_current": self._get_current_time().strftime("%Y-%m-%d") if self.data_feed and self.data_feed.playback_file else None,
-                "backtest_duration": ""
+                "backtest_duration": "",
+                "initial_capital": float(get_setting("initial_capital") or "100000")
             }
 
             if active_trade and price_info.get("price"):

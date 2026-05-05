@@ -5,13 +5,15 @@ Supports both paper trading and live trading via Angel One SmartAPI.
 """
 
 import threading
+import time
 from datetime import datetime, timezone, timedelta
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 from logger import get_logger
 from database import insert_trade, close_trade, get_setting, get_active_trade, get_all_time_pnl
 from instrument_manager import get_instrument_manager
 
 IST = timezone(timedelta(hours=5, minutes=30))
+MAX_QTY_PER_ORDER = 1800 # Nifty freeze limit quantity
 
 
 class OrderManager:
@@ -36,7 +38,7 @@ class OrderManager:
         if capital > 0:
             self.capital = capital
 
-    def check_margin(self, required_amount: float = 0) -> Dict:
+    def check_margin(self, required_amount: float = 0, log_check: bool = True) -> Dict:
         """
         Check available margin from Angel One.
         Returns margin info dict.
@@ -57,7 +59,8 @@ class OrderManager:
                     "sufficient": available >= required_amount,
                     "mode": "paper"
                 }
-                self.logger.margin_check(available, required_amount, result["sufficient"])
+                if log_check:
+                    self.logger.margin_check(available, required_amount, result["sufficient"])
                 return result
 
             # Live trading — call Angel One RMS
@@ -71,7 +74,8 @@ class OrderManager:
                     "sufficient": available >= required_amount,
                     "mode": "live"
                 }
-                self.logger.margin_check(available, required_amount, result["sufficient"])
+                if log_check:
+                    self.logger.margin_check(available, required_amount, result["sufficient"])
                 return result
             else:
                 self.logger.error(f"Margin check failed: {margin_data}")
@@ -144,14 +148,48 @@ class OrderManager:
 
                 # Estimate required margin
                 estimated_margin = entry_price * quantity
-                margin_result = self.check_margin(estimated_margin)
+                # Do not log the initial check to avoid false alarms on the UI if we fallback
+                margin_result = self.check_margin(estimated_margin, log_check=False)
 
                 if not margin_result["sufficient"]:
-                    self.logger.order_failed(
-                        f"Insufficient margin. Available: {margin_result['available']:.2f}, "
-                        f"Required: {estimated_margin:.2f} (Est. Premium: {entry_price})"
-                    )
-                    return None
+                    # ── Lot-Reduction Fallback ────────────────────────────────────
+                    # Required capital > available capital.
+                    # Calculate the max lots we can actually afford,
+                    # rather than jumping straight to min_lots.
+                    min_lots = int(get_setting("min_lots") or "1")
+                    lot_size_val = int(get_setting("lot_size") or "65")
+                    cost_per_lot = entry_price * lot_size_val
+                    available = margin_result["available"]
+
+                    affordable_lots = int(available // cost_per_lot) if cost_per_lot > 0 else 0
+                    affordable_lots = max(affordable_lots, 0)  # floor at 0
+
+                    if affordable_lots >= min_lots:
+                        fallback_qty = affordable_lots * lot_size_val
+                        fallback_margin = entry_price * fallback_qty
+                        self.logger.info(
+                            f"Margin insufficient for {quantity} units (₹{estimated_margin:.0f}). "
+                            f"Scaling down to {affordable_lots} lot(s) ({fallback_qty} units) — "
+                            f"requires ₹{fallback_margin:.0f}, available ₹{available:.0f}."
+                        )
+                        # Log the successful fallback check
+                        self.logger.margin_check(available, fallback_margin, True)
+                        
+                        quantity = fallback_qty
+                        estimated_margin = fallback_margin
+                    else:
+                        min_req = entry_price * min_lots * lot_size_val
+                        # Log the true failure
+                        self.logger.margin_check(available, min_req, False)
+                        self.logger.order_failed(
+                            f"Insufficient margin even for {min_lots} lot(s). "
+                            f"Available: {available:.2f}, "
+                            f"Required (min): {min_req:.2f} (Est. Premium: {entry_price})"
+                        )
+                        return None
+                else:
+                    # Initial check passed, log success
+                    self.logger.margin_check(margin_result["available"], estimated_margin, True)
 
                 # Validate lot size
                 if not self.validate_lot_size(quantity):
@@ -201,7 +239,8 @@ class OrderManager:
                     "underlying_entry_price": current_price,
                     "token": token,
                     "entry_quality": entry_quality,
-                    "capital_used": round(entry_price * quantity, 2)
+                    "capital_used": round(entry_price * quantity, 2),
+                    "total_capital": margin_result["available"]
                 }
                 trade_id = insert_trade(trade_data, timestamp=timestamp)
 
@@ -231,31 +270,70 @@ class OrderManager:
     def _place_live_order(self, symbol: str, token: str,
                           option_type: str, quantity: int,
                           price: float) -> Optional[Dict]:
-        """Place a live order via Angel One SmartAPI."""
-        try:
-            order_params = {
-                "variety": "NORMAL",
-                "tradingsymbol": symbol,
-                "symboltoken": token,
-                "transactiontype": "BUY",
-                "exchange": "NFO",
-                "ordertype": "MARKET",
-                "producttype": "INTRADAY",
-                "duration": "DAY",
-                "quantity": str(quantity),
-            }
+        """Place live orders via Angel One SmartAPI, slicing if necessary."""
+        order_ids = self._execute_live_order_sliced(
+            symbol=symbol,
+            token=token,
+            side="BUY",
+            quantity=quantity
+        )
+        if order_ids:
+            return {"order_ids": order_ids, "price": price}
+        return None
 
-            order_result = self.smart_api.placeOrder(order_params)
-            if order_result:
-                self.logger.info(f"Live order placed: {order_result}")
-                return {"order_id": order_result, "price": price}
-            else:
-                self.logger.order_failed("Angel One returned None for order")
-                return None
+    def _execute_live_order_sliced(self, symbol: str, token: str, side: str, quantity: int) -> List[str]:
+        """Generic helper to execute live orders with slicing and retries."""
+        if not self.smart_api:
+            return []
 
-        except Exception as e:
-            self.logger.error("Live order placement failed", e)
-            return None
+        # Use the hard quantity limit (1800 for Nifty)
+        max_qty_per_order = MAX_QTY_PER_ORDER
+        
+        total_qty = quantity
+        all_order_ids = []
+        
+        while total_qty > 0:
+            chunk_qty = min(total_qty, max_qty_per_order)
+            
+            # Retry logic: Try up to 3 times (initial + 2 retries)
+            success = False
+            for attempt in range(3):
+                try:
+                    order_params = {
+                        "variety": "NORMAL",
+                        "tradingsymbol": symbol,
+                        "symboltoken": token,
+                        "transactiontype": side,
+                        "exchange": "NFO",
+                        "ordertype": "MARKET",
+                        "producttype": "INTRADAY",
+                        "duration": "DAY",
+                        "quantity": str(chunk_qty),
+                    }
+                    order_id = self.smart_api.placeOrder(order_params)
+                    if order_id:
+                        all_order_ids.append(order_id)
+                        self.logger.info(f"Live order chunk placed: {order_id} ({side} Qty: {chunk_qty}, Attempt: {attempt+1})")
+                        success = True
+                        break
+                    else:
+                        self.logger.warning(f"Order attempt {attempt+1} returned no order_id for qty {chunk_qty}")
+                except Exception as e:
+                    self.logger.error(f"Order attempt {attempt+1} exception for qty {chunk_qty}: {e}")
+                
+                if attempt < 2:
+                    time.sleep(0.5) # Wait 500ms before retry
+            
+            if not success:
+                self.logger.error(f"FATAL: Failed to execute {side} order for chunk {chunk_qty} after 3 attempts.")
+                # We stop here to prevent partially filled large positions from becoming unmanageable
+                return all_order_ids 
+
+            total_qty -= chunk_qty
+            if total_qty > 0:
+                time.sleep(0.3) # 300ms delay between sequential chunks to prevent rate limits
+        
+        return all_order_ids
 
     def exit_trade(self, trade_id: int, exit_price: float,
                    reason: str = "manual", mode: str = "paper", timestamp: Optional[datetime] = None) -> float:
@@ -343,42 +421,22 @@ class OrderManager:
             return 0
 
     def _place_partial_sell_order(self, trade: Dict, quantity: int, price: float):
-        """Place a partial exit order via Angel One (Market Sell)."""
-        try:
-            order_params = {
-                "variety": "NORMAL",
-                "tradingsymbol": trade["trading_symbol"],
-                "symboltoken": trade.get("token", ""),
-                "transactiontype": "SELL",
-                "exchange": "NFO",
-                "ordertype": "MARKET",
-                "producttype": "INTRADAY",
-                "duration": "DAY",
-                "quantity": str(quantity),
-            }
-            result = self.smart_api.placeOrder(order_params)
-            self.logger.info(f"Partial live exit order placed: {result}")
-        except Exception as e:
-            self.logger.error("Partial exit order failed", e)
+        """Place a partial exit order via Angel One (Market Sell), slicing if necessary."""
+        self._execute_live_order_sliced(
+            symbol=trade["trading_symbol"],
+            token=trade.get("token", ""),
+            side="SELL",
+            quantity=quantity
+        )
 
     def _place_exit_order(self, trade: Dict, price: float):
-        """Place an exit order via Angel One."""
-        try:
-            order_params = {
-                "variety": "NORMAL",
-                "tradingsymbol": trade["trading_symbol"],
-                "symboltoken": "",
-                "transactiontype": "SELL",
-                "exchange": "NFO",
-                "ordertype": "MARKET",
-                "producttype": "INTRADAY",
-                "duration": "DAY",
-                "quantity": str(trade["quantity"]),
-            }
-            result = self.smart_api.placeOrder(order_params)
-            self.logger.info(f"Exit order placed: {result}")
-        except Exception as e:
-            self.logger.error("Exit order failed", e)
+        """Place an exit order via Angel One, slicing if necessary."""
+        self._execute_live_order_sliced(
+            symbol=trade["trading_symbol"],
+            token=trade.get("token", ""),
+            side="SELL",
+            quantity=trade["quantity"]
+        )
 
     def exit_all_positions(self, current_price: float, reason: str = "squareoff"):
         """Exit all open positions (for square-off)."""

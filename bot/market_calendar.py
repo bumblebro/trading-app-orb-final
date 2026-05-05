@@ -135,8 +135,8 @@ def is_square_off_time(dt: datetime = None) -> bool:
     if dt is None:
         dt = get_ist_now()
     current_time = dt.time()
-    # Trigger square-off between 3:15 PM and 3:16 PM
-    return time(15, 15) <= current_time <= time(15, 16)
+    # Trigger square-off any time from 3:15 PM until Market Close (3:30 PM)
+    return time(15, 15) <= current_time <= MARKET_CLOSE
 
 
 def should_bot_run(dt: datetime = None) -> tuple:

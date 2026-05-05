@@ -117,12 +117,15 @@ export default function HistoryPage() {
                ];
             });
             
-            const headers = ['Date', 'Entry', 'Exit', 'Type', 'Strike', 'Entry Price', 'Exit Price', 'Qty', 'Capital Used', 'P&L', 'Status', 'Reason', 'ST_Entry', 'ADX_Entry'];
-            const rows = trades.map(t => [
-              t.date, t.time, t.exit_time || '', t.type, t.strike_price, t.entry_price, t.exit_price || '',
-              t.quantity, t.capital_used || 0, t.pnl, t.status, t.exit_reason || '', 
-              t.supertrend_at_entry || '', t.adx_at_entry || ''
-            ]);
+            const headers = ['Date', 'Entry', 'Exit', 'Type', 'Strike', 'Entry Price', 'Exit Price', 'Qty', 'Capital Used', 'Cap %', 'P&L', 'Status', 'Reason', 'ST_Entry', 'ADX_Entry'];
+            const rows = trades.map(t => {
+              const capUsedPct = t.capital_used && t.total_capital ? ((t.capital_used / t.total_capital) * 100).toFixed(1) + '%' : '—';
+              return [
+                t.date, t.time, t.exit_time || '', t.type, t.strike_price, t.entry_price, t.exit_price || '',
+                t.quantity, t.capital_used || 0, capUsedPct, t.pnl, t.status, t.exit_reason || '', 
+                t.supertrend_at_entry || '', t.adx_at_entry || ''
+              ];
+            });
             
             const csv = [
               ['OVERALL PERFORMANCE SUMMARY'],
@@ -250,6 +253,7 @@ export default function HistoryPage() {
                 <th>Exit</th>
                 <th>Qty</th>
                 <th>Capital Used</th>
+                <th>Cap %</th>
                 <th>P&L</th>
                 <th>Stop Loss</th>
                 <th>Status</th>
@@ -294,6 +298,11 @@ export default function HistoryPage() {
                       </div>
                     </td>
                     <td className="text-gray-400">₹{trade.capital_used?.toLocaleString('en-IN') || '—'}</td>
+                    <td className="text-gray-500 text-[11px]">
+                      {trade.capital_used && trade.total_capital ? 
+                        ((trade.capital_used / trade.total_capital) * 100).toFixed(1) + '%' : 
+                        '—'}
+                    </td>
                     <td className={`font-bold ${trade.pnl >= 0 ? 'win' : 'loss'}`}>
                       {trade.status !== 'open' ? `${trade.pnl >= 0 ? '+' : ''}₹${trade.pnl.toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '—'}
                     </td>
