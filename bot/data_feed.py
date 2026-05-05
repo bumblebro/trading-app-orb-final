@@ -26,7 +26,7 @@ class DataFeed:
     """
 
     def __init__(self, api_key: str = "", client_id: str = "",
-                 feed_token: str = "",
+                 feed_token: str = "", jwt_token: str = "",
                  playback_file: Optional[str] = None,
                  playback_speed: float = 1.0,
                  playback_start_date: str = "",
@@ -35,6 +35,7 @@ class DataFeed:
         self.api_key = api_key
         self.client_id = client_id
         self.feed_token = feed_token
+        self.jwt_token = jwt_token
         self.playback_file = playback_file
         self.playback_speed = playback_speed
         self.playback_start_date = playback_start_date
@@ -47,6 +48,7 @@ class DataFeed:
         self._prev_price: float = 0.0
         self._token_prices: Dict[str, float] = {}
         self._last_update: Optional[datetime] = None
+        self._tick_count = 0
 
         # Candle building
         self._candles_5min: List[Dict] = []
@@ -111,11 +113,54 @@ class DataFeed:
         """Backward compatibility for 5-minute candles property."""
         return self.get_all_candles(interval="5minute")
 
-    def update_credentials(self, api_key: str, client_id: str, feed_token: str):
+    def update_credentials(self, api_key: str, client_id: str, feed_token: str, jwt_token: str = ""):
         """Update API credentials for live feed."""
         self.api_key = api_key
         self.client_id = client_id
         self.feed_token = feed_token
+        self.jwt_token = jwt_token
+
+    def seed_history(self, candles: List[Dict], interval: int = 300):
+        """Seed the feed with historical candles to initialize indicators."""
+        logger = self._get_logger()
+        if not candles: return
+        
+        with self._lock:
+            target_list = self._candles_5min if interval == 300 else self._candles_1min
+            # Clear and replace with history
+            target_list.clear()
+            
+            # Sort candles by time to be safe
+            sorted_candles = sorted(candles, key=lambda x: x.get("time", 0))
+            
+            for c in sorted_candles:
+                # Ensure fields match our internal format
+                if "time_key" not in c and "time" in c:
+                    ts = datetime.fromtimestamp(c["time"], IST)
+                    c["time_key"] = ts.strftime("%Y-%m-%d %H:%M")
+                    c["time_str"] = ts.strftime("%H:%M")
+                target_list.append(dict(c))
+            
+            # Use the last candle to set current price if not already set
+            if sorted_candles:
+                last_c = sorted_candles[-1]
+                if self._current_price == 0:
+                    self._current_price = last_c["close"]
+                    # If we have at least one candle, we can use its open as an initial prev_price
+                    # though QUOTE mode will eventually provide the true Day's Open.
+                    self._prev_price = last_c["open"] 
+                
+                # IMPORTANT: Set the current candle state so the first live tick updates it
+                # instead of creating a new one if it's in the same time window.
+                if interval == 300:
+                    self._current_candle_5min = dict(last_c)
+                    # Remove it from the list because get_all_candles appends the current one
+                    if target_list: target_list.pop()
+                elif interval == 60:
+                    self._current_candle_1min = dict(last_c)
+                    if target_list: target_list.pop()
+                
+            if logger: logger.info(f"Seeded {len(sorted_candles)} historical candles for {interval}s interval")
         
     def start(self):
         """Start the data feed."""
@@ -126,7 +171,7 @@ class DataFeed:
 
         if self.playback_file:
             self._start_playback()
-        elif all([self.api_key, self.client_id, self.feed_token]):
+        elif all([self.api_key, self.client_id, self.feed_token, self.jwt_token]):
             self._start_websocket()
         else:
             logger = self._get_logger()
@@ -291,34 +336,84 @@ class DataFeed:
         try:
             from SmartApi.smartWebSocketV2 import SmartWebSocketV2
 
-            self._ws = SmartWebSocketV2(self.feed_token, self.client_id, api_key=self.api_key)
+            # Ensure Bearer prefix is present for JWT token
+            auth_token = self.jwt_token
+            if auth_token and not auth_token.startswith("Bearer "):
+                auth_token = f"Bearer {auth_token}"
+                
+            self._ws = SmartWebSocketV2(auth_token, self.api_key, self.client_id, self.feed_token)
 
             def on_open(wsapp):
                 logger = self._get_logger()
                 if logger: logger.websocket_event("CONNECTED")
                 self._connected = True
                 self._reconnect_count = 0
+                
+                # Using QUOTE mode (2) gives us open/high/low/volume
                 self._ws.subscribe(
                     correlation_id="nifty50_feed",
-                    mode=3,
-                    token_list=[{"exchangeType": EXCHANGE_TYPE_NSE, "tokens": [NIFTY_50_TOKEN]}]
+                    mode=2, 
+                    token_list=[
+                        {"exchangeType": EXCHANGE_TYPE_NSE, "tokens": ["26000", "99926000"]}
+                    ]
                 )
+                if logger: logger.info(f"Subscribed to Nifty 50 (26000, 99926000)")
 
             def on_data(wsapp, message):
                 try:
-                    token = message.get("instrument_token") or message.get("token")
-                    ltp = message.get("last_traded_price", 0) / 100
-                    vol = message.get("volume_traded_today", 0)
-                    if ltp and ltp > 0:
-                        with self._lock:
-                            if token: self._token_prices[str(token)] = ltp
-                            if str(token) == str(NIFTY_50_TOKEN):
-                                self._process_tick(ltp, volume=vol)
-                except Exception:
-                    pass
+                    if not message: return
+                    
+                    # Handle both single dict and list of dicts (some SDK versions)
+                    messages = message if isinstance(message, list) else [message]
+                    
+                    logger = self._get_logger()
+                    for msg in messages:
+                        token = str(msg.get("instrument_token") or msg.get("token") or "")
+                        ltp = msg.get("last_traded_price") or msg.get("ltp")
+                        
+                        # Handle QUOTE mode specific fields
+                        open_price = msg.get("open_price_of_the_day") or msg.get("open")
+                        
+                        # Log everything to identify what's coming in
+                        if logger and not hasattr(self, '_tick_logged'):
+                            logger.info(f"WebSocket data sample: Token={token}, LTP={ltp}, Full={msg}")
+                            self._tick_logged = True
+                            
+                        if ltp is not None:
+                            # Convert paise to rupees if needed
+                            if float(ltp) > 100000:
+                                ltp = float(ltp) / 100.0
+                            
+                            if open_price and float(open_price) > 100000:
+                                open_price = float(open_price) / 100.0
+                                
+                            vol = msg.get("volume_traded_today") or msg.get("volume") or 0
+                            
+                            if float(ltp) > 0:
+                                # Store token price and open price under lock
+                                with self._lock:
+                                    if token: self._token_prices[token] = float(ltp)
+                                    if open_price: self._prev_price = float(open_price)
+                                
+                                # Process tick OUTSIDE the lock to avoid deadlock
+                                # (_process_tick also acquires self._lock internally)
+                                if token in ["26000", "99926000"]:
+                                    self._process_tick(float(ltp), volume=vol)
+                except Exception as e:
+                    logger = self._get_logger()
+                    if logger: logger.error(f"Error processing WebSocket data: {e}")
+
+            def on_message(wsapp, message):
+                # Only log raw message if we haven't received a parsed tick yet
+                if not hasattr(self, '_tick_logged'):
+                    logger = self._get_logger()
+                    if logger: logger.info(f"Raw WebSocket message: {message[:100]}...")
 
             def on_error(wsapp, error):
                 self._connected = False
+                logger = self._get_logger()
+                if logger:
+                    logger.websocket_event("ERROR", f"WebSocket error: {error}")
                 if self.on_connection_change: self.on_connection_change(False)
 
             def on_close(wsapp):
@@ -327,6 +422,7 @@ class DataFeed:
 
             self._ws.on_open = on_open
             self._ws.on_data = on_data
+            self._ws.on_message = on_message
             self._ws.on_error = on_error
             self._ws.on_close = on_close
             self._ws.connect()
@@ -352,10 +448,17 @@ class DataFeed:
     def _process_tick(self, price: float, volume: Optional[int] = None, override_time: Optional[datetime] = None):
         """Process a price tick."""
         now = override_time or datetime.now(IST)
+        
+        logger = self._get_logger()
+        if logger and not hasattr(self, '_first_tick_processed'):
+            logger.info(f"First Nifty 50 tick processed: {price}")
+            self._first_tick_processed = True
+
         with self._lock:
             self._prev_price = self._current_price
             self._current_price = price
             self._last_update = now
+            self._tick_count += 1
         self._update_all_candles(price, now, volume=volume)
         if self.on_price_update: self.on_price_update(price)
 
@@ -450,7 +553,8 @@ class DataFeed:
                 "price": self._current_price, "prev_price": self._prev_price,
                 "change": round(change, 2), "change_pct": round(change_pct, 2),
                 "last_update": self._last_update.isoformat() if self._last_update else None,
-                "connected": self._connected, "simulation": False
+                "connected": self._connected, "simulation": False,
+                "tick_count": self._tick_count
             }
 
 _feed = None

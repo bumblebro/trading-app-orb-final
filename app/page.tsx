@@ -48,7 +48,7 @@ export default function DashboardPage() {
   useEffect(() => {
     setMounted(true);
     fetchData();
-    const interval = setInterval(fetchData, 2000); // 2s is safer
+    const interval = setInterval(fetchData, 1000); // 1s for real-time feel
     return () => clearInterval(interval);
   }, [fetchData]);
 
@@ -187,6 +187,7 @@ export default function DashboardPage() {
                   changePct={(priceInfo as { change_pct?: number }).change_pct || 0}
                   connected={(priceInfo as { connected?: boolean }).connected || false}
                   simulation={(priceInfo as { simulation?: boolean }).simulation || true}
+                  tick_count={(priceInfo as { tick_count?: number }).tick_count}
                 />
 
                 {/* Strategy Phase Tracker */}

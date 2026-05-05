@@ -197,8 +197,78 @@ class TradingBot:
                 self.data_feed.update_credentials(
                     get_setting("api_key"),
                     get_setting("client_id"),
-                    feed_token
+                    feed_token,
+                    smart_api.access_token
                 )
+                
+                # Fetch history to seed indicators and chart
+                try:
+                    self.logger.info("Fetching historical candles to seed indicators...")
+                    from datetime import datetime, timedelta
+                    now_ist = datetime.now(IST)
+                    # Get last 3 days to ensure we have enough data even after weekends
+                    from_ist = now_ist - timedelta(days=3) 
+                    
+                    # Try both potential tokens for Nifty 50 Spot
+                    tokens_to_try = ["99926000", "26000"]
+                    hist_candles = []
+                    
+                    for token in tokens_to_try:
+                        params = {
+                            "exchange": "NSE",
+                            "symboltoken": token,
+                            "interval": "FIVE_MINUTE",
+                            "fromdate": from_ist.strftime("%Y-%m-%d %H:%M"),
+                            "todate": now_ist.strftime("%Y-%m-%d %H:%M")
+                        }
+                        self.logger.info(f"Trying history fetch for token {token}...")
+                        hist_data = smart_api.getCandleData(params)
+                        
+                        if hist_data and hist_data.get("status"):
+                            rows = hist_data.get("data", [])
+                            if rows and len(rows) > 0:
+                                for row in rows:
+                                    try:
+                                        ts_str = row[0]
+                                        if 'T' in ts_str:
+                                            ts_str = ts_str.replace("+0530", "+05:30")
+                                            if ts_str.endswith("+05:30"):
+                                                ts = datetime.strptime(ts_str, "%Y-%m-%dT%H:%M:%S%z")
+                                            else:
+                                                ts = datetime.strptime(ts_str[:19], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=IST)
+                                        else:
+                                            ts = datetime.strptime(ts_str, "%Y-%m-%d %H:%M").replace(tzinfo=IST)
+                                            
+                                        hist_candles.append({
+                                            "time": int(ts.timestamp()),
+                                            "open": float(row[1]),
+                                            "high": float(row[2]),
+                                            "low": float(row[3]),
+                                            "close": float(row[4]),
+                                            "volume": int(row[5])
+                                        })
+                                    except Exception: continue
+                                
+                                if hist_candles:
+                                    self.logger.info(f"Successfully fetched {len(hist_candles)} candles using token {token}")
+                                    break # Success, don't try other tokens
+                            else:
+                                self.logger.warning(f"Token {token} returned empty history: {hist_data.get('message')}")
+                        else:
+                            msg = hist_data.get("message") if hist_data else "No response"
+                            self.logger.warning(f"History API failed for token {token}: {msg}")
+                            
+                    if hist_candles:
+                        self.data_feed.seed_history(hist_candles, interval=300)
+                        self._update_indicators()
+                        self.logger.info("Indicators initialized from historical data.")
+                    else:
+                        self.logger.error("Could not fetch historical data from any known Nifty 50 token.")
+                        
+                except Exception as e:
+                    self.logger.error(f"Error during historical data fetch: {e}")
+                    import traceback
+                    self.logger.error(traceback.format_exc())
             else:
                 self.logger.error("Failed to initialize Angel One session. Price feed may not start.")
 

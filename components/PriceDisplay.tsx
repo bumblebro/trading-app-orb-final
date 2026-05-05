@@ -8,9 +8,10 @@ interface PriceDisplayProps {
   changePct: number;
   connected: boolean;
   simulation: boolean;
+  tick_count?: number;
 }
 
-export default function PriceDisplay({ price, change, changePct, connected, simulation }: PriceDisplayProps) {
+export default function PriceDisplay({ price, change, changePct, connected, simulation, tick_count }: PriceDisplayProps) {
   const [flash, setFlash] = useState(false);
   const [prevDisplayPrice, setPrevDisplayPrice] = useState(0);
 
@@ -29,8 +30,15 @@ export default function PriceDisplay({ price, change, changePct, connected, simu
   return (
     <div className={`price-display ${flash ? 'flash' : ''}`}>
       <div className="price-label">
-        <span className="price-title">NIFTY 50</span>
-        <span className={`connection-dot ${connected ? 'connected' : 'disconnected'}`} />
+        <div className="flex items-center gap-2">
+          <span className="price-title">NIFTY 50</span>
+          <span className={`connection-dot ${connected ? 'connected' : 'disconnected'}`} />
+          {tick_count !== undefined && (
+            <span className="text-[10px] text-gray-500 font-mono opacity-60">
+              #{tick_count}
+            </span>
+          )}
+        </div>
         {simulation && <span className="sim-badge">SIM</span>}
       </div>
       <div className="price-value" style={{ color: price > 0 ? priceColor : '#6b7280' }}>
