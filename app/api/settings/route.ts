@@ -6,7 +6,12 @@ export async function GET() {
   try {
     const res = await fetch(`${BOT_URL}/settings`, { cache: 'no-store' });
     const data = await res.json();
-    return NextResponse.json(data);
+    return NextResponse.json(data, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
+        'Pragma': 'no-cache',
+      }
+    });
   } catch {
     return NextResponse.json({ settings: {} }, { status: 503 });
   }
