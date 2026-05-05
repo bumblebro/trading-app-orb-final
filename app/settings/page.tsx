@@ -31,8 +31,9 @@ export default function SettingsPage() {
 
   const fetchSettings = useCallback(async () => {
     try {
-      const data = await api.getSettings();
-      if (data.settings) {
+      // Add timestamp to prevent 304 caching
+      const data = await api.getSettings(); 
+      if (data && data.settings) {
         setSettings(prev => ({ ...prev, ...data.settings }));
       }
     } catch {

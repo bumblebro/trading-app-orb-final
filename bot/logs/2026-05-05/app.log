@@ -3,3 +3,24 @@
 [E 260505 09:30:55 smartConnect:246] Error occurred while making a POST request to https://apiconnect.angelone.in/rest/auth/angelbroking/user/v1/loginByPassword. Error: Invalid totp and client combination. URL: https://apiconnect.angelone.in/rest/auth/angelbroking/user/v1/loginByPassword, Headers: {'Content-type': 'application/json', 'X-ClientLocalIP': '127.0.0.1', 'X-ClientPublicIP': '106.193.147.98', 'X-MACAddress': '56:3b:dd:bc:13:a1', 'Accept': 'application/json', 'X-PrivateKey': '****JDAl', 'X-UserType': 'USER', 'X-SourceID': 'WEB'}, Request: {'clientcode': 'AACG905069', 'password': '****', 'totp': '234398'}, Response: {'status': False, 'message': 'Invalid totp and client combination', 'errorcode': 'AB1050', 'data': None}
 [E 260505 09:33:31 smartConnect:246] Error occurred while making a POST request to https://apiconnect.angelone.in/rest/auth/angelbroking/user/v1/loginByPassword. Error: INVALID MPIN. URL: https://apiconnect.angelone.in/rest/auth/angelbroking/user/v1/loginByPassword, Headers: {'Content-type': 'application/json', 'X-ClientLocalIP': '127.0.0.1', 'X-ClientPublicIP': '106.193.147.98', 'X-MACAddress': '56:3b:dd:bc:13:a1', 'Accept': 'application/json', 'X-PrivateKey': '****JDAl', 'X-UserType': 'USER', 'X-SourceID': 'WEB'}, Request: {'clientcode': 'AACG905069', 'password': '****', 'totp': '618012'}, Response: {'status': False, 'message': 'INVALID MPIN', 'errorcode': 'AB1007', 'data': None}
 [E 260505 09:34:06 smartConnect:246] Error occurred while making a POST request to https://apiconnect.angelone.in/rest/auth/angelbroking/user/v1/loginByPassword. Error: Invalid totp and client combination. URL: https://apiconnect.angelone.in/rest/auth/angelbroking/user/v1/loginByPassword, Headers: {'Content-type': 'application/json', 'X-ClientLocalIP': '127.0.0.1', 'X-ClientPublicIP': '106.193.147.98', 'X-MACAddress': '56:3b:dd:bc:13:a1', 'Accept': 'application/json', 'X-PrivateKey': '****JDAl', 'X-UserType': 'USER', 'X-SourceID': 'WEB'}, Request: {'clientcode': 'AACG905069', 'password': '8146', 'totp': '893003'}, Response: {'status': False, 'message': 'Invalid totp and client combination', 'errorcode': 'AB1050', 'data': None}
+[W 260505 11:38:10 smartWebSocketV2:318] Attempting to resubscribe/reconnect (Attempt 1)...
+[W 260505 12:18:00 smartWebSocketV2:342] Connection closed due to max retry attempts reached.
+[W 260505 12:18:00 smartWebSocketV2:342] Connection closed due to max retry attempts reached.
+[W 260505 12:18:00 smartWebSocketV2:342] Connection closed due to max retry attempts reached.
+[W 260505 12:50:06 smartWebSocketV2:318] Attempting to resubscribe/reconnect (Attempt 1)...
+[W 260505 13:59:55 smartWebSocketV2:342] Connection closed due to max retry attempts reached.
+[W 260505 13:59:55 smartWebSocketV2:342] Connection closed due to max retry attempts reached.
+[W 260505 13:59:55 smartWebSocketV2:342] Connection closed due to max retry attempts reached.
+[W 260505 15:00:38 smartWebSocketV2:318] Attempting to resubscribe/reconnect (Attempt 1)...
+[W 260505 15:56:23 smartWebSocketV2:342] Connection closed due to max retry attempts reached.
+[W 260505 15:56:23 smartWebSocketV2:342] Connection closed due to max retry attempts reached.
+[W 260505 15:56:23 smartWebSocketV2:342] Connection closed due to max retry attempts reached.
+[W 260505 16:14:59 smartWebSocketV2:318] Attempting to resubscribe/reconnect (Attempt 1)...
+[W 260505 17:31:07 smartWebSocketV2:342] Connection closed due to max retry attempts reached.
+[W 260505 17:31:07 smartWebSocketV2:342] Connection closed due to max retry attempts reached.
+[W 260505 17:31:07 smartWebSocketV2:342] Connection closed due to max retry attempts reached.
+[W 260505 18:48:56 smartWebSocketV2:318] Attempting to resubscribe/reconnect (Attempt 1)...
+[W 260505 21:37:49 smartWebSocketV2:342] Connection closed due to max retry attempts reached.
+[W 260505 21:37:49 smartWebSocketV2:342] Connection closed due to max retry attempts reached.
+[W 260505 21:37:49 smartWebSocketV2:342] Connection closed due to max retry attempts reached.
+[W 260505 22:04:29 smartWebSocketV2:318] Attempting to resubscribe/reconnect (Attempt 1)...

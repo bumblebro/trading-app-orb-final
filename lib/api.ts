@@ -73,7 +73,7 @@ export const api = {
   },
 
   // Settings
-  getSettings: () => fetchAPI('/settings'),
+  getSettings: () => fetchAPI(`/settings?t=${Date.now()}`),
   saveSettings: (settings: Partial<Settings> | Record<string, string>) => fetchAPI('/settings', {
     method: 'POST',
     body: JSON.stringify({ settings }),
