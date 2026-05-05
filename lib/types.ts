@@ -116,6 +116,7 @@ export interface BotStatus {
   total_wins: number;
   total_losses: number;
   mode: 'paper' | 'live';
+  phase: string;
   market_status: string;
   market_open: boolean;
   is_trading_day: boolean;
