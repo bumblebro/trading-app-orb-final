@@ -23,6 +23,7 @@ export default function DashboardPage() {
   const [chartData, setChartData] = useState<ChartData | null>(null);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
+  const [backendConnected, setBackendConnected] = useState(false);
   const isFetching = useRef(false);
 
   const fetchData = useCallback(async () => {
@@ -37,8 +38,10 @@ export default function DashboardPage() {
       setStatus(statusRes);
       setChartData(candlesRes);
       setSignalInfo(signalRes);
+      setBackendConnected(true);
     } catch (err) {
       console.error('[Dashboard] Fetch error:', err);
+      setBackendConnected(false);
     } finally {
       isFetching.current = false;
       setLoading(false);
@@ -211,6 +214,7 @@ export default function DashboardPage() {
                     </span>
                   </div>
                   <ConnectionStatus
+                    backendConnected={backendConnected}
                     wsConnected={(priceInfo as { connected?: boolean }).connected || false}
                     botRunning={status?.running || false}
                     marketOpen={status?.market_open || false}
