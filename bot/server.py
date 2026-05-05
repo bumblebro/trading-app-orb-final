@@ -308,12 +308,7 @@ async def update_settings(req: SettingsRequest):
 async def read_settings():
     """Get all settings."""
     settings = get_all_settings()
-    # Mask sensitive fields
-    masked = dict(settings)
-    for key in ["api_key", "pin", "totp_secret"]:
-        if masked.get(key):
-            masked[key] = "****" + masked[key][-4:] if len(masked[key]) > 4 else "****"
-    return {"settings": masked}
+    return {"settings": settings}
 
 
 @app.get("/logs")
