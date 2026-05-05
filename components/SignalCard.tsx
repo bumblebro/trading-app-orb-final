@@ -65,7 +65,6 @@ export default function SignalCard({ signal }: SignalCardProps) {
 
   const currentPhase = strategyInfo?.phase || 'INITIALIZING';
   const config = getSignalConfig(signal, currentPhase);
-  const conditions = strategyInfo?.conditions || { orb_breakout: false, fibonacci_pullback: false, macd_confirms: false };
 
   return (
     <div className="signal-card" style={{ 
