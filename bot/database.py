@@ -309,4 +309,21 @@ def insert_signal_log(data, timestamp=None, db_path=None):
                  (now.strftime("%Y-%m-%d %H:%M:%S"), data.get("price"), data.get("supertrend"), data.get("supertrend_direction"), data.get("ema_short"), data.get("ema_long"), data.get("adx"), data.get("signal"), data.get("skip_reason")))
     conn.commit(); conn.close()
 
+def clear_trade_data(db_path=None):
+    """Clear all trade history, signal logs, and system logs while preserving settings."""
+    conn = get_connection(db_path)
+    try:
+        conn.execute("DELETE FROM trades")
+        conn.execute("DELETE FROM signal_logs")
+        conn.execute("DELETE FROM logs")
+        # Reset autoincrement counters
+        conn.execute("DELETE FROM sqlite_sequence WHERE name IN ('trades', 'signal_logs', 'logs')")
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"Error clearing data: {e}")
+        return False
+    finally:
+        conn.close()
+
 init_db()

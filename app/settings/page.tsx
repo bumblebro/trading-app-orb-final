@@ -304,6 +304,35 @@ export default function SettingsPage() {
         {saving ? '⏳ Saving Configuration...' : '💾 Apply All Settings'}
       </button>
 
+      {/* 7. Danger Zone */}
+      <div className="settings-section border-l-4 border-red-600 mt-12 bg-red-950/10">
+        <h3 className="text-red-500">⚠️ Danger Zone</h3>
+        <p className="text-xs text-gray-400 mb-4">The following actions are irreversible. Use with caution.</p>
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between p-4 bg-red-500/5 rounded-xl border border-red-500/10">
+            <div>
+              <h4 className="text-sm font-bold text-red-200">Reset All Trade Data</h4>
+              <p className="text-[10px] text-gray-500">Clears trade history, signal logs, and performance stats. Your credentials will be preserved.</p>
+            </div>
+            <button 
+              className="px-4 py-2 bg-red-600/20 hover:bg-red-600/40 text-red-400 border border-red-600/30 rounded-lg text-xs font-bold transition-all"
+              onClick={async () => {
+                if (window.confirm('Are you absolutely sure? This will delete all trade history and cannot be undone.')) {
+                  try {
+                    const res = await api.clearData();
+                    showToast(res.message || 'Data cleared successfully', 'success');
+                  } catch (err) {
+                    showToast('Failed to clear data', 'error');
+                  }
+                }
+              }}
+            >
+              🗑️ Clear History
+            </button>
+          </div>
+        </div>
+      </div>
+
       {toast && (
         <div className={`toast ${toast.type}`}>{toast.message}</div>
       )}

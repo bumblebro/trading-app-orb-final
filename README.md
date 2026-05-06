@@ -91,5 +91,49 @@ To use real market data and place live orders:
 
 ---
 
+## 🚢 Deployment (DigitalOcean)
+
+Follow these steps to push updates from your local machine to the DigitalOcean server.
+
+### 1. Push Local Changes to GitHub
+```bash
+git add .
+git commit -m "Describe your changes"
+git push origin main
+```
+
+### 2. Update and Restart the Server
+Connect to your DigitalOcean droplet and run these commands:
+
+```bash
+# Connect to your droplet
+ssh root@your_droplet_ip
+
+# Navigate to project folder
+cd ~/trading-app-orb-final
+
+# Pull latest code
+git pull origin main
+
+# Rebuild and Restart Docker
+cd bot
+docker stop nifty-bot
+docker rm nifty-bot
+docker build -t trading-bot .
+docker run -d \
+  --name nifty-bot \
+  -p 8000:8000 \
+  -v $(pwd)/trading.db:/app/trading.db \
+  --restart always \
+  trading-bot
+```
+
+### 3. Monitoring Logs
+```bash
+docker logs -f nifty-bot
+```
+
+---
+
 ## ⚖️ Liability Disclaimer
 *This software is for educational purposes only. Trading options involves significant risk. The authors are not responsible for any financial losses incurred through the use of this software.*

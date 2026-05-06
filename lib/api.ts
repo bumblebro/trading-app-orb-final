@@ -95,6 +95,9 @@ export const api = {
 
   // Margin
   getMargin: () => fetchAPI('/margin'),
+
+  // Clear Data
+  clearData: () => fetchAPI('/clear-data', { method: 'POST' }),
 };
 
 // Server-side bot API (used by Next.js API routes)

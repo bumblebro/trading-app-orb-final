@@ -20,7 +20,8 @@ from trading_bot import get_bot
 from data_feed import get_data_feed
 from database import (
     get_trades, get_active_trade, get_today_pnl,
-    save_settings, get_all_settings, init_db
+    save_settings, get_all_settings, init_db,
+    clear_trade_data
 )
 from logger import get_logger
 from market_calendar import should_bot_run, is_trading_day, get_ist_now
@@ -309,6 +310,16 @@ async def read_settings():
     """Get all settings."""
     settings = get_all_settings()
     return {"settings": settings}
+
+
+@app.post("/clear-data")
+async def reset_data():
+    """Clear all trade history and logs."""
+    success = clear_trade_data()
+    if success:
+        return {"status": "cleared", "message": "All trade data and logs have been cleared."}
+    else:
+        raise HTTPException(status_code=500, detail="Failed to clear data")
 
 
 @app.get("/logs")
