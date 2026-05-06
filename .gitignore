@@ -39,3 +39,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local databases and logs
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+*.log
+bot/instruments_cache.json
