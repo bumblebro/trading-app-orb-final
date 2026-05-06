@@ -835,6 +835,28 @@ class TradingBot:
             }
 
 
+    def manual_exit(self, exit_price: Optional[float] = None) -> Dict:
+        """Manually exit the active trade."""
+        try:
+            active = get_active_trade()
+            if not active:
+                return {"status": "error", "message": "No active trade found"}
+            
+            # Use current price if no exit price provided
+            price = exit_price
+            if price is None:
+                current_price = self.data_feed.current_price if self.data_feed else 0
+                if current_price <= 0:
+                    return {"status": "error", "message": "Market price not available"}
+                price = self.calculate_option_price(active, current_price)
+            
+            self._close_active_trade(active, price, "manual")
+            return {"status": "success", "message": f"Trade exited manually at {price}"}
+        except Exception as e:
+            self.logger.error(f"Manual exit failed: {e}")
+            return {"status": "error", "message": str(e)}
+
+
 _bot = None
 def get_bot() -> TradingBot:
     global _bot

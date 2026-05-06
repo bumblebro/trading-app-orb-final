@@ -38,13 +38,13 @@ class OrderManager:
         if capital > 0:
             self.capital = capital
 
-    def check_margin(self, required_amount: float = 0, log_check: bool = True) -> Dict:
+    def check_margin(self, required_amount: float = 0, log_check: bool = True, mode: str = "paper") -> Dict:
         """
-        Check available margin from Angel One.
-        Returns margin info dict.
+        Check available margin. 
+        In paper mode, uses virtual capital. In live mode, calls Angel One RMS.
         """
         try:
-            if self.smart_api is None:
+            if mode == "paper" or self.smart_api is None:
                 # Paper trading — return virtual capital
                 if self.data_feed and self.data_feed.playback_file:
                     available = self.capital  # use compounding tracker
@@ -149,7 +149,7 @@ class OrderManager:
                 # Estimate required margin
                 estimated_margin = entry_price * quantity
                 # Do not log the initial check to avoid false alarms on the UI if we fallback
-                margin_result = self.check_margin(estimated_margin, log_check=False)
+                margin_result = self.check_margin(estimated_margin, log_check=False, mode=mode)
 
                 if not margin_result["sufficient"]:
                     # ── Lot-Reduction Fallback ────────────────────────────────────
