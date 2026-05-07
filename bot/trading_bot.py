@@ -128,6 +128,27 @@ class TradingBot:
                 now = playback_time
         return now
 
+    def _get_session_info(self, now: datetime):
+        """Get current session (morning/afternoon) and its max trades."""
+        current_time_str = now.strftime("%H:%M")
+        is_morning = current_time_str < "12:30"
+        max_trades = int(get_setting("morning_max_trades" if is_morning else "afternoon_max_trades") or ("3" if is_morning else "2"))
+        session_name = "Morning (9:15-12:30)" if is_morning else "Afternoon (12:30-3:15)"
+        
+        # Calculate trades done in THIS session
+        from database import get_connection
+        conn = get_connection()
+        date_str = now.strftime("%Y-%m-%d")
+        if is_morning:
+            query = "SELECT COUNT(*) FROM trades WHERE date = ? AND time < '12:30'"
+        else:
+            query = "SELECT COUNT(*) FROM trades WHERE date = ? AND time >= '12:30'"
+        
+        count = conn.execute(query, (date_str,)).fetchone()[0]
+        conn.close()
+        
+        return session_name, count, max_trades
+
     def start(self):
         """Start the trading bot."""
         if self._running:
@@ -406,21 +427,25 @@ class TradingBot:
             if self._strategy_phase == PHASE_WATCHING:
                 self._set_phase(PHASE_WAITING_FOR_ALIGNMENT)
             
-            # Cooldown check: 5 minutes after signal_flip
+            # Cooldown check: 2 minutes after signal_flip
             if self._last_exit_time and self._last_exit_reason == "signal_flip":
-                cooldown_remaining = 300 - (now - self._last_exit_time).total_seconds()
+                cooldown_remaining = 120 - (now - self._last_exit_time).total_seconds()
                 if cooldown_remaining > 0:
                     self._current_signal = f"COOLDOWN ({int(cooldown_remaining)}s)"
                     return
             
-            # Risk check: Max trades
-            max_trades = int(get_setting("max_trades_per_day") or "2")
-            trades_today = get_today_trade_count(date_override=now.strftime("%Y-%m-%d"))
-            if trades_today >= max_trades:
+            # Session-Based Trade Allowance
+            session_name, trades_done, session_max = self._get_session_info(now)
+            if trades_done >= session_max:
                 if self._strategy_phase != PHASE_MAX_TRADES_DONE:
-                    self.logger.info(f"Max trades reached for today ({trades_today}/{max_trades}). Skipping signal.")
+                    self.logger.info(f"Session Max Reached: {session_name} ({trades_done}/{session_max}). Waiting for next session or tomorrow.")
                 self._set_phase(PHASE_MAX_TRADES_DONE)
-                self._current_signal = "MAX_TRADES_DONE"
+                self._current_signal = f"SESSION_MAX ({trades_done}/{session_max})"
+                
+                # Check if we can proceed if it's now afternoon but we were in morning max
+                if session_name.startswith("Morning"):
+                    return
+                # If afternoon max is done, we are truly done
                 return
 
             self._run_strategy(current_price, now)
@@ -470,6 +495,22 @@ class TradingBot:
                     skip_reason = f"ADX {adx} < {adx_threshold} (Choppy)"
             else:
                 skip_reason = "Supertrend Bullish (Green)"
+        
+        # 3. Trend-Continuation Re-Entry Logic
+        elif signal == "WAIT" and is_trending:
+            ema_gap = abs(ema_short - ema_long)
+            prev_ema_gap = abs(prev_ema_short - prev_ema_long) if prev_ema_short else 0
+            
+            # Pullback-Bounce Logic: gap widening after a squeeze
+            is_bounce = ema_gap > prev_ema_gap and prev_ema_gap < 10
+            
+            if is_bounce:
+                if st_dir == 1 and ema_short > ema_long:
+                    signal = "BUY_CE"
+                    self.logger.info(f"RE-ENTRY SIGNAL: Trend continuation (CE bounce) at {current_price}")
+                elif st_dir == -1 and ema_short < ema_long:
+                    signal = "BUY_PE"
+                    self.logger.info(f"RE-ENTRY SIGNAL: Trend continuation (PE bounce) at {current_price}")
 
         # Log to signal_logs
         if bullish_cross or bearish_cross or skip_reason:
@@ -534,17 +575,28 @@ class TradingBot:
             # 3. Risk-Based Calculation
             risk_amount = balance * (risk_pct / 100.0)
             
+            # Estimate current premium for capital capping (approx 1.5% of index)
+            current_idx = self.data_feed.current_price if (self.data_feed and self.data_feed.current_price > 0) else 22000
+            est_premium = current_idx * 0.015
+            
             if sl_distance_option > 0:
                 # True risk-based: how many lots before max loss is hit
                 lots = int(risk_amount / (sl_distance_option * lot_size))
                 calc_type = "risk-based"
             else:
-                # Fallback: use capital usage (5% of capital / estimated premium)
-                current_price = self.data_feed.current_price if (self.data_feed and self.data_feed.current_price > 0) else 20000
-                est_premium = current_price * 0.015
+                # Fallback: use capital usage (risk_pct of capital / estimated premium)
                 lots = int(risk_amount / (est_premium * lot_size))
                 calc_type = "premium-fallback"
                 
+            # RULE: Capital % Hard Cap (Priority Fix #2)
+            # Never risk more than X% of total capital on a single trade entry
+            max_cap_pct = float(get_setting("max_capital_per_trade_pct") or "20.0") / 100.0
+            max_lots_by_cap = int((balance * max_cap_pct) / (est_premium * lot_size))
+            
+            if lots > max_lots_by_cap:
+                self.logger.info(f"Capital Cap Triggered: Reducing lots from {lots} to {max_lots_by_cap} (Max {max_cap_pct*100}% capital)")
+                lots = max_lots_by_cap
+
             final_lots = max(min_lots, min(lots, max_lots))
             
             self.logger.info(
@@ -577,20 +629,20 @@ class TradingBot:
         sl_distance = abs(current_price - st_value)
         sl_pts_option = sl_distance * 0.5 # Assuming Delta 0.5
         
-        # Fetch hard ceiling from settings
-        hard_limit = float(get_setting("max_sl_distance_pts") or "50")
-        
-        if sl_distance > hard_limit:
-            self.logger.info(f"Signal skipped: SL distance {sl_distance:.1f} pts exceeds max {hard_limit} pts")
-            return
-
-        # 2. Determine Quantity
+        # 2. Determine Quantity & SL Distance Sizing Down
+        sl_distance_threshold = float(get_setting("max_sl_distance_pts") or "50")
         pos_mode = get_setting("position_sizing_mode")
+        
         if pos_mode == "auto_compound":
             # True risk-based: calibrate lots to SL distance
             lots = self.calculate_dynamic_lots(sl_distance_option=sl_pts_option)
         else:
             lots = int(get_setting("fixed_lots") or "2")
+
+        # RULE 4: If SL distance > 50 pts, trade with half the normal lots
+        if sl_distance > sl_distance_threshold:
+            self.logger.info(f"High Risk Entry: SL distance {sl_distance:.1f} > {sl_distance_threshold}. Sizing down by 50%.")
+            lots = max(1, lots // 2)
 
         quantity = lots * lot_size
 
@@ -700,6 +752,31 @@ class TradingBot:
             self.logger.info(f"Target hit: {simulated_price} >= {trade['target']}")
             self._close_active_trade(trade, simulated_price, "target")
             return
+
+        # 4. Hard Premium SL (Priority Fix #1)
+        # Prevents option collapse if index doesn't hit Supertrend
+        premium_sl_pct = float(get_setting("option_sl_pct") or "40.0") / 100.0
+        premium_sl_price = trade["entry_price"] * (1 - premium_sl_pct)
+        if simulated_price <= premium_sl_price:
+            self.logger.info(f"PREMIUM SL HIT: {simulated_price} <= {premium_sl_price:.2f} ({premium_sl_pct*100}% loss)")
+            self._close_active_trade(trade, simulated_price, "premium_sl")
+            return
+
+        # 5. Time-Based Decay Exit (Priority Fix #3)
+        # Exit stagnant trades in loss after 90 mins to avoid theta bleed
+        max_duration = int(get_setting("max_trade_duration_mins") or "90")
+        entry_time_str = f"{trade.get('date')} {trade.get('time')}"
+        try:
+            # Handle both formats (with and without seconds)
+            fmt = "%Y-%m-%d %H:%M:%S" if len(trade.get('time', '')) > 5 else "%Y-%m-%d %H:%M"
+            entry_dt = datetime.strptime(entry_time_str, fmt).replace(tzinfo=IST)
+            duration_mins = (now - entry_dt).total_seconds() / 60
+            if duration_mins > max_duration and (simulated_price < trade["entry_price"]):
+                self.logger.info(f"DURATION EXIT: Trade open for {duration_mins:.0f} mins with loss. Exiting to avoid decay.")
+                self._close_active_trade(trade, simulated_price, "duration_exit")
+                return
+        except Exception as e:
+            pass
 
         self._current_signal = f"ACTIVE_{trade_type}"
 

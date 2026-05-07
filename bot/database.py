@@ -256,7 +256,11 @@ DEFAULT_SETTINGS = {
     "api_key": "", "client_id": "", "pin": "", "totp_secret": "",
     "trading_mode": "paper", "position_size_mode": "auto_compound", 
     "initial_capital": "100000", "lot_size": "65", "fixed_lots": "2",
-    "adx_threshold": "25", "supertrend_period": "10", "supertrend_multiplier": "3.0"
+    "adx_threshold": "20", "supertrend_period": "10", "supertrend_multiplier": "3.0",
+    "max_trades_per_day": "5", "max_daily_loss": "10000",
+    "morning_max_trades": "3", "afternoon_max_trades": "2",
+    "option_sl_pct": "40.0", "max_capital_per_trade_pct": "20.0",
+    "max_trade_duration_mins": "90"
 }
 
 def save_setting(k, v, db_path=None):

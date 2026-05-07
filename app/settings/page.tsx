@@ -10,7 +10,8 @@ export default function SettingsPage() {
     supertrend_period: '10', supertrend_multiplier: '3.0',
     ema_9_period: '9', ema_21_period: '21',
     adx_threshold: '20',
-    max_trades_per_day: '2', max_daily_loss: '10000',
+    max_trades_per_day: '5', max_daily_loss: '10000',
+    morning_max_trades: '3', afternoon_max_trades: '2',
     signal_cutoff_time: '15:00', square_off_time: '15:15', lot_size: '65', 
     position_size_mode: 'fixed', fixed_lots: '2', max_capital_risk_pct: '1', 
     trading_mode: 'paper', paper_capital: '100000', 
@@ -24,6 +25,9 @@ export default function SettingsPage() {
     max_lots: '',
     max_sl_distance_pts: '50',
     trailing_sl_enabled: 'true',
+    option_sl_pct: '40.0',
+    max_capital_per_trade_pct: '20.0',
+    max_trade_duration_mins: '90',
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -270,6 +274,21 @@ export default function SettingsPage() {
             </label>
             <input type="number" className="form-input border-red-500/20" value={settings.max_sl_distance_pts} onChange={(e) => handleChange('max_sl_distance_pts', e.target.value)} placeholder="Max SL distance in pts" />
           </div>
+
+          <div className="form-group border-l-2 border-red-500/30 pl-4">
+            <label className="form-label text-red-400">Option Premium SL (%)</label>
+            <input type="number" className="form-input border-red-500/20" value={settings.option_sl_pct} onChange={(e) => handleChange('option_sl_pct', e.target.value)} />
+          </div>
+
+          <div className="form-group border-l-2 border-orange-500/30 pl-4">
+            <label className="form-label text-orange-400">Max Capital / Trade (%)</label>
+            <input type="number" className="form-input border-orange-500/20" value={settings.max_capital_per_trade_pct} onChange={(e) => handleChange('max_capital_per_trade_pct', e.target.value)} />
+          </div>
+
+          <div className="form-group border-l-2 border-yellow-500/30 pl-4">
+            <label className="form-label text-yellow-400">Max Duration (Mins)</label>
+            <input type="number" className="form-input border-yellow-500/20" value={settings.max_trade_duration_mins} onChange={(e) => handleChange('max_trade_duration_mins', e.target.value)} />
+          </div>
         </div>
       </div>
 
@@ -278,8 +297,16 @@ export default function SettingsPage() {
         <h3>🚨 Safety Controls</h3>
         <div className="form-grid">
            <div className="form-group">
-            <label className="form-label">Max Trades / Day</label>
+            <label className="form-label">Total Max Trades / Day</label>
             <input type="number" className="form-input" value={settings.max_trades_per_day} onChange={(e) => handleChange('max_trades_per_day', e.target.value)} />
+          </div>
+          <div className="form-group border-l-2 border-indigo-500/20 pl-2">
+            <label className="form-label text-indigo-300">Morning Max (9:15-12:30)</label>
+            <input type="number" className="form-input" value={settings.morning_max_trades} onChange={(e) => handleChange('morning_max_trades', e.target.value)} />
+          </div>
+          <div className="form-group border-l-2 border-indigo-500/20 pl-2">
+            <label className="form-label text-indigo-300">Afternoon Max (12:30-3:15)</label>
+            <input type="number" className="form-input" value={settings.afternoon_max_trades} onChange={(e) => handleChange('afternoon_max_trades', e.target.value)} />
           </div>
           <div className="form-group">
             <label className="form-label">Signal Cutoff</label>
