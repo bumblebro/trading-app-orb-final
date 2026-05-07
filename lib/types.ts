@@ -187,7 +187,12 @@ export interface Settings {
   risk_percent_per_trade: string;
   min_lots: string;
   max_lots: string;
+  morning_max_trades: string;
+  afternoon_max_trades: string;
   trailing_sl_enabled: string;
+  option_sl_pct: string;
+  max_capital_per_trade_pct: string;
+  max_trade_duration_mins: string;
 }
 
 export interface LogEntry {

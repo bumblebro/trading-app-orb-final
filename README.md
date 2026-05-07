@@ -113,6 +113,7 @@ ssh root@your_droplet_ip
 cd ~/trading-app-orb-final
 
 # Pull latest code
+git checkout -- bot/trading.db
 git pull origin main
 
 # Rebuild and Restart Docker
