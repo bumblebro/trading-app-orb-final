@@ -89,6 +89,11 @@ export interface Trade {
   live_pnl?: number;
   capital_used?: number;
   total_capital?: number;
+  net_pnl?: number;
+  brokerage?: number;
+  stt?: number;
+  exc_charges?: number;
+  gst?: number;
 }
 
 export interface PnLSummary {

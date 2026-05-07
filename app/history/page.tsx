@@ -56,7 +56,9 @@ export default function HistoryPage() {
   const totalTrades = summary?.all_time_trades ?? trades.filter(t => t.status !== 'open').length;
   const wins = summary?.wins ?? trades.filter(t => t.status === 'win').length;
   const losses = summary?.losses ?? trades.filter(t => t.status === 'loss').length;
-  const totalPnl = summary?.all_time_pnl ?? trades.reduce((sum, t) => sum + (t.pnl || 0), 0);
+  const totalNetPnl = summary?.all_time_pnl ?? trades.reduce((sum, t) => sum + (t.net_pnl || t.pnl || 0), 0);
+  const totalGrossPnl = summary?.all_time_gross_pnl ?? trades.reduce((sum, t) => sum + (t.pnl || 0), 0);
+  const totalCharges = summary?.all_time_charges ?? (totalGrossPnl - totalNetPnl);
   const winRate = summary?.all_time_win_rate ?? (totalTrades > 0 ? (wins / totalTrades * 100) : 0);
 
   // Yearly stats are now provided directly by the API to ensure synchronization with all-time data
@@ -101,36 +103,36 @@ export default function HistoryPage() {
         <button 
           className="copy-btn ml-auto"
           onClick={() => {
-            const yearlyHeaders = ['Year', 'Yearly P&L', 'Trades', 'Win Rate%', 'Avg Win', 'Avg Loss', 'Profit Factor'];
+            const yearlyHeaders = ['Year', 'Yearly P&L', 'Trades', 'Win Rate%', 'ROI %', 'Profit Factor'];
             const yearlyRows = yearlyStats.map(s => {
-               const avgWin = s.wins > 0 ? (s.gross_profit / s.wins) : 0;
-               const avgLoss = s.losses > 0 ? (s.gross_loss / s.losses) : 0;
                const pf = s.gross_loss > 0 ? (s.gross_profit / s.gross_loss) : (s.gross_profit > 0 ? 'Inf' : '0');
+               const roi = s.starting_capital > 0 ? (s.pnl / s.starting_capital * 100) : 0;
                return [
                  s.year, 
                  s.pnl.toFixed(2), 
                  s.trades, 
                  (s.wins + s.losses > 0 ? (s.wins / (s.wins + s.losses) * 100).toFixed(1) : '0'),
-                 avgWin.toFixed(2),
-                 avgLoss.toFixed(2),
+                 roi.toFixed(1) + '%',
                  typeof pf === 'number' ? pf.toFixed(2) : pf
                ];
             });
             
-            const headers = ['Date', 'Entry', 'Exit', 'Type', 'Strike', 'Entry Price', 'Exit Price', 'Qty', 'Capital Used', 'Cap %', 'P&L', 'Status', 'Reason', 'ST_Entry', 'ADX_Entry'];
+            const headers = ['Date', 'Entry', 'Exit', 'Type', 'Strike', 'Entry Price', 'Exit Price', 'Qty', 'Capital Used', 'Cap %', 'Gross P&L', 'Charges', 'Net P&L', 'Status', 'Reason', 'ST_Entry', 'ADX_Entry'];
             const rows = trades.map(t => {
               const capUsedPct = t.capital_used && t.total_capital ? ((t.capital_used / t.total_capital) * 100).toFixed(1) + '%' : '—';
+              const charges = (t.brokerage || 0) + (t.stt || 0) + (t.exc_charges || 0) + (t.gst || 0);
+              const netPnl = t.net_pnl ?? (t.status !== 'open' ? (t.pnl - charges) : 0);
               return [
                 t.date, t.time, t.exit_time || '', t.type, t.strike_price, t.entry_price, t.exit_price || '',
-                t.quantity, t.capital_used || 0, capUsedPct, t.pnl, t.status, t.exit_reason || '', 
+                t.quantity, t.capital_used || 0, capUsedPct, t.pnl, charges.toFixed(2), netPnl.toFixed(2), t.status, t.exit_reason || '', 
                 t.supertrend_at_entry || '', t.adx_at_entry || ''
               ];
             });
             
             const csv = [
               ['OVERALL PERFORMANCE SUMMARY'],
-              ['Total P&L', 'Total Trades', 'Wins', 'Losses', 'Win Rate%'],
-              [totalPnl.toFixed(2), totalTrades, wins, losses, winRate.toFixed(1)],
+              ['Total Gross P&L', 'Total Charges', 'Total Net P&L', 'Total Trades', 'Wins', 'Losses', 'Win Rate%'],
+              [totalGrossPnl.toFixed(2), totalCharges.toFixed(2), totalNetPnl.toFixed(2), totalTrades, wins, losses, winRate.toFixed(1)],
               [],
               ['YEARLY PERFORMANCE SUMMARY'],
               yearlyHeaders,
@@ -152,13 +154,18 @@ export default function HistoryPage() {
       {!loading && trades.length > 0 && (
         <div className="pnl-summary-top">
           <div className="flex flex-col gap-1">
-            <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Overall Performance</span>
+            <span className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Net Performance (After Charges)</span>
             <span 
               className="text-2xl font-bold"
-              style={{ color: totalPnl >= 0 ? 'var(--green)' : 'var(--red)', fontFamily: "'JetBrains Mono', monospace" }}
+              style={{ color: totalNetPnl >= 0 ? 'var(--green)' : 'var(--red)', fontFamily: "'JetBrains Mono', monospace" }}
             >
-              {totalPnl >= 0 ? '+' : ''}₹{totalPnl.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+              {totalNetPnl >= 0 ? '+' : ''}₹{totalNetPnl.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
             </span>
+            <div className="flex items-center gap-2 mt-1">
+               <span className="text-[10px] text-gray-400">Gross: ₹{totalGrossPnl.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
+               <span className="text-[10px] text-gray-600">|</span>
+               <span className="text-[10px] text-red-500/70">Charges: ₹{totalCharges.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
+            </div>
           </div>
           <div className="flex items-center gap-6 ml-auto bg-black/20 p-4 rounded-xl border border-white/5">
             <div className="summary-stat">
@@ -199,20 +206,18 @@ export default function HistoryPage() {
                        {(stat.wins + stat.losses > 0 ? (stat.wins / (stat.wins + stat.losses) * 100) : 0).toFixed(1)}%
                      </span>
                    </div>
-                  <div className="flex flex-col">
-                    <span className="text-[9px] text-gray-500 uppercase">Avg Win/Loss</span>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-[10px] font-bold text-green-400">₹{(stat.wins > 0 ? stat.gross_profit / stat.wins : 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
-                      <span className="text-[8px] text-gray-600">/</span>
-                      <span className="text-[10px] font-bold text-red-400">₹{(stat.losses > 0 ? stat.gross_loss / stat.losses : 0).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
-                    </div>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-[9px] text-gray-500 uppercase">P. Factor</span>
-                    <span className="text-sm font-bold text-yellow-500">
-                      {(stat.gross_loss > 0 ? (stat.gross_profit / stat.gross_loss) : (stat.gross_profit > 0 ? '∞' : '0')).toLocaleString()}
-                    </span>
-                  </div>
+                   <div className="flex flex-col">
+                     <span className="text-[9px] text-gray-500 uppercase">ROI %</span>
+                     <span className={`text-sm font-bold ${stat.pnl >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                       {(stat.starting_capital > 0 ? (stat.pnl / stat.starting_capital * 100) : 0).toFixed(1)}%
+                     </span>
+                   </div>
+                   <div className="flex flex-col">
+                     <span className="text-[9px] text-gray-500 uppercase">P. Factor</span>
+                     <span className="text-sm font-bold text-yellow-500">
+                       {(stat.gross_loss > 0 ? (stat.gross_profit / stat.gross_loss) : (stat.gross_profit > 0 ? '∞' : '0')).toLocaleString()}
+                     </span>
+                   </div>
                 </div>
               </div>
             ))}
@@ -252,10 +257,10 @@ export default function HistoryPage() {
                 <th>Entry</th>
                 <th>Exit</th>
                 <th>Qty</th>
-                <th>Capital Used</th>
                 <th>Cap %</th>
-                <th>P&L</th>
-                <th>Stop Loss</th>
+                <th>Gross P&L</th>
+                <th>Charges</th>
+                <th>Net P&L</th>
                 <th>Status</th>
               </tr>
             </thead>
@@ -294,30 +299,27 @@ export default function HistoryPage() {
                     <td>
                       <div className="flex flex-col">
                         <span>{trade.quantity}</span>
-                        <span className="text-[10px] text-gray-500">{trade.mode?.toUpperCase() || 'PAPER'}</span>
+                        <span className="text-[10px] text-gray-400">{trade.capital_used?.toLocaleString('en-IN') || '—'}</span>
                       </div>
                     </td>
-                    <td className="text-gray-400">₹{trade.capital_used?.toLocaleString('en-IN') || '—'}</td>
                     <td className="text-gray-500 text-[11px]">
                       {trade.capital_used && trade.total_capital ? 
                         ((trade.capital_used / trade.total_capital) * 100).toFixed(1) + '%' : 
                         '—'}
                     </td>
-                    <td className={`font-bold ${trade.pnl >= 0 ? 'win' : 'loss'}`}>
-                      {trade.status !== 'open' ? `${trade.pnl >= 0 ? '+' : ''}₹${trade.pnl.toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '—'}
+                    <td className={`text-[12px] ${trade.pnl >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                      {trade.status !== 'open' ? `${trade.pnl >= 0 ? '+' : ''}₹${trade.pnl.toLocaleString('en-IN', { minimumFractionDigits: 0 })}` : '—'}
                     </td>
-                    <td>
-                      <div className="flex flex-col gap-0.5">
-                         {trade.trailing_sl_used ? (
-                           <span className="text-[8px] bg-purple-500/20 text-purple-400 px-1 rounded border border-purple-500/30 font-bold w-fit">TRAILING</span>
-                         ) : null}
-                         <span className="text-[11px] text-red-500">₹{trade.stop_loss?.toFixed(2) || '—'}</span>
-                      </div>
+                    <td className="text-[11px] text-red-400/80">
+                      {trade.status !== 'open' ? `₹${((trade.brokerage||0)+(trade.stt||0)+(trade.exc_charges||0)+(trade.gst||0)).toFixed(2)}` : '—'}
+                    </td>
+                    <td className={`font-bold ${ (trade.net_pnl ?? trade.pnl) >= 0 ? 'win' : 'loss'}`}>
+                      {trade.status !== 'open' ? `${(trade.net_pnl ?? trade.pnl) >= 0 ? '+' : ''}₹${(trade.net_pnl ?? trade.pnl).toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '—'}
                     </td>
                     <td>
                       <div className="flex flex-col gap-1 items-center">
-                        <span className={`status-badge ${trade.status}`}>
-                          {trade.status}
+                        <span className={`status-badge ${ (trade.net_pnl ?? trade.pnl) >= 0 ? 'win' : 'loss'}`}>
+                          {trade.status === 'open' ? 'open' : ((trade.net_pnl ?? trade.pnl) >= 0 ? 'win' : 'loss')}
                         </span>
                         <span className="text-[9px] uppercase text-gray-500 whitespace-nowrap">{trade.exit_reason || 'open'}</span>
                       </div>

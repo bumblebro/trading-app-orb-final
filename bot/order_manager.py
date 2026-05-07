@@ -388,8 +388,11 @@ class OrderManager:
                 # Place partial exit order
                 self._place_partial_sell_order(active, quantity, exit_price)
 
-            # Realized P&L for this portion
-            realized_pnl = round((exit_price - active["entry_price"]) * quantity, 2)
+            # Realized P&L for this portion (Subtract charges)
+            from database import calculate_charges
+            gross_pnl = round((exit_price - active["entry_price"]) * quantity, 2)
+            charges = calculate_charges(active["entry_price"], exit_price, quantity)
+            realized_pnl = round(gross_pnl - charges["total_charges"], 2)
             
             # 1. Update active trade (decrease quantity, mark partial_booked)
             remaining_qty = active["quantity"] - quantity
@@ -408,7 +411,12 @@ class OrderManager:
             partial_record["quantity"] = quantity
             partial_record["status"] = "win" if realized_pnl > 0 else "loss"
             partial_record["exit_price"] = exit_price
-            partial_record["pnl"] = realized_pnl
+            partial_record["pnl"] = gross_pnl
+            partial_record["net_pnl"] = realized_pnl
+            partial_record["brokerage"] = charges["brokerage"]
+            partial_record["stt"] = charges["stt"]
+            partial_record["exc_charges"] = charges["exc_charges"]
+            partial_record["gst"] = charges["gst"]
             partial_record["exit_reason"] = reason
             
             insert_trade(partial_record, timestamp=now)

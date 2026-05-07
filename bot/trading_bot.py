@@ -819,11 +819,17 @@ class TradingBot:
                 self.order_manager.update_context(capital=self.capital)
             
             # Track fixed lot baseline for "Compounding Advantage" metric
+            from database import calculate_charges
             lot_size = int(get_setting("lot_size") or "65")
             fixed_lots_val = int(get_setting("fixed_lots") or "2")
             entry_price = trade.get("entry_price", 0)
-            fixed_pnl = (exit_price - entry_price) * (fixed_lots_val * lot_size)
-            self.compounding_baseline_capital += fixed_pnl
+            
+            fixed_qty = fixed_lots_val * lot_size
+            fixed_gross_pnl = (exit_price - entry_price) * fixed_qty
+            fixed_charges = calculate_charges(entry_price, exit_price, fixed_qty)["total_charges"]
+            fixed_net_pnl = fixed_gross_pnl - fixed_charges
+            
+            self.compounding_baseline_capital += fixed_net_pnl
 
         # Track exit for cooldown
         self._last_exit_time = now
