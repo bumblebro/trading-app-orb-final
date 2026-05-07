@@ -133,7 +133,7 @@ docker run -d \
 docker logs -f nifty-bot
 ```
 
----
+---a
 
 ## ⚖️ Liability Disclaimer
-*This software is for educational purposes only. Trading options involves significant risk. The authors are not responsible for any financial losses incurred through the use of this software.*
+*This software is for educational purposes only. Trading options involves significant risk. The authors are not responsible for any financial losses incurred through the use of this software.*a
