@@ -188,6 +188,70 @@ Do not share these values. They are stored server-side and masked in the UI.
    live start is refused.
 5. Press **Start bot** on the dashboard.
 
+#### Capital & sizing phases
+
+Don’t jump straight into risk-% compounding. Scale in phases.
+
+**Phase 0 — Plumbing (first 2–4 weeks live)**
+
+| | |
+| --- | --- |
+| Capital | ₹15,000–25,000 free cash in Angel |
+| Sizing | Fixed lots = 1, max lots = 1 |
+| Goal | Login, fills, stops, and square-off work |
+| Mode | Live only when you can watch |
+
+Treat this as a plumbing test, not a profit run.
+
+**Phase 1 — Prove the edge live (1–3 months)**
+
+| | |
+| --- | --- |
+| Capital | ₹25,000–50,000 |
+| Sizing | Still fixed 1 lot |
+| Goal | 20–40+ real trades; win rate roughly 40–48%; no ops failures |
+| Rules | Keep max daily loss tight; don’t raise size after a win streak |
+
+If live P&L after costs is messy or fills are poor, stay here or stop.
+
+**Phase 2 — Small scale-up (only if Phase 1 is fine)**
+
+| | |
+| --- | --- |
+| Capital | ₹75,000–1.5 lakh |
+| Sizing | Fixed 2 lots (or max 2) — still fixed, not risk % |
+| Goal | Confirm the edge survives slightly larger size |
+
+Step up one notch at a time.
+
+**Phase 3 — Switch to risk % (compounding)**
+
+Only when all of these are true:
+
+- Months of live data look acceptable
+- You can take drawdowns without changing rules mid-streak
+- The account is large enough that 1% risk is at least ~1 lot
+
+| Setting | Start with |
+| --- | --- |
+| Sizing mode | Risk % of capital |
+| Risk per trade | 0.5–1% (not 2%) |
+| Max lots | Hard cap (e.g. 3–5) |
+| Max capital per trade | 10–15% |
+
+Risk % compounds as capital grows. Fixed lots do not.
+
+**Rule of thumb**
+
+```text
+New / unsure     → Fixed 1 lot
+Stable live      → Fixed 2 lots
+Proven + bigger  → Risk 0.5–1% + max-lots cap
+```
+
+Never jump from a small account into risk % with a high max-lots cap — that is
+how paper equity curves explode and live accounts get hurt.
+
 ---
 
 ## Research
