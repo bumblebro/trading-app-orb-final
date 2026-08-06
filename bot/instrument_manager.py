@@ -10,6 +10,7 @@ import requests
 from datetime import datetime, date, timedelta, timezone
 from typing import Optional, List, Dict
 from market_calendar import NSE_HOLIDAYS, is_nse_holiday
+from option_pricing import next_weekly_expiry
 
 IST = timezone(timedelta(hours=5, minutes=30))
 
@@ -130,35 +131,29 @@ class InstrumentManager:
     def get_nearest_expiry(self, from_date: date = None) -> Optional[date]:
         """
         Find the nearest weekly expiry date.
-        Weekly expiry = every Thursday.
-        If Thursday is an NSE holiday → shifts to Wednesday.
-        If Wednesday is also a holiday → shifts to Tuesday (walk backwards).
+
+        Uses the same weekday rule as option_pricing (Thursday before Sep 2025,
+        Tuesday from Sep 2025 onward). If that day is an NSE holiday, walk
+        backward to the previous trading day.
         """
-        if from_date is None:
-            from_date = datetime.now(IST).date()
+        now_real = datetime.now(IST)
+        if from_date is None or from_date == now_real.date():
+            now = now_real
+        else:
+            now = datetime(
+                from_date.year, from_date.month, from_date.day,
+                9, 15, tzinfo=IST,
+            )
 
-        # Find the next Thursday (weekday 3)
-        days_until_thursday = (3 - from_date.weekday()) % 7
-        if days_until_thursday == 0 and from_date.weekday() == 3:
-            # Today is Thursday — check if market is still open
-            now = datetime.now(IST)
-            if now.hour >= 15 and now.minute >= 30:
-                days_until_thursday = 7  # Move to next Thursday
-        next_thursday = from_date + timedelta(days=days_until_thursday)
+        candidate = next_weekly_expiry(now).date()
 
-        # If next_thursday is in the past or today after market close, get next week's
-        if next_thursday < from_date:
-            next_thursday += timedelta(days=7)
-
-        # Apply holiday shift: walk backward from Thursday if it's a holiday
-        expiry = next_thursday
-        for _ in range(5):  # Max 5 days back (shouldn't need more)
-            if not is_nse_holiday(expiry) and expiry.weekday() < 5:  # Not holiday, not weekend
+        expiry = candidate
+        for _ in range(5):
+            if not is_nse_holiday(expiry) and expiry.weekday() < 5:
                 return expiry
             expiry -= timedelta(days=1)
 
-        # Fallback: return original Thursday
-        return next_thursday
+        return candidate
 
     def get_option_token(self, strike: int, option_type: str,
                          expiry: date = None) -> Optional[str]:

@@ -1,10 +1,16 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 
 export const metadata: Metadata = {
-  title: "NiftyTrader — Automated Trading Dashboard",
-  description: "Automated trading dashboard for Nifty 50 Options (CE/PE) with real-time charts, signals, and bot management.",
+  title: "NIFTY ORB — Opening Range Breakout Bot",
+  description: "Opening Range Breakout trading bot for NIFTY 50 options with live charts, risk controls and paper trading.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({

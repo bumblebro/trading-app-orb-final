@@ -1,438 +1,622 @@
 """
-Database module for SQLite operations.
-Manages trades, settings, and logs tables.
+SQLite persistence for trades, settings and signal logs.
+
+Schema is ORB-specific. A database written by the previous Supertrend/EMA
+strategy is detected on startup and moved aside to `trades_legacy` rather than
+being deleted, so its history stays available for inspection but does not
+pollute ORB statistics.
 """
 
-import sqlite3
-import json
 import os
-from datetime import datetime, timezone, timedelta
-from typing import Optional, List, Dict, Any
+import sqlite3
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional
+
+from charges import calculate_charges  # re-exported for callers
 
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "trading.db")
 IST = timezone(timedelta(hours=5, minutes=30))
 
-def get_ist_now():
+# Every reason the bot is allowed to close a position with. Kept in sync with
+# strategy_orb / trading_bot; the CHECK constraint enforces it.
+EXIT_REASONS = (
+    "target",
+    "stoploss",
+    "breakeven_stop",
+    "premium_sl",
+    "squareoff",
+    "manual",
+    "kill_switch",
+    "session_end",
+)
+
+_EXIT_REASON_SQL = ", ".join(f"'{r}'" for r in EXIT_REASONS)
+
+TRADES_SCHEMA = f"""
+CREATE TABLE IF NOT EXISTS trades (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    date TEXT NOT NULL,
+    time TEXT NOT NULL,
+    type TEXT NOT NULL CHECK(type IN ('CE', 'PE')),
+    direction TEXT CHECK(direction IN ('LONG', 'SHORT')),
+    strike_price INTEGER NOT NULL,
+    trading_symbol TEXT,
+    token TEXT,
+    entry_price REAL NOT NULL,
+    exit_price REAL,
+    quantity INTEGER NOT NULL,
+    lot_size INTEGER NOT NULL DEFAULT 75,
+    status TEXT NOT NULL DEFAULT 'open' CHECK(status IN ('open', 'win', 'loss')),
+    exit_reason TEXT CHECK(exit_reason IS NULL OR exit_reason IN ({_EXIT_REASON_SQL})),
+    mode TEXT NOT NULL DEFAULT 'paper' CHECK(mode IN ('paper', 'live')),
+
+    -- Index-level ORB context
+    orb_high REAL,
+    orb_low REAL,
+    orb_range REAL,
+    underlying_entry_price REAL,
+    underlying_exit_price REAL,
+    stop_index REAL,
+    target_index REAL,
+    risk_points REAL,
+
+    -- Option-level risk levels
+    stop_loss REAL,
+    target REAL,
+
+    -- Accounting
+    pnl REAL DEFAULT 0,
+    net_pnl REAL DEFAULT 0,
+    brokerage REAL DEFAULT 0,
+    stt REAL DEFAULT 0,
+    exc_charges REAL DEFAULT 0,
+    gst REAL DEFAULT 0,
+    capital_used REAL,
+    total_capital REAL,
+
+    entry_order_ids TEXT,
+    exit_order_ids TEXT,
+    exit_time TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+)
+"""
+
+SIGNAL_LOG_SCHEMA = """
+CREATE TABLE IF NOT EXISTS signal_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    timestamp TEXT NOT NULL,
+    price REAL,
+    orb_high REAL,
+    orb_low REAL,
+    orb_range REAL,
+    phase TEXT,
+    signal TEXT,
+    skip_reason TEXT
+)
+"""
+
+# Columns that only ever existed in the retired Supertrend strategy.
+LEGACY_COLUMNS = {"supertrend_at_entry", "adx_at_entry", "ema_short_at_entry"}
+
+
+def get_ist_now() -> datetime:
     return datetime.now(IST)
 
+
 def get_connection(db_path: str = None) -> sqlite3.Connection:
-    """Get SQLite connection with row factory and increased timeout."""
-    target_path = db_path or DB_PATH
-    # Increase timeout to 30s to prevent 'database is locked' during concurrent access
-    conn = sqlite3.connect(target_path, timeout=30.0)
+    conn = sqlite3.connect(db_path or DB_PATH, timeout=30.0)
     conn.row_factory = sqlite3.Row
     try:
         conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA foreign_keys=ON")
     except sqlite3.OperationalError:
-        # WAL might fail on some filesystems, ignore if so
         pass
     return conn
 
+
+def _drop_retired_settings(conn):
+    """
+    Remove tuning left over from the retired strategy so the ORB defaults apply.
+    Broker credentials and capital settings are keys of DEFAULT_SETTINGS and survive.
+    """
+    try:
+        stored = {r["key"] for r in conn.execute("SELECT key FROM settings")}
+    except sqlite3.OperationalError:
+        return
+
+    retired = stored - set(DEFAULT_SETTINGS)
+    # These exist under both strategies but carry values tuned for the old one.
+    retired |= {"option_sl_pct", "square_off_time", "fixed_lots",
+                "position_sizing_mode", "playback_speed"}
+
+    for key in retired:
+        conn.execute("DELETE FROM settings WHERE key = ?", (key,))
+
+
+def _table_columns(conn, table: str) -> set:
+    try:
+        return {r["name"] for r in conn.execute(f"PRAGMA table_info({table})")}
+    except sqlite3.OperationalError:
+        return set()
+
+
 def init_db(db_path: str = None):
-    """Initialize database tables and handle migrations."""
+    """Create tables, archiving an incompatible legacy trades table if present."""
     conn = get_connection(db_path)
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS trades (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            date TEXT NOT NULL,
-            time TEXT NOT NULL,
-            type TEXT NOT NULL CHECK(type IN ('CE', 'PE')),
-            strike_price INTEGER NOT NULL,
-            trading_symbol TEXT,
-            entry_price REAL NOT NULL,
-            exit_price REAL,
-            quantity INTEGER NOT NULL,
-            lot_size INTEGER NOT NULL DEFAULT 65,
-            pnl REAL DEFAULT 0,
-            status TEXT NOT NULL DEFAULT 'open' CHECK(status IN ('open', 'closed', 'win', 'loss')),
-            exit_reason TEXT CHECK(exit_reason IN ('target', 'stoploss', 'manual', 'squareoff', NULL)),
-            mode TEXT NOT NULL DEFAULT 'paper' CHECK(mode IN ('paper', 'live')),
-            stop_loss REAL,
-            target REAL,
-            trailing_sl REAL,
-            capital_used REAL,
-            underlying_entry_price REAL,
-            token TEXT,
-            adx_at_entry REAL,
-            supertrend_at_entry REAL,
-            ema_short_at_entry REAL,
-            ema_long_at_entry REAL,
-            exit_time TEXT,
-            total_capital REAL,
-            created_at TEXT DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-    
-    # Ensure settings table exists immediately
-    conn.execute("CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)")
-    
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS signal_logs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            timestamp TEXT NOT NULL,
-            price REAL,
-            supertrend REAL,
-            supertrend_direction INTEGER,
-            ema_short REAL,
-            ema_long REAL,
-            adx REAL,
-            signal TEXT,
-            skip_reason TEXT
-        )
-    """)
-    
-    # Migration: Ensure all newer columns exist
-    migrations = [
-        ("adx_at_entry", "REAL"),
-        ("supertrend_at_entry", "REAL"),
-        ("ema_short_at_entry", "REAL"),
-        ("ema_long_at_entry", "REAL"),
-        ("exit_time", "TEXT"),
-        ("trailing_sl", "REAL"),
-        ("capital_used", "REAL"),
-        ("initial_risk_pts", "REAL"),
-        ("partial_booked", "INTEGER DEFAULT 0"),
-        ("underlying_entry_price", "REAL"),
-        ("token", "TEXT"),
-        ("total_capital", "REAL"),
-        ("brokerage", "REAL DEFAULT 0"),
-        ("stt", "REAL DEFAULT 0"),
-        ("exc_charges", "REAL DEFAULT 0"),
-        ("gst", "REAL DEFAULT 0"),
-        ("net_pnl", "REAL DEFAULT 0")
-    ]
-    
-    for col, ctype in migrations:
-        try:
-            conn.execute(f"ALTER TABLE trades ADD COLUMN {col} {ctype}")
-        except sqlite3.OperationalError:
-            pass  # Column already exists
-            
-    conn.commit()
-    conn.close()
+    try:
+        existing = _table_columns(conn, "trades")
+        if existing and (existing & LEGACY_COLUMNS):
+            suffix = get_ist_now().strftime("%Y%m%d%H%M%S")
+            conn.execute(f"ALTER TABLE trades RENAME TO trades_legacy_{suffix}")
+            conn.execute("DROP TABLE IF EXISTS signal_logs")
+            _drop_retired_settings(conn)
+            conn.commit()
+
+        conn.execute(TRADES_SCHEMA)
+        conn.execute(SIGNAL_LOG_SCHEMA)
+        conn.execute("CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)")
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS logs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                timestamp TEXT NOT NULL,
+                level TEXT,
+                category TEXT,
+                message TEXT,
+                details TEXT
+            )
+        """)
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_trades_date ON trades(date)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_trades_status ON trades(status)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_trades_mode ON trades(mode)")
+        conn.commit()
+    finally:
+        conn.close()
+
+
+# ------------------------------------------------------------------- trades
+
+_INSERT_FIELDS = (
+    "date", "time", "type", "direction", "strike_price", "trading_symbol", "token",
+    "entry_price", "quantity", "lot_size", "status", "mode",
+    "orb_high", "orb_low", "orb_range", "underlying_entry_price",
+    "stop_index", "target_index", "risk_points", "stop_loss", "target",
+    "capital_used", "total_capital", "entry_order_ids",
+)
+
 
 def insert_trade(trade: Dict[str, Any], timestamp: datetime = None, db_path: str = None) -> int:
-    conn = get_connection(db_path)
     now = timestamp or get_ist_now()
-    cursor = conn.execute("""
-        INSERT INTO trades (date, time, type, strike_price, trading_symbol, entry_price, 
-                          quantity, lot_size, status, mode, stop_loss, target, capital_used,
-                          underlying_entry_price, token, adx_at_entry, supertrend_at_entry, 
-                          ema_short_at_entry, ema_long_at_entry, total_capital)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (
-        trade.get("date", now.strftime("%Y-%m-%d")),
-        trade.get("time", now.strftime("%H:%M:%S")),
-        trade["type"], trade["strike_price"], trade.get("trading_symbol", ""),
-        trade["entry_price"], trade["quantity"], trade.get("lot_size", 65),
-        trade.get("status", "open"), trade.get("mode", "paper"),
-        trade.get("stop_loss"), trade.get("target"), trade.get("capital_used"),
-        trade.get("underlying_entry_price"), trade.get("token"), 
-        trade.get("adx_at_entry"), trade.get("supertrend_at_entry"),
-        trade.get("ema_short_at_entry"), trade.get("ema_long_at_entry"),
-        trade.get("total_capital")
-    ))
-    trade_id = cursor.lastrowid
-    conn.commit()
-    conn.close()
-    return trade_id
+    values = dict(trade)
+    values.setdefault("date", now.strftime("%Y-%m-%d"))
+    values.setdefault("time", now.strftime("%H:%M:%S"))
+    values.setdefault("status", "open")
+    values.setdefault("mode", "paper")
 
-def calculate_charges(entry_price: float, exit_price: float, quantity: int) -> Dict[str, float]:
-    """
-    Calculate realistic Indian market transaction charges for Nifty Options.
-    Based on standard discount broker (e.g., Angel One) rates.
-    """
-    buy_value = entry_price * quantity
-    sell_value = exit_price * quantity
-    turnover = buy_value + sell_value
-    
-    # 1. Brokerage: ₹20 per order
-    brokerage = 40.0 
-    
-    # 2. STT: 0.05% on Sell side only
-    stt = round(sell_value * 0.0005, 2)
-    
-    # 3. Exchange Transaction Charges (NFO): ~0.053% of turnover
-    exc_charges = round(turnover * 0.00053, 2)
-    
-    # 4. SEBI Charges: ₹10 per crore
-    sebi = round(turnover * 0.0000001, 2)
-    
-    # 5. Stamp Duty: 0.003% on Buy side
-    stamp = round(buy_value * 0.00003, 2)
-    
-    # 6. GST: 18% on (Brokerage + Exchange Charges + SEBI)
-    taxable = brokerage + exc_charges + sebi
-    gst = round(taxable * 0.18, 2)
-    
-    total_charges = round(brokerage + stt + exc_charges + sebi + stamp + gst, 2)
-    
-    return {
-        "brokerage": brokerage,
-        "stt": stt,
-        "exc_charges": exc_charges,
-        "gst": gst,
-        "total_charges": total_charges
-    }
+    columns = ", ".join(_INSERT_FIELDS)
+    placeholders = ", ".join("?" for _ in _INSERT_FIELDS)
+
+    conn = get_connection(db_path)
+    try:
+        cursor = conn.execute(
+            f"INSERT INTO trades ({columns}) VALUES ({placeholders})",
+            [values.get(f) for f in _INSERT_FIELDS],
+        )
+        conn.commit()
+        return cursor.lastrowid
+    finally:
+        conn.close()
+
 
 def update_trade(trade_id: int, updates: Dict[str, Any], db_path: str = None):
+    if not updates:
+        return
     conn = get_connection(db_path)
-    sets = ", ".join([f"{k} = ?" for k in updates.keys()])
-    conn.execute(f"UPDATE trades SET {sets} WHERE id = ?", list(updates.values()) + [trade_id])
-    conn.commit()
-    conn.close()
+    try:
+        sets = ", ".join(f"{k} = ?" for k in updates)
+        conn.execute(f"UPDATE trades SET {sets} WHERE id = ?",
+                     list(updates.values()) + [trade_id])
+        conn.commit()
+    finally:
+        conn.close()
 
-def close_trade(trade_id: int, exit_price: float, exit_reason: str, timestamp: datetime = None, db_path: str = None):
+
+def close_trade(trade_id: int, exit_price: float, exit_reason: str,
+                timestamp: datetime = None, underlying_exit_price: float = None,
+                exit_order_ids: str = None, db_path: str = None) -> float:
+    """Close a trade, booking charges. Returns net P&L."""
+    if exit_reason not in EXIT_REASONS:
+        raise ValueError(f"unknown exit_reason {exit_reason!r}; "
+                         f"expected one of {EXIT_REASONS}")
+
     conn = get_connection(db_path)
-    trade = conn.execute("SELECT * FROM trades WHERE id = ?", (trade_id,)).fetchone()
-    if trade:
+    try:
+        trade = conn.execute("SELECT * FROM trades WHERE id = ?", (trade_id,)).fetchone()
+        if trade is None:
+            return 0.0
+
         gross_pnl = round((exit_price - trade["entry_price"]) * trade["quantity"], 2)
-        
-        # Calculate charges
-        charges = calculate_charges(trade["entry_price"], exit_price, trade["quantity"])
-        net_pnl = round(gross_pnl - charges["total_charges"], 2)
-        
+        fees = calculate_charges(trade["entry_price"], exit_price, trade["quantity"])
+        net_pnl = round(gross_pnl - fees["total_charges"], 2)
         now = timestamp or get_ist_now()
+
         conn.execute("""
-            UPDATE trades SET 
-                exit_price = ?, pnl = ?, net_pnl = ?, 
+            UPDATE trades SET
+                exit_price = ?, underlying_exit_price = ?, pnl = ?, net_pnl = ?,
                 brokerage = ?, stt = ?, exc_charges = ?, gst = ?,
-                status = ?, exit_reason = ?, exit_time = ?
+                status = ?, exit_reason = ?, exit_time = ?, exit_order_ids = ?
             WHERE id = ?
         """, (
-            exit_price, gross_pnl, net_pnl, 
-            charges["brokerage"], charges["stt"], charges["exc_charges"], charges["gst"],
-            "win" if net_pnl > 0 else "loss", exit_reason, now.strftime("%H:%M:%S"), trade_id
+            exit_price, underlying_exit_price, gross_pnl, net_pnl,
+            fees["brokerage"], fees["stt"], fees["exc_charges"], fees["gst"],
+            "win" if net_pnl > 0 else "loss", exit_reason,
+            now.strftime("%H:%M:%S"), exit_order_ids, trade_id,
         ))
         conn.commit()
-    conn.close()
-    return net_pnl if trade else 0
+        return net_pnl
+    finally:
+        conn.close()
 
-def get_active_trade(db_path: str = None) -> Optional[Dict]:
-    conn = get_connection(db_path)
-    row = conn.execute("SELECT * FROM trades WHERE status = 'open' ORDER BY id DESC LIMIT 1").fetchone()
-    conn.close()
-    return dict(row) if row else None
 
-def get_trades(mode: str = None, date_from: str = None, date_to: str = None, limit: int = 100, db_path: str = None) -> List[Dict]:
+def get_active_trade(mode: str = None, db_path: str = None) -> Optional[Dict]:
     conn = get_connection(db_path)
-    query = "SELECT * FROM trades WHERE 1=1"
-    params = []
-    if mode: query += " AND mode = ?"; params.append(mode)
-    if date_from: query += " AND date >= ?"; params.append(date_from)
-    if date_to: query += " AND date <= ?"; params.append(date_to)
-    query += " ORDER BY id DESC LIMIT ?"
-    params.append(limit)
-    rows = conn.execute(query, params).fetchall()
-    conn.close()
-    return [dict(r) for r in rows]
+    try:
+        query = "SELECT * FROM trades WHERE status = 'open'"
+        params: List[Any] = []
+        if mode:
+            query += " AND mode = ?"
+            params.append(mode)
+        query += " ORDER BY id DESC LIMIT 1"
+        row = conn.execute(query, params).fetchone()
+        return dict(row) if row else None
+    finally:
+        conn.close()
+
+
+def get_trades(mode: str = None, date_from: str = None, date_to: str = None,
+               limit: int = 100, db_path: str = None) -> List[Dict]:
+    conn = get_connection(db_path)
+    try:
+        query = "SELECT * FROM trades WHERE 1=1"
+        params: List[Any] = []
+        if mode:
+            query += " AND mode = ?"
+            params.append(mode)
+        if date_from:
+            query += " AND date >= ?"
+            params.append(date_from)
+        if date_to:
+            query += " AND date <= ?"
+            params.append(date_to)
+        query += " ORDER BY date DESC, id DESC LIMIT ?"
+        params.append(limit)
+        return [dict(r) for r in conn.execute(query, params)]
+    finally:
+        conn.close()
+
 
 def get_today_trades(mode: str = None, date_override: str = None, db_path: str = None) -> List[Dict]:
     target = date_override or get_ist_now().strftime("%Y-%m-%d")
     return get_trades(mode=mode, date_from=target, date_to=target, limit=100, db_path=db_path)
 
+
 def get_today_pnl(mode: str = None, date_override: str = None, db_path: str = None) -> Dict:
     trades = get_today_trades(mode=mode, date_override=date_override, db_path=db_path)
-    # Use net_pnl if available (newly closed trades), else gross pnl
-    total_net_pnl = sum(t.get("net_pnl") if t.get("net_pnl") is not None else t.get("pnl", 0) for t in trades if t["status"] != "open")
-    wins = sum(1 for t in trades if t["status"] == "win")
-    losses = sum(1 for t in trades if t["status"] == "loss")
-    closed = wins + losses
+    closed = [t for t in trades if t["status"] != "open"]
+    total = sum(t["net_pnl"] if t["net_pnl"] is not None else (t["pnl"] or 0) for t in closed)
+    wins = sum(1 for t in closed if t["status"] == "win")
+    losses = sum(1 for t in closed if t["status"] == "loss")
     return {
-        "total_pnl": round(total_net_pnl, 2), "total_trades": len(trades),
-        "wins": wins, "losses": losses, "win_rate": round((wins/closed*100) if closed > 0 else 0, 1),
-        "open_trades": sum(1 for t in trades if t["status"] == "open")
+        "total_pnl": round(total, 2),
+        "total_trades": len(trades),
+        "closed_trades": len(closed),
+        "wins": wins,
+        "losses": losses,
+        "win_rate": round(wins / len(closed) * 100, 1) if closed else 0.0,
+        "open_trades": sum(1 for t in trades if t["status"] == "open"),
     }
 
-def get_all_time_pnl(mode: str = None, date_from: str = None, date_to: str = None, db_path: str = None) -> Dict:
+
+def get_all_time_pnl(mode: str = None, date_from: str = None, date_to: str = None,
+                     db_path: str = None) -> Dict:
     conn = get_connection(db_path)
-    # Fetch Gross P&L and Net P&L (legacy handling with COALESCE)
-    query = """
-        SELECT 
-            SUM(pnl) as gross_pnl, 
-            SUM(COALESCE(net_pnl, pnl)) as net_pnl,
-            SUM(brokerage + stt + exc_charges + gst) as total_charges,
-            COUNT(*) as total_trades, 
-            SUM(CASE WHEN status = 'win' THEN 1 ELSE 0 END) as wins, 
-            SUM(CASE WHEN status = 'loss' THEN 1 ELSE 0 END) as losses 
-        FROM trades WHERE status != 'open'
-    """
-    params = []
-    if mode: query += " AND mode = ?"; params.append(mode)
-    if date_from: query += " AND date >= ?"; params.append(date_from)
-    if date_to: query += " AND date <= ?"; params.append(date_to)
-    row = conn.execute(query, params).fetchone()
-    conn.close()
-    
-    gross = row["gross_pnl"] or 0
-    net = row["net_pnl"] or 0
-    charges = row["total_charges"] or (gross - net)
-    trades, wins, losses = row["total_trades"] or 0, row["wins"] or 0, row["losses"] or 0
-    
+    try:
+        query = """
+            SELECT SUM(pnl) AS gross_pnl,
+                   SUM(COALESCE(net_pnl, pnl)) AS net_pnl,
+                   SUM(COALESCE(brokerage,0) + COALESCE(stt,0)
+                       + COALESCE(exc_charges,0) + COALESCE(gst,0)) AS total_charges,
+                   COUNT(*) AS total_trades,
+                   SUM(CASE WHEN status = 'win' THEN 1 ELSE 0 END) AS wins,
+                   SUM(CASE WHEN status = 'loss' THEN 1 ELSE 0 END) AS losses
+            FROM trades WHERE status != 'open'
+        """
+        params: List[Any] = []
+        if mode:
+            query += " AND mode = ?"
+            params.append(mode)
+        if date_from:
+            query += " AND date >= ?"
+            params.append(date_from)
+        if date_to:
+            query += " AND date <= ?"
+            params.append(date_to)
+        row = conn.execute(query, params).fetchone()
+    finally:
+        conn.close()
+
+    trades = row["total_trades"] or 0
+    wins = row["wins"] or 0
     return {
-        "all_time_pnl": round(net, 2), 
-        "all_time_gross_pnl": round(gross, 2),
-        "all_time_charges": round(charges, 2),
-        "all_time_trades": trades, 
-        "all_time_win_rate": round((wins/trades*100) if trades > 0 else 0, 1), 
-        "wins": wins, 
-        "losses": losses
+        "all_time_pnl": round(row["net_pnl"] or 0, 2),
+        "all_time_gross_pnl": round(row["gross_pnl"] or 0, 2),
+        "all_time_charges": round(row["total_charges"] or 0, 2),
+        "all_time_trades": trades,
+        "all_time_win_rate": round(wins / trades * 100, 1) if trades else 0.0,
+        "wins": wins,
+        "losses": row["losses"] or 0,
     }
 
-def get_yearly_summary(mode: str = None, date_from: str = None, date_to: str = None, db_path: str = None) -> List[Dict]:
+
+def get_equity_curve(mode: str = None, limit: int = 500, db_path: str = None) -> List[Dict]:
+    """Cumulative net P&L per trading day, oldest first."""
     conn = get_connection(db_path)
-    # Using COALESCE(net_pnl, pnl) to handle legacy data
-    # Added a subquery to get the total_capital from the first trade of each year
-    query = """
-        SELECT 
-            STRFTIME('%Y', date) as year, 
-            SUM(COALESCE(net_pnl, pnl)) as pnl, 
-            COUNT(*) as trades, 
-            SUM(CASE WHEN status = 'win' THEN 1 ELSE 0 END) as wins, 
-            SUM(CASE WHEN status = 'loss' THEN 1 ELSE 0 END) as losses, 
-            SUM(CASE WHEN pnl > 0 THEN pnl ELSE 0 END) as gross_profit, 
-            SUM(CASE WHEN pnl < 0 THEN ABS(pnl) ELSE 0 END) as gross_loss,
-            (SELECT total_capital FROM trades t2 
-             WHERE STRFTIME('%Y', t2.date) = STRFTIME('%Y', trades.date) 
-             AND t2.status != 'open' 
-             ORDER BY t2.date ASC, t2.id ASC LIMIT 1) as starting_capital
-        FROM trades 
-        WHERE status != 'open'
-    """
-    params = []
-    if mode: query += " AND mode = ?"; params.append(mode)
-    if date_from: query += " AND date >= ?"; params.append(date_from)
-    if date_to: query += " AND date <= ?"; params.append(date_to)
-    query += " GROUP BY year ORDER BY year DESC"
-    rows = conn.execute(query, params).fetchall()
-    conn.close()
-    return [dict(r) for r in rows]
+    try:
+        query = """
+            SELECT date, SUM(COALESCE(net_pnl, pnl)) AS pnl, COUNT(*) AS trades
+            FROM trades WHERE status != 'open'
+        """
+        params: List[Any] = []
+        if mode:
+            query += " AND mode = ?"
+            params.append(mode)
+        query += " GROUP BY date ORDER BY date ASC LIMIT ?"
+        params.append(limit)
+        rows = [dict(r) for r in conn.execute(query, params)]
+    finally:
+        conn.close()
+
+    cumulative = 0.0
+    for row in rows:
+        cumulative += row["pnl"] or 0
+        row["cumulative_pnl"] = round(cumulative, 2)
+        row["pnl"] = round(row["pnl"] or 0, 2)
+    return rows
+
+
+def get_exit_reason_breakdown(mode: str = None, db_path: str = None) -> List[Dict]:
+    conn = get_connection(db_path)
+    try:
+        query = """
+            SELECT exit_reason, COUNT(*) AS count,
+                   SUM(COALESCE(net_pnl, pnl)) AS net_pnl
+            FROM trades WHERE status != 'open'
+        """
+        params: List[Any] = []
+        if mode:
+            query += " AND mode = ?"
+            params.append(mode)
+        query += " GROUP BY exit_reason ORDER BY count DESC"
+        return [
+            {"reason": r["exit_reason"] or "unknown",
+             "count": r["count"],
+             "net_pnl": round(r["net_pnl"] or 0, 2)}
+            for r in conn.execute(query, params)
+        ]
+    finally:
+        conn.close()
+
 
 def get_last_trade_date(mode: str = None, db_path: str = None) -> Optional[str]:
     conn = get_connection(db_path)
-    query = "SELECT date FROM trades WHERE status != 'open' "
-    if mode: query += "AND mode = ? "; params = [mode]
-    else: params = []
-    query += "ORDER BY date DESC, id DESC LIMIT 1"
-    row = conn.execute(query, params).fetchone()
-    conn.close()
-    return row["date"] if row else None
+    try:
+        query = "SELECT date FROM trades WHERE status != 'open'"
+        params: List[Any] = []
+        if mode:
+            query += " AND mode = ?"
+            params.append(mode)
+        query += " ORDER BY date DESC, id DESC LIMIT 1"
+        row = conn.execute(query, params).fetchone()
+        return row["date"] if row else None
+    finally:
+        conn.close()
+
 
 def get_first_trade_date(mode: str = None, db_path: str = None) -> Optional[str]:
     conn = get_connection(db_path)
-    query = "SELECT date FROM trades WHERE status != 'open' "
-    if mode: query += "AND mode = ? "; params = [mode]
-    else: params = []
-    query += "ORDER BY date ASC, id ASC LIMIT 1"
-    row = conn.execute(query, params).fetchone()
-    conn.close()
-    return row["date"] if row else None
+    try:
+        query = "SELECT date FROM trades WHERE status != 'open'"
+        params: List[Any] = []
+        if mode:
+            query += " AND mode = ?"
+            params.append(mode)
+        query += " ORDER BY date ASC, id ASC LIMIT 1"
+        row = conn.execute(query, params).fetchone()
+        return row["date"] if row else None
+    finally:
+        conn.close()
 
-def get_fixed_lot_pnl(mode: str = None, fixed_lots: int = 2, lot_size: int = 65, db_path: str = None) -> float:
-    conn = get_connection(db_path)
-    # For fixed lot comparison, we must also subtract simulated charges
-    query = "SELECT entry_price, exit_price FROM trades WHERE status != 'open' AND entry_price IS NOT NULL AND exit_price IS NOT NULL"
-    if mode: query += " AND mode = ?"; params = [mode]
-    else: params = []
-    rows = conn.execute(query, params).fetchall()
-    conn.close()
-    
-    total_net_pnl = 0.0
-    qty = fixed_lots * lot_size
-    for r in rows:
-        gross = (r["exit_price"] - r["entry_price"]) * qty
-        charges = calculate_charges(r["entry_price"], r["exit_price"], qty)["total_charges"]
-        total_net_pnl += (gross - charges)
-        
-    return round(total_net_pnl, 2)
 
-def get_consecutive_losses(date_override=None, db_path=None) -> int:
+def get_today_trade_count(date_override: str = None, mode: str = None, db_path: str = None) -> int:
     target = date_override or get_ist_now().strftime("%Y-%m-%d")
     conn = get_connection(db_path)
-    rows = conn.execute("SELECT status FROM trades WHERE date = ? AND status != 'open' ORDER BY id DESC", (target,)).fetchall()
-    conn.close()
+    try:
+        query = "SELECT COUNT(*) AS c FROM trades WHERE date = ?"
+        params: List[Any] = [target]
+        if mode:
+            query += " AND mode = ?"
+            params.append(mode)
+        return conn.execute(query, params).fetchone()["c"]
+    finally:
+        conn.close()
+
+
+def get_consecutive_losses(date_override: str = None, mode: str = None, db_path: str = None) -> int:
+    target = date_override or get_ist_now().strftime("%Y-%m-%d")
+    conn = get_connection(db_path)
+    try:
+        query = "SELECT status FROM trades WHERE date = ? AND status != 'open'"
+        params: List[Any] = [target]
+        if mode:
+            query += " AND mode = ?"
+            params.append(mode)
+        query += " ORDER BY id DESC"
+        rows = conn.execute(query, params).fetchall()
+    finally:
+        conn.close()
+
     count = 0
-    for r in rows:
-        if r["status"] == "loss": count += 1
-        else: break
+    for row in rows:
+        if row["status"] != "loss":
+            break
+        count += 1
     return count
 
+
+# ----------------------------------------------------------------- settings
+
+SECRET_KEYS = {"api_key", "pin", "totp_secret", "api_token"}
+
 DEFAULT_SETTINGS = {
+    # Broker credentials (never returned in plaintext over the API)
     "api_key": "", "client_id": "", "pin": "", "totp_secret": "",
-    "trading_mode": "paper", "position_size_mode": "auto_compound", 
-    "initial_capital": "500000", "lot_size": "65", "fixed_lots": "2",
-    "adx_threshold": "20", "supertrend_period": "10", "supertrend_multiplier": "3.0",
-    "max_trades_per_day": "5", "max_daily_loss": "10000",
-    "morning_max_trades": "3", "afternoon_max_trades": "2",
-    "option_sl_pct": "40.0", "max_capital_per_trade_pct": "20.0",
-    "max_trade_duration_mins": "90"
+
+    # Mode
+    "trading_mode": "paper",
+    "data_source": "playback",
+
+    # ORB strategy — defaults validated by research/backtest.py over
+    # 2019-2026 NIFTY data, chosen for in-sample/out-of-sample agreement
+    # rather than peak in-sample return.
+    "orb_or_minutes": "60",
+    "orb_min_range_pct": "0.25",
+    "orb_max_range_pct": "2.00",
+    "orb_entry_trigger": "close",
+    "orb_confirm_interval_mins": "3",
+    "orb_breakout_buffer_pct": "0.05",
+    "orb_entry_cutoff": "13:30",
+    "orb_sl_mode": "or_opposite",
+    "orb_sl_fraction": "0.50",
+    "orb_target_r": "2.0",
+    "orb_breakeven_after_r": "1.0",
+    "orb_trail_r": "0",
+    "orb_max_trades_per_day": "1",
+    "orb_allow_reversal": "false",
+    "option_sl_pct": "100.0",
+    "square_off_time": "15:15",
+
+    # Risk & sizing
+    "position_sizing_mode": "fixed_lots",
+    "fixed_lots": "1",
+    "lot_size": "75",
+    "min_lots": "1",
+    "max_lots": "10",
+    "risk_percent_per_trade": "2.0",
+    "max_capital_per_trade_pct": "15.0",
+    "max_daily_loss": "10000",
+    "initial_capital": "500000",
+    "paper_capital": "500000",
+
+    # Backtest / playback
+    "playback_file": "bot/data/nifty_sample.csv",
+    "playback_speed": "500",
+    "playback_start_date": "",
+    "playback_end_date": "",
+    "playback_period": "all",
 }
 
-def save_setting(k, v, db_path=None):
-    conn = get_connection(db_path)
-    conn.execute("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)", (k, v))
-    conn.commit(); conn.close()
 
-def save_settings(settings, db_path=None):
-    conn = get_connection(db_path)
-    for k, v in settings.items():
-        conn.execute("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)", (k, str(v)))
-    conn.commit(); conn.close()
+def save_setting(key: str, value: Any, db_path: str = None):
+    save_settings({key: value}, db_path=db_path)
 
-def get_setting(k, db_path=None):
+
+def save_settings(settings: Dict[str, Any], db_path: str = None):
+    conn = get_connection(db_path)
+    try:
+        for key, value in settings.items():
+            conn.execute("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)",
+                         (key, "" if value is None else str(value)))
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def get_setting(key: str, db_path: str = None) -> str:
     try:
         conn = get_connection(db_path)
-        row = conn.execute("SELECT value FROM settings WHERE key = ?", (k,)).fetchone()
+    except sqlite3.OperationalError:
+        return DEFAULT_SETTINGS.get(key, "")
+    try:
+        row = conn.execute("SELECT value FROM settings WHERE key = ?", (key,)).fetchone()
+    except sqlite3.OperationalError:
         conn.close()
-        return row["value"] if row else DEFAULT_SETTINGS.get(k, "")
-    except sqlite3.OperationalError as e:
-        if "no such table: settings" in str(e):
-            # Self-healing: if settings table is missing, try to initialize it
-            init_db(db_path)
-            # Re-try once
-            conn = get_connection(db_path)
-            row = conn.execute("SELECT value FROM settings WHERE key = ?", (k,)).fetchone()
+        init_db(db_path)
+        conn = get_connection(db_path)
+        row = conn.execute("SELECT value FROM settings WHERE key = ?", (key,)).fetchone()
+    finally:
+        try:
             conn.close()
-            return row["value"] if row else DEFAULT_SETTINGS.get(k, "")
-        raise
+        except Exception:
+            pass
+    return row["value"] if row else DEFAULT_SETTINGS.get(key, "")
 
-def get_all_settings(db_path=None) -> Dict[str, str]:
-    conn = get_connection(db_path)
-    rows = conn.execute("SELECT key, value FROM settings").fetchall()
-    conn.close()
-    s = dict(DEFAULT_SETTINGS)
-    for r in rows: s[r["key"]] = r["value"]
-    return s
 
-def get_today_trade_count(date_override=None, db_path=None):
-    target = date_override or get_ist_now().strftime("%Y-%m-%d")
-    conn = get_connection(db_path)
-    row = conn.execute("SELECT COUNT(*) as count FROM trades WHERE date = ?", (target,)).fetchone()
-    conn.close()
-    return row["count"] if row else 0
-
-def insert_signal_log(data, timestamp=None, db_path=None):
-    conn = get_connection(db_path)
-    now = timestamp or get_ist_now()
-    conn.execute("INSERT INTO signal_logs (timestamp, price, supertrend, supertrend_direction, ema_short, ema_long, adx, signal, skip_reason) VALUES (?,?,?,?,?,?,?,?,?)",
-                 (now.strftime("%Y-%m-%d %H:%M:%S"), data.get("price"), data.get("supertrend"), data.get("supertrend_direction"), data.get("ema_short"), data.get("ema_long"), data.get("adx"), data.get("signal"), data.get("skip_reason")))
-    conn.commit(); conn.close()
-
-def clear_trade_data(db_path=None):
-    """Clear all trade history, signal logs, and system logs while preserving settings."""
+def get_all_settings(db_path: str = None, redact_secrets: bool = False) -> Dict[str, str]:
     conn = get_connection(db_path)
     try:
-        conn.execute("DELETE FROM trades")
-        conn.execute("DELETE FROM signal_logs")
-        conn.execute("DELETE FROM logs")
-        # Reset autoincrement counters
-        conn.execute("DELETE FROM sqlite_sequence WHERE name IN ('trades', 'signal_logs', 'logs')")
+        rows = conn.execute("SELECT key, value FROM settings").fetchall()
+    finally:
+        conn.close()
+
+    settings = dict(DEFAULT_SETTINGS)
+    for row in rows:
+        settings[row["key"]] = row["value"]
+
+    if redact_secrets:
+        for key in SECRET_KEYS:
+            if settings.get(key):
+                # Confirm a value is stored without ever exposing it.
+                settings[key] = "********"
+    return settings
+
+
+# --------------------------------------------------------------- signal log
+
+def insert_signal_log(data: Dict[str, Any], timestamp: datetime = None, db_path: str = None):
+    now = timestamp or get_ist_now()
+    conn = get_connection(db_path)
+    try:
+        conn.execute("""
+            INSERT INTO signal_logs
+                (timestamp, price, orb_high, orb_low, orb_range, phase, signal, skip_reason)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            now.strftime("%Y-%m-%d %H:%M:%S"), data.get("price"),
+            data.get("orb_high"), data.get("orb_low"), data.get("orb_range"),
+            data.get("phase"), data.get("signal"), data.get("skip_reason"),
+        ))
         conn.commit()
+    finally:
+        conn.close()
+
+
+def clear_trade_data(db_path: str = None) -> bool:
+    """Wipe trades, signal logs and system logs. Settings are preserved."""
+    conn = get_connection(db_path)
+    try:
+        for table in ("trades", "signal_logs", "logs"):
+            conn.execute(f"DELETE FROM {table}")
+        conn.execute("DELETE FROM sqlite_sequence "
+                     "WHERE name IN ('trades', 'signal_logs', 'logs')")
+        conn.commit()
+        try:
+            conn.execute("VACUUM")
+        except sqlite3.Error:
+            pass
         return True
-    except Exception as e:
-        print(f"Error clearing data: {e}")
+    except sqlite3.Error:
         return False
     finally:
         conn.close()
+
 
 init_db()

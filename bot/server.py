@@ -1,352 +1,313 @@
 """
-FastAPI Server for the Trading Bot.
-Provides REST API endpoints for the Next.js frontend.
-Strategy: Supertrend + EMA Crossover + ADX Filter.
+FastAPI server for the ORB trading bot.
+
+Security notes:
+  * Set BOT_API_TOKEN to require a bearer token on every state-changing route.
+    Live trading refuses to start without it.
+  * GET /settings never returns broker credentials in plaintext.
+  * CORS defaults to localhost; set BOT_CORS_ORIGINS for anything else.
 """
 
-import sys
 import os
+import sys
 
-# Add bot directory to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from fastapi import FastAPI, HTTPException
+from typing import Dict, Optional
+
+import uvicorn
+from fastapi import Depends, FastAPI, Header, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Optional, Dict, Any
-import uvicorn
 
-from trading_bot import get_bot
-from data_feed import get_data_feed
 from database import (
-    get_trades, get_active_trade, get_today_pnl,
-    save_settings, get_all_settings, init_db,
-    clear_trade_data
+    SECRET_KEYS, clear_trade_data, get_active_trade, get_all_settings,
+    get_equity_curve, get_exit_reason_breakdown, get_setting, get_today_pnl,
+    get_trades, init_db, save_settings,
 )
+from indicators import sanitize_nan, session_opening_range
 from logger import get_logger
-from market_calendar import should_bot_run, is_trading_day, get_ist_now
-from indicators import sanitize_nan
+from market_calendar import get_ist_now, is_trading_day, should_bot_run
+from trading_bot import get_bot
 
-# Initialize
 init_db()
 logger = get_logger()
 
-app = FastAPI(title="Nifty 50 Trading Bot", version="2.0.0")
+API_TOKEN = os.getenv("BOT_API_TOKEN", "").strip()
+CORS_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv("BOT_CORS_ORIGINS", "http://localhost:3000").split(",")
+    if origin.strip()
+]
 
-# CORS for Next.js frontend
+app = FastAPI(title="NIFTY ORB Trading Bot", version="3.0.0")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Allow production frontend to connect
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
 
 
-# --- Request Models ---
+def require_token(authorization: Optional[str] = Header(None),
+                  x_api_key: Optional[str] = Header(None)):
+    """Guard for state-changing routes. A no-op when no token is configured."""
+    if not API_TOKEN:
+        return
+    supplied = x_api_key or ""
+    if authorization and authorization.lower().startswith("bearer "):
+        supplied = authorization[7:]
+    if supplied.strip() != API_TOKEN:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid or missing API token")
+
+
+Protected = [Depends(require_token)]
+
 
 class SettingsRequest(BaseModel):
     settings: Dict[str, str]
+
 
 class ExitTradeRequest(BaseModel):
     price: Optional[float] = None
 
 
-# --- Endpoints ---
+# ------------------------------------------------------------------- general
 
 @app.get("/")
 async def root():
-    return {"status": "ok", "service": "Nifty 50 Trading Bot", "strategy": "Supertrend + EMA"}
-
-
-@app.post("/start")
-async def start_bot():
-    """Start the trading bot."""
-    bot = get_bot()
-    if bot.is_running:
-        return {"status": "already_running", "message": "Bot is already running"}
-
-    # Check if it's a trading day
-    should_run, reason = should_bot_run()
-    bot.start()
-    logger.bot_status("STARTED", f"Market status: {reason}")
-
     return {
-        "status": "started",
-        "message": "Bot started successfully",
-        "market_status": reason
+        "status": "ok",
+        "service": "NIFTY ORB Trading Bot",
+        "strategy": "Opening Range Breakout",
+        "auth_required": bool(API_TOKEN),
     }
 
 
-@app.post("/stop")
+@app.post("/start", dependencies=Protected)
+async def start_bot():
+    bot = get_bot()
+    if bot.is_running:
+        return {"status": "already_running"}
+
+    if bot.mode == "live" and not API_TOKEN:
+        raise HTTPException(
+            status_code=403,
+            detail="Live trading requires BOT_API_TOKEN to be set on the server",
+        )
+
+    try:
+        bot.start()
+    except Exception as exc:
+        logger.error("Bot failed to start", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
+
+    _, market_reason = should_bot_run()
+    return {"status": "started", "market_status": market_reason}
+
+
+@app.post("/stop", dependencies=Protected)
 async def stop_bot():
-    """Stop the trading bot."""
     bot = get_bot()
     if not bot.is_running:
-        return {"status": "already_stopped", "message": "Bot is not running"}
-
+        return {"status": "already_stopped"}
     bot.stop()
-    return {"status": "stopped", "message": "Bot stopped successfully"}
+    return {"status": "stopped"}
 
 
 @app.get("/status")
-async def get_status():
-    """Get bot status and today's stats."""
-    bot = get_bot()
-    status = bot.get_status()
-
-    # Add market info
-    should_run, market_reason = should_bot_run()
-    status["market_open"] = should_run
-    status["market_status"] = market_reason
-    status["is_trading_day"] = is_trading_day()
-
-    return status
+async def status_endpoint():
+    return sanitize_nan(get_bot().get_status())
 
 
 @app.get("/price")
-async def get_price():
-    """Get current price and indicator values."""
+async def price():
     bot = get_bot()
-    feed = bot.data_feed
-
-    if feed:
-        price_info = feed.get_price_info()
-    else:
-        price_info = {
-            "price": 0,
-            "prev_price": 0,
-            "change": 0,
-            "change_pct": 0,
-            "connected": False,
-            "simulation": True
-        }
-
-    indicators = bot.indicators
-
-    return sanitize_nan({
-        **price_info,
-        "indicators": {
-            "ema_short": indicators.get("ema_short"),
-            "ema_long": indicators.get("ema_long"),
-            "supertrend": indicators.get("supertrend"),
-            "supertrend_direction": indicators.get("supertrend_direction"),
-            "adx": indicators.get("adx"),
-            "phase": indicators.get("phase", "WATCHING"),
-            "ready": indicators.get("ready", False),
-        }
-    })
-
-
-@app.get("/signal")
-async def get_signal():
-    """Get current trade signal with strategy confluence data."""
-    bot = get_bot()
-    phase_data = bot.strategy_phase_data
-    indicators = bot.indicators
-
-    return sanitize_nan({
-        "signal": bot.current_signal,
-        "phase": phase_data.get("phase"),
-        "phase_description": phase_data.get("phase_description"),
-        "ema_short": indicators.get("ema_short"),
-        "ema_long": indicators.get("ema_long"),
-        "supertrend": indicators.get("supertrend"),
-        "supertrend_direction": indicators.get("supertrend_direction"),
-        "adx": indicators.get("adx"),
-        "timestamp": get_ist_now().isoformat()
-    })
+    info = bot.data_feed.get_price_info() if bot.data_feed else {
+        "price": 0, "change": 0, "change_pct": 0, "connected": False,
+    }
+    return sanitize_nan({**info, "strategy": bot.strategy_state})
 
 
 @app.get("/orb")
-async def get_orb():
-    """Deprecated: Formerly Opening Range Breakout data."""
-    return {"status": "deprecated", "message": "Strategy migrated to Supertrend"}
-
-
-
-
-@app.get("/strategy-phase")
-async def get_strategy_phase():
-    """Get current strategy phase and metadata."""
-    bot = get_bot()
-    return bot.strategy_phase_data
+async def orb_state():
+    """Current opening range, phase and any pending breakout levels."""
+    return sanitize_nan(get_bot().strategy_state)
 
 
 @app.get("/candles")
-async def get_candles():
-    """Get 5-minute OHLCV candle data for chart."""
+async def candles():
+    """1-minute candles for the current session plus the opening range band."""
     bot = get_bot()
-    feed = bot.data_feed
+    or_minutes = bot.strategy.config.or_minutes
+    if not bot.data_feed:
+        return {"candles": [], "orb": None, "or_minutes": or_minutes}
 
-    if feed:
-        candles = feed.get_all_candles(interval="5minute")
-        chart_candles = [
-            {
-                "time": c["time"],
-                "open": c["open"],
-                "high": c["high"],
-                "low": c["low"],
-                "close": c["close"]
-            }
-            for c in candles
-            if "time" in c
-        ]
+    raw = bot.data_feed.get_all_candles(interval="1minute")
+    session_date = bot._session_date
+    if session_date:
+        raw = [c for c in raw if (c.get("time_key") or "").startswith(session_date)]
 
-        # Calculate indicators for the entire history for chart lines
-        from indicators import calculate_ema, calculate_supertrend
-        
-        closes = [c["close"] for c in candles]
-        highs = [c["high"] for c in candles]
-        lows = [c["low"] for c in candles]
+    payload = [
+        {"time": c["time"], "open": c["open"], "high": c["high"],
+         "low": c["low"], "close": c["close"]}
+        for c in raw if "time" in c
+    ]
+    return sanitize_nan({
+        "candles": payload,
+        "orb": session_opening_range(raw, or_minutes, session_date),
+        "or_minutes": or_minutes,
+    })
 
-        # EMA Lines
-        ema9 = calculate_ema(closes, 9)
-        ema21 = calculate_ema(closes, 21)
-        
-        # Supertrend Line
-        from indicators import calculate_supertrend_series
-        st_data = calculate_supertrend_series(candles, 10, 3)
-        st_line = st_data["supertrend"]
-        st_dir = st_data["direction"]
 
-        ema9_series = []
-        ema21_series = []
-        st_series = []
-
-        import math
-        for i, c in enumerate(candles):
-            if "time" in c:
-                if i < len(ema9) and not math.isnan(ema9[i]):
-                    ema9_series.append({"time": c["time"], "value": ema9[i]})
-                if i < len(ema21) and not math.isnan(ema21[i]):
-                    ema21_series.append({"time": c["time"], "value": ema21[i]})
-                if i < len(st_line) and not math.isnan(st_line[i]):
-                    st_series.append({
-                        "time": c["time"], 
-                        "value": st_line[i],
-                        "color": "#10b981" if st_dir[i] == 1 else "#ef4444"
-                    })
-
-        return sanitize_nan({
-            "candles": chart_candles,
-            "ema9": ema9_series,
-            "ema21": ema21_series,
-            "supertrend": st_series,
-        })
-    else:
-        return {
-            "candles": [],
-            "ema9": [],
-            "ema21": [],
-            "supertrend": [],
-        }
-
+# -------------------------------------------------------------------- trades
 
 @app.get("/trades")
-async def trades(mode: str = None, date_from: str = None, date_to: str = None, limit: int = 100):
-    from database import get_trades, get_all_time_pnl, get_yearly_summary
-    trades = get_trades(mode=mode, date_from=date_from, date_to=date_to, limit=limit)
-    summary = get_all_time_pnl(mode=mode, date_from=date_from, date_to=date_to)
-    yearly_summary = get_yearly_summary(mode=mode, date_from=date_from, date_to=date_to)
-    return {"trades": trades, "summary": summary, "yearly_summary": yearly_summary}
+async def trades(mode: Optional[str] = None, date_from: Optional[str] = None,
+                 date_to: Optional[str] = None, limit: int = 100):
+    from database import get_all_time_pnl
 
+    bot = get_bot()
+    now = bot._now()
+    as_of = now.strftime("%Y-%m-%d")
+    month_start = now.replace(day=1).strftime("%Y-%m-%d")
+    year_start = now.replace(month=1, day=1).strftime("%Y-%m-%d")
+
+    summary = get_all_time_pnl(mode=mode, date_from=date_from, date_to=date_to)
+    month = get_all_time_pnl(mode=mode, date_from=month_start, date_to=as_of)
+    year = get_all_time_pnl(mode=mode, date_from=year_start, date_to=as_of)
+    summary.update({
+        "month_pnl": month["all_time_pnl"],
+        "month_trades": month["all_time_trades"],
+        "month_label": now.strftime("%b %Y"),
+        "year_pnl": year["all_time_pnl"],
+        "year_trades": year["all_time_trades"],
+        "year_label": str(now.year),
+    })
+
+    return sanitize_nan({
+        "trades": get_trades(mode=mode, date_from=date_from, date_to=date_to, limit=limit),
+        "summary": summary,
+    })
 
 
 @app.get("/trades/active")
 async def active_trade():
-    """Get current open trade."""
-    trade = get_active_trade()
-    if trade:
-        bot = get_bot()
-        current_index_price = bot.data_feed.current_price if bot.data_feed else 0
-        if current_index_price > 0:
-            simulated_option_price = bot.calculate_option_price(trade, current_index_price)
-            trade["current_price"] = simulated_option_price
-            trade["live_pnl"] = round(
-                (simulated_option_price - trade["entry_price"]) * trade["quantity"], 2
-            )
-    return {"trade": trade}
-
-
-@app.post("/exit-trade")
-async def exit_trade(req: ExitTradeRequest):
-    """Manually exit the active trade."""
     bot = get_bot()
-    result = bot.manual_exit(req.price)
-    return result
+    trade = get_active_trade(mode=bot.mode)
+    if trade and bot.data_feed:
+        index_price = bot.data_feed.current_price
+        if index_price > 0:
+            current = bot._current_option_price(index_price, bot._now())
+            trade["current_price"] = current
+            trade["live_pnl"] = round((current - trade["entry_price"]) * trade["quantity"], 2)
+    return sanitize_nan({"trade": trade})
+
+
+@app.post("/exit-trade", dependencies=Protected)
+async def exit_trade(req: ExitTradeRequest):
+    return get_bot().manual_exit(req.price)
 
 
 @app.get("/pnl")
-async def pnl_summary(mode: Optional[str] = None):
-    """Get today's P&L summary."""
+async def pnl(mode: Optional[str] = None):
     bot = get_bot()
-    date_override = None
-    if bot.data_feed and bot.data_feed.playback_file and bot.data_feed.last_tick_time:
-        date_override = bot.data_feed.last_tick_time.strftime("%Y-%m-%d")
-
-    return get_today_pnl(mode=mode, date_override=date_override)
+    override = bot._now().strftime("%Y-%m-%d") if bot.is_playback else None
+    return get_today_pnl(mode=mode or bot.mode, date_override=override)
 
 
-@app.post("/settings")
-async def update_settings(req: SettingsRequest):
-    """Save settings."""
-    try:
-        save_settings(req.settings)
-        logger.info(f"Settings updated: {list(req.settings.keys())}")
+@app.get("/analytics")
+async def analytics(mode: Optional[str] = None):
+    """Equity curve and exit-reason mix — what the results page renders."""
+    bot = get_bot()
+    target_mode = mode or bot.mode
+    return sanitize_nan({
+        "equity_curve": get_equity_curve(mode=target_mode),
+        "exit_reasons": get_exit_reason_breakdown(mode=target_mode),
+    })
 
-        # Check if critical settings were changed while bot is running
-        bot = get_bot()
-        if bot.is_running and ("trading_mode" in req.settings or "pin" in req.settings or "totp_secret" in req.settings):
-            logger.warning("Bot is currently running. Please STOP and START the bot for live mode changes and credentials to take effect.")
 
-        return {"status": "saved", "message": "Settings saved successfully"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
+# ------------------------------------------------------------------ settings
 
 @app.get("/settings")
 async def read_settings():
-    """Get all settings."""
-    settings = get_all_settings()
-    return {"settings": settings}
+    """Broker credentials come back masked; they are never sent to the client."""
+    return {"settings": get_all_settings(redact_secrets=True),
+            "secret_keys": sorted(SECRET_KEYS)}
 
 
-@app.post("/clear-data")
-async def reset_data():
-    """Clear all trade history and logs."""
-    success = clear_trade_data()
-    if success:
-        return {"status": "cleared", "message": "All trade data and logs have been cleared."}
-    else:
+@app.post("/settings", dependencies=Protected)
+async def write_settings(req: SettingsRequest):
+    # A masked value means "unchanged" — do not overwrite the real secret.
+    incoming = {k: v for k, v in req.settings.items()
+                if not (k in SECRET_KEYS and set(v or "") == {"*"})}
+    try:
+        save_settings(incoming)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+    bot = get_bot()
+    if bot.is_running:
+        bot.reload_config()
+        logger.info("Settings changed while running; strategy config reloaded. "
+                    "Restart the bot for credential or data-source changes.")
+
+    logged = [k for k in incoming if k not in SECRET_KEYS]
+    logger.info(f"Settings updated: {logged}")
+    return {"status": "saved"}
+
+
+@app.post("/clear-data", dependencies=Protected)
+async def clear_data():
+    bot = get_bot()
+    if bot.is_running:
+        raise HTTPException(status_code=409, detail="Stop the bot before clearing data")
+    if not clear_trade_data():
         raise HTTPException(status_code=500, detail="Failed to clear data")
+    # Reset tracked capital so the dashboard matches a fresh history.
+    initial = float(get_setting("initial_capital") or "500000")
+    bot.capital = initial
+    bot.capital_history = []
+    bot._first_trade_date = None
+    return {"status": "cleared"}
 
+
+# ---------------------------------------------------------------------- ops
 
 @app.get("/logs")
-async def get_logs(limit: int = 200, category: Optional[str] = None):
-    """Get recent bot logs."""
-    logs = logger.get_recent_logs(limit=limit, category=category)
-    return {"logs": logs}
-
-
-@app.get("/logs/margin-failures")
-async def get_margin_failures(limit: int = 100):
-    """Get logs where margin check failed."""
-    logs = logger.get_margin_failures(limit=limit)
-    return {"logs": logs}
+async def logs(limit: int = 200, category: Optional[str] = None):
+    return {"logs": logger.get_recent_logs(limit=limit, category=category)}
 
 
 @app.get("/margin")
-async def get_margin():
-    """Get available margin."""
+async def margin():
     bot = get_bot()
     if bot.order_manager:
-        margin = bot.order_manager.check_margin()
-        return margin
+        return bot.order_manager.check_margin(mode=bot.mode, log_check=False)
     return {"available": 0, "mode": "disconnected"}
 
 
+@app.get("/health")
+async def health():
+    bot = get_bot()
+    now = get_ist_now()
+    should_run, reason = should_bot_run(now)
+    return {
+        "running": bot.is_running,
+        "feed_connected": bool(bot.data_feed and bot.data_feed.is_connected),
+        "market_open": should_run,
+        "market_status": reason,
+        "trading_day": is_trading_day(now.date()),
+        "time": now.isoformat(),
+    }
+
+
 if __name__ == "__main__":
-    print("🚀 Starting Nifty 50 Trading Bot Server on port 8000...")
-    print("📊 Strategy: Supertrend + EMA Crossover")
+    if not API_TOKEN:
+        print("WARNING: BOT_API_TOKEN is not set — control endpoints are unauthenticated "
+              "and live trading is disabled.")
+    print(f"CORS origins: {CORS_ORIGINS}")
+    print("Starting NIFTY ORB bot API on http://0.0.0.0:8000")
     uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")

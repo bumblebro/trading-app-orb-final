@@ -1,464 +1,369 @@
 """
-Order Manager module.
-Handles order placement, exit, margin checks, and lot size validation.
-Supports both paper trading and live trading via Angel One SmartAPI.
+Order placement and exit for NIFTY options.
+
+Paper mode books a simulated fill at the theoretical premium. Live mode routes
+market orders through Angel One SmartAPI, slicing above the exchange freeze
+quantity, and then *verifies* the fill from the order book instead of assuming
+the requested price. If part of a sliced entry fails, the filled portion is
+sold back immediately rather than left as an unintended position.
 """
+
+from __future__ import annotations
 
 import threading
 import time
-from datetime import datetime, timezone, timedelta
-from typing import Optional, Dict, List
-from logger import get_logger
-from database import insert_trade, close_trade, get_setting, get_active_trade, get_all_time_pnl
-from instrument_manager import get_instrument_manager
+from datetime import datetime
+from typing import Dict, List, Optional, Tuple
 
-IST = timezone(timedelta(hours=5, minutes=30))
-MAX_QTY_PER_ORDER = 1800 # Nifty freeze limit quantity
+from database import (
+    calculate_charges, close_trade, get_active_trade, get_all_time_pnl,
+    get_setting, insert_trade,
+)
+from instrument_manager import get_instrument_manager
+from logger import get_logger
+
+# NSE freeze limit for NIFTY options; larger orders must be sliced.
+MAX_QTY_PER_ORDER = 1800
+ORDER_RETRIES = 3
+RETRY_DELAY_SEC = 0.5
+SLICE_DELAY_SEC = 0.3
+FILL_POLL_ATTEMPTS = 6
+FILL_POLL_DELAY_SEC = 0.5
 
 
 class OrderManager:
-    """Manages order placement and exit for NIFTY options."""
-
     def __init__(self, smart_api=None):
-        self.smart_api = smart_api  # SmartConnect instance
+        self.smart_api = smart_api
         self.logger = get_logger()
-        self.instrument_mgr = get_instrument_manager()
+        self.instruments = get_instrument_manager()
         self._lock = threading.Lock()
         self.data_feed = None
-        self.capital = 0
+        self.capital = 0.0
 
     def set_smart_api(self, smart_api):
-        """Set/update the SmartConnect instance."""
         self.smart_api = smart_api
 
-    def update_context(self, data_feed=None, capital: float = 0):
-        """Update data feed and capital context for margin checks."""
-        if data_feed:
+    def update_context(self, data_feed=None, capital: float = None):
+        if data_feed is not None:
             self.data_feed = data_feed
-        if capital > 0:
+        if capital is not None:
             self.capital = capital
 
-    def check_margin(self, required_amount: float = 0, log_check: bool = True, mode: str = "paper") -> Dict:
-        """
-        Check available margin. 
-        In paper mode, uses virtual capital. In live mode, calls Angel One RMS.
-        """
+    # ------------------------------------------------------------------ margin
+
+    def check_margin(self, required: float = 0, mode: str = "paper",
+                     log_check: bool = True) -> Dict:
         try:
-            if mode == "paper" or self.smart_api is None:
-                # Paper trading — return virtual capital
-                if self.data_feed and self.data_feed.playback_file:
-                    available = self.capital  # use compounding tracker
+            if mode != "live" or self.smart_api is None:
+                if self.data_feed is not None and getattr(self.data_feed, "playback_file", None):
+                    available = self.capital
                 else:
-                    initial = float(get_setting("paper_capital") or "100000")
-                    pnl = get_all_time_pnl(mode="paper").get("all_time_pnl", 0)
-                    available = initial + pnl
-
-                result = {
-                    "available": available,
-                    "required": required_amount,
-                    "sufficient": available >= required_amount,
-                    "mode": "paper"
-                }
-                if log_check:
-                    self.logger.margin_check(available, required_amount, result["sufficient"])
-                return result
-
-            # Live trading — call Angel One RMS
-            margin_data = self.smart_api.rmsLimit()
-            if margin_data and margin_data.get("status"):
-                data = margin_data.get("data", {})
-                available = float(data.get("availablecash", 0))
-                result = {
-                    "available": available,
-                    "required": required_amount,
-                    "sufficient": available >= required_amount,
-                    "mode": "live"
-                }
-                if log_check:
-                    self.logger.margin_check(available, required_amount, result["sufficient"])
-                return result
+                    base = float(get_setting("paper_capital") or "500000")
+                    available = base + get_all_time_pnl(mode="paper").get("all_time_pnl", 0)
+                result = {"available": available, "required": required,
+                          "sufficient": available >= required, "mode": "paper"}
             else:
-                self.logger.error(f"Margin check failed: {margin_data}")
-                return {"available": 0, "required": required_amount, "sufficient": False, "mode": "live"}
+                data = (self.smart_api.rmsLimit() or {}).get("data") or {}
+                available = float(data.get("availablecash", 0) or 0)
+                result = {"available": available, "required": required,
+                          "sufficient": available >= required, "mode": "live"}
 
-        except Exception as e:
-            self.logger.error("Margin check error", e)
-            return {"available": 0, "required": required_amount, "sufficient": False, "mode": "error"}
+            if log_check:
+                self.logger.margin_check(result["available"], required, result["sufficient"])
+            return result
+        except Exception as exc:
+            self.logger.error("Margin check failed", exc)
+            return {"available": 0, "required": required, "sufficient": False, "mode": "error"}
 
-    def validate_lot_size(self, quantity: int) -> bool:
-        """
-        Validate that quantity is a valid multiple of Nifty lot size.
-        """
-        lot_size = self.instrument_mgr.get_lot_size()
-        if quantity <= 0:
-            self.logger.warning(f"Invalid quantity: {quantity}")
-            return False
-        if quantity % lot_size != 0:
-            self.logger.warning(
-                f"Quantity {quantity} is not a multiple of lot size {lot_size}. "
-                f"Must be multiples of {lot_size}."
-            )
-            return False
-        return True
+    # ------------------------------------------------------------------- entry
 
-    def place_order(self, signal: str, current_price: float,
-                    mode: str = "paper", timestamp: Optional[datetime] = None, 
-                    entry_quality: Optional[float] = None,
-                    quantity: Optional[int] = None) -> Optional[Dict]:
-        """
-        Place an order based on signal.
-        signal: 'BUY_CE' or 'BUY_PE'
-        Returns trade info dict or None if order failed.
-        """
+    def place_order(self, option_type: str, index_price: float, quantity: int,
+                    mode: str = "paper", estimated_premium: float = 0,
+                    timestamp: Optional[datetime] = None,
+                    strike: Optional[int] = None,
+                    trade_context: Optional[Dict] = None) -> Optional[Dict]:
+        """Buy an ATM option. Returns trade details, or None if nothing was filled."""
         with self._lock:
             try:
-                option_type = "CE" if signal == "BUY_CE" else "PE"
-
-                # Get instrument info
-                self.instrument_mgr.load_instruments()
-                strike = self.instrument_mgr.get_atm_strike(current_price)
-                lot_size = self.instrument_mgr.get_lot_size()
-                
-                if quantity is None:
-                    quantity = lot_size
-                elif not self.validate_lot_size(quantity):
-                    quantity = lot_size # fallback to 1 lot if invalid
-
-                expiry = self.instrument_mgr.get_nearest_expiry()
-
-                option_info = self.instrument_mgr.get_option_info(strike, option_type, expiry)
-                trading_symbol = option_info["symbol"] if option_info else f"NIFTY{strike}{option_type}"
-                token = option_info["token"] if option_info else None
-
-                # Get strategy parameters
-                stop_loss_pct = float(get_setting("stop_loss_pct") or "0.5")
-                target_pct = float(get_setting("target_pct") or "1.0")
-
-                # For paper trading/playback with only index data, estimate option premium
-                # Standard estimate for ATM weekly options is ~1.5% of the index price
-                # If current_price > 2000, we treat it as an index price needing premium estimation
-                if mode == "paper" or current_price > 2000:
-                    entry_price = round(current_price * 0.015, 2)
-                    self.logger.info(f"Using estimated premium for {option_type}: {entry_price}")
-                else:
-                    entry_price = current_price
-                
-                stop_loss = round(entry_price * (1 - stop_loss_pct / 100), 2)
-                target = round(entry_price * (1 + target_pct / 100), 2)
-
-                # Estimate required margin
-                estimated_margin = entry_price * quantity
-                # Do not log the initial check to avoid false alarms on the UI if we fallback
-                margin_result = self.check_margin(estimated_margin, log_check=False, mode=mode)
-
-                if not margin_result["sufficient"]:
-                    # ── Lot-Reduction Fallback ────────────────────────────────────
-                    # Required capital > available capital.
-                    # Calculate the max lots we can actually afford,
-                    # rather than jumping straight to min_lots.
-                    min_lots = int(get_setting("min_lots") or "1")
-                    lot_size_val = int(get_setting("lot_size") or "65")
-                    cost_per_lot = entry_price * lot_size_val
-                    available = margin_result["available"]
-
-                    affordable_lots = int(available // cost_per_lot) if cost_per_lot > 0 else 0
-                    affordable_lots = max(affordable_lots, 0)  # floor at 0
-
-                    if affordable_lots >= min_lots:
-                        fallback_qty = affordable_lots * lot_size_val
-                        fallback_margin = entry_price * fallback_qty
-                        self.logger.info(
-                            f"Margin insufficient for {quantity} units (₹{estimated_margin:.0f}). "
-                            f"Scaling down to {affordable_lots} lot(s) ({fallback_qty} units) — "
-                            f"requires ₹{fallback_margin:.0f}, available ₹{available:.0f}."
-                        )
-                        # Log the successful fallback check
-                        self.logger.margin_check(available, fallback_margin, True)
-                        
-                        quantity = fallback_qty
-                        estimated_margin = fallback_margin
-                    else:
-                        min_req = entry_price * min_lots * lot_size_val
-                        # Log the true failure
-                        self.logger.margin_check(available, min_req, False)
-                        self.logger.order_failed(
-                            f"Insufficient margin even for {min_lots} lot(s). "
-                            f"Available: {available:.2f}, "
-                            f"Required (min): {min_req:.2f} (Est. Premium: {entry_price})"
-                        )
-                        return None
-                else:
-                    # Initial check passed, log success
-                    self.logger.margin_check(margin_result["available"], estimated_margin, True)
-
-                # Validate lot size
-                if not self.validate_lot_size(quantity):
-                    self.logger.order_failed(f"Invalid lot size: {quantity}")
+                if quantity <= 0:
+                    self.logger.order_failed("Refusing to place a zero-quantity order")
                     return None
 
-                # Place the order
-                trade_info = {
-                    "type": option_type,
-                    "strike_price": strike,
-                    "trading_symbol": trading_symbol,
-                    "entry_price": entry_price,
-                    "quantity": quantity,
-                    "lot_size": lot_size,
-                    "mode": mode,
-                    "stop_loss": stop_loss,
-                    "target": target,
-                    "underlying_entry_price": current_price,
-                    "token": token,
-                    "entry_quality": entry_quality,
-                    "capital_used": round(entry_price * quantity, 2)
-                }
+                contract = self._resolve_contract(index_price, option_type, strike)
+                lot_size = contract["lot_size"]
+                if quantity % lot_size != 0:
+                    quantity = max(lot_size, (quantity // lot_size) * lot_size)
 
-                if mode == "live" and self.smart_api:
-                    # Live order via Angel One
-                    order_result = self._place_live_order(
-                        trading_symbol, token, option_type, quantity, entry_price
-                    )
-                    if not order_result:
+                entry_price = estimated_premium if estimated_premium > 0 else \
+                    round(index_price * 0.015, 2)
+
+                required = entry_price * quantity
+                margin = self.check_margin(required, mode=mode, log_check=False)
+                quantity = self._fit_to_margin(quantity, entry_price, lot_size, margin)
+                if quantity <= 0:
+                    return None
+
+                order_ids: List[str] = []
+                if mode == "live":
+                    filled = self._enter_live(contract, quantity)
+                    if filled is None:
                         return None
-                    entry_price = order_result.get("price", entry_price)
+                    order_ids, avg_price, filled_qty = filled
+                    entry_price = avg_price
+                    quantity = filled_qty
                 else:
-                    # Paper trade — simulate fill at current price
-                    self.logger.info(f"Paper trade: Simulated fill for {trading_symbol} at {entry_price}")
+                    self.logger.info(f"Paper fill: {contract['symbol']} "
+                                     f"@ Rs {entry_price} x{quantity}")
 
-                # Save trade to database
-                trade_data = {
+                trade_id = insert_trade({
                     "type": option_type,
-                    "strike_price": strike,
-                    "trading_symbol": trading_symbol,
+                    "strike_price": contract["strike"],
+                    "trading_symbol": contract["symbol"],
+                    "token": contract["token"],
                     "entry_price": entry_price,
                     "quantity": quantity,
                     "lot_size": lot_size,
                     "mode": mode,
-                    "stop_loss": stop_loss,
-                    "target": target,
-                    "underlying_entry_price": current_price,
-                    "token": token,
-                    "entry_quality": entry_quality,
+                    "underlying_entry_price": index_price,
                     "capital_used": round(entry_price * quantity, 2),
-                    "total_capital": margin_result["available"]
-                }
-                trade_id = insert_trade(trade_data, timestamp=timestamp)
+                    "total_capital": margin.get("available"),
+                    "entry_order_ids": ",".join(order_ids) if order_ids else None,
+                    **(trade_context or {}),
+                }, timestamp=timestamp)
 
-                self.logger.order_placed(
-                    f"BUY {option_type}",
-                    strike, entry_price, quantity, mode
-                )
+                self.logger.order_placed(f"BUY {option_type}", contract["strike"],
+                                         entry_price, quantity, mode, timestamp=timestamp)
 
-                return {
-                    "trade_id": trade_id,
-                    "type": option_type,
-                    "strike": strike,
-                    "symbol": trading_symbol,
-                    "entry_price": entry_price,
-                    "quantity": quantity,
-                    "stop_loss": stop_loss,
-                    "target": target,
-                    "mode": mode,
-                    "capital_used": round(entry_price * quantity, 2),
-                    "expiry": str(expiry) if expiry else None
-                }
+                return {"trade_id": trade_id, "entry_price": entry_price,
+                        "quantity": quantity, "token": contract["token"],
+                        "symbol": contract["symbol"], "strike": contract["strike"]}
 
-            except Exception as e:
-                self.logger.error("Order placement failed", e)
+            except Exception as exc:
+                self.logger.error("Order placement failed", exc)
                 return None
 
-    def _place_live_order(self, symbol: str, token: str,
-                          option_type: str, quantity: int,
-                          price: float) -> Optional[Dict]:
-        """Place live orders via Angel One SmartAPI, slicing if necessary."""
-        order_ids = self._execute_live_order_sliced(
-            symbol=symbol,
-            token=token,
-            side="BUY",
-            quantity=quantity
-        )
-        if order_ids:
-            return {"order_ids": order_ids, "price": price}
+    def _resolve_contract(self, index_price: float, option_type: str,
+                          strike: Optional[int]) -> Dict:
+        self.instruments.load_instruments()
+        strike = int(strike or self.instruments.get_atm_strike(index_price))
+        expiry = self.instruments.get_nearest_expiry()
+        info = self.instruments.get_option_info(strike, option_type, expiry)
+
+        if info:
+            return {"strike": strike, "symbol": info["symbol"], "token": info["token"],
+                    "lot_size": info.get("lot_size") or self.instruments.get_lot_size()}
+
+        # Fall back to configured values so paper/backtest runs still work when
+        # the instrument master is unavailable.
+        return {
+            "strike": strike,
+            "symbol": f"NIFTY{strike}{option_type}",
+            "token": None,
+            "lot_size": int(get_setting("lot_size") or "75"),
+        }
+
+    def _fit_to_margin(self, quantity: int, price: float, lot_size: int,
+                       margin: Dict) -> int:
+        required = price * quantity
+        if margin["available"] >= required:
+            self.logger.margin_check(margin["available"], required, True)
+            return quantity
+
+        cost_per_lot = price * lot_size
+        affordable_lots = int(margin["available"] // cost_per_lot) if cost_per_lot > 0 else 0
+        min_lots = int(get_setting("min_lots") or "1")
+
+        if affordable_lots < min_lots:
+            self.logger.margin_check(margin["available"], cost_per_lot * min_lots, False)
+            self.logger.order_failed(
+                f"Insufficient margin: need Rs {cost_per_lot * min_lots:,.0f} for "
+                f"{min_lots} lot(s), have Rs {margin['available']:,.0f}")
+            return 0
+
+        reduced = affordable_lots * lot_size
+        self.logger.info(f"Margin trim: {quantity} -> {reduced} units "
+                         f"(Rs {margin['available']:,.0f} available)")
+        self.logger.margin_check(margin["available"], price * reduced, True)
+        return reduced
+
+    def _enter_live(self, contract: Dict, quantity: int
+                    ) -> Optional[Tuple[List[str], float, int]]:
+        """
+        Place the buy, then confirm what actually filled.
+        Returns (order_ids, average_fill_price, filled_quantity).
+        """
+        order_ids, placed_qty = self._execute_sliced(contract["symbol"], contract["token"],
+                                                     "BUY", quantity)
+        if not order_ids:
+            self.logger.order_failed("Entry rejected — no order was accepted")
+            return None
+
+        avg_price, filled_qty = self._confirm_fills(order_ids)
+
+        if filled_qty <= 0:
+            self.logger.order_failed("Entry orders accepted but nothing filled")
+            return None
+
+        if placed_qty < quantity:
+            # A slice failed mid-way. Do not carry an unintended position.
+            self.logger.error(
+                f"Partial entry: {filled_qty}/{quantity} filled. "
+                f"Unwinding the filled portion immediately.")
+            self._execute_sliced(contract["symbol"], contract["token"], "SELL", filled_qty)
+            return None
+
+        if avg_price <= 0:
+            self.logger.warning("Fill price unavailable from the order book; "
+                                "the trade will be marked at the last traded price")
+            avg_price = self._last_price(contract["token"])
+            if avg_price <= 0:
+                self.logger.order_failed("Cannot determine the entry fill price")
+                self._execute_sliced(contract["symbol"], contract["token"], "SELL", filled_qty)
+                return None
+
+        return order_ids, round(avg_price, 2), filled_qty
+
+    def _last_price(self, token: Optional[str]) -> float:
+        if token and self.data_feed:
+            return self.data_feed.get_token_price(token)
+        return 0.0
+
+    def _execute_sliced(self, symbol: str, token: str, side: str,
+                        quantity: int) -> Tuple[List[str], int]:
+        """Place a market order, splitting it across the freeze limit."""
+        if not self.smart_api:
+            return [], 0
+
+        order_ids: List[str] = []
+        remaining = quantity
+        placed = 0
+
+        while remaining > 0:
+            chunk = min(remaining, MAX_QTY_PER_ORDER)
+            order_id = self._place_chunk(symbol, token, side, chunk)
+            if order_id is None:
+                self.logger.error(f"{side} slice of {chunk} failed after "
+                                  f"{ORDER_RETRIES} attempts; stopping")
+                break
+
+            order_ids.append(order_id)
+            placed += chunk
+            remaining -= chunk
+            if remaining > 0:
+                time.sleep(SLICE_DELAY_SEC)
+
+        return order_ids, placed
+
+    def _place_chunk(self, symbol: str, token: str, side: str,
+                     quantity: int) -> Optional[str]:
+        params = {
+            "variety": "NORMAL",
+            "tradingsymbol": symbol,
+            "symboltoken": token,
+            "transactiontype": side,
+            "exchange": "NFO",
+            "ordertype": "MARKET",
+            "producttype": "INTRADAY",
+            "duration": "DAY",
+            "quantity": str(quantity),
+        }
+        for attempt in range(1, ORDER_RETRIES + 1):
+            try:
+                order_id = self.smart_api.placeOrder(params)
+                if order_id:
+                    self.logger.info(f"{side} {quantity} {symbol} -> order {order_id}")
+                    return str(order_id)
+                self.logger.warning(f"{side} attempt {attempt} returned no order id")
+            except Exception as exc:
+                self.logger.error(f"{side} attempt {attempt} raised: {exc}")
+            if attempt < ORDER_RETRIES:
+                time.sleep(RETRY_DELAY_SEC)
         return None
 
-    def _execute_live_order_sliced(self, symbol: str, token: str, side: str, quantity: int) -> List[str]:
-        """Generic helper to execute live orders with slicing and retries."""
-        if not self.smart_api:
-            return []
-
-        # Use the hard quantity limit (1800 for Nifty)
-        max_qty_per_order = MAX_QTY_PER_ORDER
-        
-        total_qty = quantity
-        all_order_ids = []
-        
-        while total_qty > 0:
-            chunk_qty = min(total_qty, max_qty_per_order)
-            
-            # Retry logic: Try up to 3 times (initial + 2 retries)
-            success = False
-            for attempt in range(3):
-                try:
-                    order_params = {
-                        "variety": "NORMAL",
-                        "tradingsymbol": symbol,
-                        "symboltoken": token,
-                        "transactiontype": side,
-                        "exchange": "NFO",
-                        "ordertype": "MARKET",
-                        "producttype": "INTRADAY",
-                        "duration": "DAY",
-                        "quantity": str(chunk_qty),
-                    }
-                    order_id = self.smart_api.placeOrder(order_params)
-                    if order_id:
-                        all_order_ids.append(order_id)
-                        self.logger.info(f"Live order chunk placed: {order_id} ({side} Qty: {chunk_qty}, Attempt: {attempt+1})")
-                        success = True
-                        break
-                    else:
-                        self.logger.warning(f"Order attempt {attempt+1} returned no order_id for qty {chunk_qty}")
-                except Exception as e:
-                    self.logger.error(f"Order attempt {attempt+1} exception for qty {chunk_qty}: {e}")
-                
-                if attempt < 2:
-                    time.sleep(0.5) # Wait 500ms before retry
-            
-            if not success:
-                self.logger.error(f"FATAL: Failed to execute {side} order for chunk {chunk_qty} after 3 attempts.")
-                # We stop here to prevent partially filled large positions from becoming unmanageable
-                return all_order_ids 
-
-            total_qty -= chunk_qty
-            if total_qty > 0:
-                time.sleep(0.3) # 300ms delay between sequential chunks to prevent rate limits
-        
-        return all_order_ids
-
-    def exit_trade(self, trade_id: int, exit_price: float,
-                   reason: str = "manual", mode: str = "paper", timestamp: Optional[datetime] = None) -> float:
+    def _confirm_fills(self, order_ids: List[str]) -> Tuple[float, int]:
         """
-        Exit an active trade.
-        Returns P&L.
+        Poll the order book until the given orders reach a terminal state.
+        Returns (quantity-weighted average fill price, total filled quantity).
         """
+        wanted = set(order_ids)
+        for attempt in range(FILL_POLL_ATTEMPTS):
+            try:
+                book = (self.smart_api.orderBook() or {}).get("data") or []
+            except Exception as exc:
+                self.logger.warning(f"Order book poll failed: {exc}")
+                book = []
+
+            total_qty = 0
+            notional = 0.0
+            pending = False
+
+            for row in book:
+                if str(row.get("orderid")) not in wanted:
+                    continue
+                status = str(row.get("status", "")).lower()
+                filled = int(float(row.get("filledshares") or 0))
+                avg = float(row.get("averageprice") or 0)
+
+                if status in ("complete", "rejected", "cancelled"):
+                    if filled > 0 and avg > 0:
+                        total_qty += filled
+                        notional += avg * filled
+                else:
+                    pending = True
+
+            if not pending and total_qty > 0:
+                return notional / total_qty, total_qty
+            if attempt < FILL_POLL_ATTEMPTS - 1:
+                time.sleep(FILL_POLL_DELAY_SEC)
+
+        self.logger.warning("Timed out waiting for fill confirmation")
+        return 0.0, 0
+
+    # -------------------------------------------------------------------- exit
+
+    def exit_trade(self, trade_id: int, exit_price: float, reason: str = "manual",
+                   mode: str = "paper", timestamp: Optional[datetime] = None,
+                   underlying_price: Optional[float] = None) -> float:
+        """Close a trade and book the P&L. Returns net P&L."""
         try:
-            active = get_active_trade()
-            if not active or active["id"] != trade_id:
-                self.logger.warning(f"Trade {trade_id} not found or not active")
-                return 0
- 
+            trade = get_active_trade()
+            if not trade or trade["id"] != trade_id:
+                self.logger.warning(f"Trade {trade_id} is not open; nothing to exit")
+                return 0.0
+
+            exit_order_ids: List[str] = []
             if mode == "live" and self.smart_api:
-                # Place exit order via Angel One
-                self._place_exit_order(active, exit_price)
- 
-            pnl = close_trade(trade_id, exit_price, reason, timestamp=timestamp)
- 
+                exit_order_ids, placed = self._execute_sliced(
+                    trade["trading_symbol"], trade.get("token"), "SELL", trade["quantity"])
+                if placed < trade["quantity"]:
+                    # The book is now out of sync with reality; make it loud.
+                    self.logger.error(
+                        f"EXIT INCOMPLETE for trade {trade_id}: sold {placed} of "
+                        f"{trade['quantity']}. Manual intervention required.")
+                if exit_order_ids:
+                    avg, filled = self._confirm_fills(exit_order_ids)
+                    if avg > 0:
+                        exit_price = round(avg, 2)
+
+            pnl = close_trade(trade_id, exit_price, reason, timestamp=timestamp,
+                              underlying_exit_price=underlying_price,
+                              exit_order_ids=",".join(exit_order_ids) or None)
+
             self.logger.order_exit(reason, pnl, {
-                "trade_id": trade_id,
-                "entry": active["entry_price"],
-                "exit": exit_price,
-                "type": active["type"]
+                "trade_id": trade_id, "entry": trade["entry_price"],
+                "exit": exit_price, "type": trade["type"],
             }, timestamp=timestamp)
- 
             return pnl
 
-        except Exception as e:
-            self.logger.error(f"Exit trade {trade_id} failed", e)
-            return 0
-
-    def partial_exit(self, trade_id: int, quantity: int, exit_price: float, 
-                     reason: str = "partial_target", mode: str = "paper", 
-                     timestamp: Optional[datetime] = None) -> float:
-        """
-        Exits a portion of an active trade.
-        Records realized P&L by updating existing trade qty and inserting a closed record.
-        """
-        try:
-            from database import update_trade, get_ist_now
-            active = get_active_trade()
-            if not active or active["id"] != trade_id:
-                self.logger.warning(f"Partial exit failed: Trade {trade_id} not found or not active")
-                return 0
-
-            if quantity >= active["quantity"]:
-                self.logger.info("Partial quantity >= total. Closing entire trade instead.")
-                return self.exit_trade(trade_id, exit_price, reason, mode, timestamp)
-
-            if mode == "live" and self.smart_api:
-                # Place partial exit order
-                self._place_partial_sell_order(active, quantity, exit_price)
-
-            # Realized P&L for this portion (Subtract charges)
-            from database import calculate_charges
-            gross_pnl = round((exit_price - active["entry_price"]) * quantity, 2)
-            charges = calculate_charges(active["entry_price"], exit_price, quantity)
-            realized_pnl = round(gross_pnl - charges["total_charges"], 2)
-            
-            # 1. Update active trade (decrease quantity, mark partial_booked)
-            remaining_qty = active["quantity"] - quantity
-            update_trade(trade_id, {
-                "quantity": remaining_qty,
-                "partial_booked": 1
-            })
-
-            # 2. Insert a "Closed" trade record for the partial exit portion to track P&L
-            now = timestamp or get_ist_now()
-            partial_record = dict(active)
-            partial_record["exit_time"] = now.strftime("%H:%M:%S")
-            
-            # Remove ID so it inserts as new
-            if "id" in partial_record: del partial_record["id"]
-            partial_record["quantity"] = quantity
-            partial_record["status"] = "win" if realized_pnl > 0 else "loss"
-            partial_record["exit_price"] = exit_price
-            partial_record["pnl"] = gross_pnl
-            partial_record["net_pnl"] = realized_pnl
-            partial_record["brokerage"] = charges["brokerage"]
-            partial_record["stt"] = charges["stt"]
-            partial_record["exc_charges"] = charges["exc_charges"]
-            partial_record["gst"] = charges["gst"]
-            partial_record["exit_reason"] = reason
-            
-            insert_trade(partial_record, timestamp=now)
-
-            self.logger.info(f"PARTIAL BOOKED: Sold {quantity} units at {exit_price}. Realized P&L: {realized_pnl}")
-            return realized_pnl
-
-        except Exception as e:
-            self.logger.error(f"Partial exit for trade {trade_id} failed", e)
-            return 0
-
-    def _place_partial_sell_order(self, trade: Dict, quantity: int, price: float):
-        """Place a partial exit order via Angel One (Market Sell), slicing if necessary."""
-        self._execute_live_order_sliced(
-            symbol=trade["trading_symbol"],
-            token=trade.get("token", ""),
-            side="SELL",
-            quantity=quantity
-        )
-
-    def _place_exit_order(self, trade: Dict, price: float):
-        """Place an exit order via Angel One, slicing if necessary."""
-        self._execute_live_order_sliced(
-            symbol=trade["trading_symbol"],
-            token=trade.get("token", ""),
-            side="SELL",
-            quantity=trade["quantity"]
-        )
-
-    def exit_all_positions(self, current_price: float, reason: str = "squareoff"):
-        """Exit all open positions (for square-off)."""
-        active = get_active_trade()
-        if active:
-            mode = active.get("mode", "paper")
-            self.exit_trade(active["id"], current_price, reason, mode)
+        except Exception as exc:
+            self.logger.error(f"Exit failed for trade {trade_id}", exc)
+            return 0.0
 
 
-# Global instance
-_order_manager = None
+_order_manager: Optional[OrderManager] = None
+
 
 def get_order_manager(smart_api=None) -> OrderManager:
-    """Get or create the global OrderManager instance."""
     global _order_manager
     if _order_manager is None:
         _order_manager = OrderManager(smart_api)

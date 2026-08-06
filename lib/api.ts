@@ -1,110 +1,64 @@
-import type { Settings } from './types';
+import type {
+  Analytics, BotStatus, CandlePayload, Settings, StrategyState, TradesResponse,
+} from './types';
 
-const BOT_URL = process.env.PYTHON_BOT_URL || 'http://localhost:8000';
+const BASE = '/api/bot';
 
-async function fetchBot(path: string, options?: RequestInit) {
-  const res = await fetch(`${BOT_URL}${path}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
+async function call<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, {
+    ...init,
+    headers: { 'Content-Type': 'application/json', ...init?.headers },
   });
+  const payload = await res.json().catch(() => ({}));
   if (!res.ok) {
-    throw new Error(`Bot API error: ${res.status} ${res.statusText}`);
+    throw new Error(payload?.error || payload?.detail || `Request failed (${res.status})`);
   }
-  return res.json();
+  return payload as T;
 }
 
-// --- Client-side API helpers (call Next.js API routes) ---
-
-const API_BASE = '/api';
-
-async function fetchAPI(path: string, options?: RequestInit) {
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`API error: ${res.status} - ${text}`);
-  }
-  return res.json();
-}
-
-// Public API functions for frontend components
 export const api = {
-  // Price & Market Data
-  getPrice: () => fetchAPI('/price'),
-  getSignal: () => fetchAPI('/signal'),
-  getCandles: () => fetchAPI('/candles'),
-  getOrb: () => fetchAPI('/orb'),
-  getFibonacci: () => fetchAPI('/fibonacci'),
-  getMacd: () => fetchAPI('/macd'),
-  getStrategyPhase: () => fetchAPI('/strategy-phase'),
+  status: () => call<BotStatus>('/status'),
+  orb: () => call<StrategyState>('/orb'),
+  candles: () => call<CandlePayload>('/candles'),
+  analytics: (mode?: string) => call<Analytics>(`/analytics${mode ? `?mode=${mode}` : ''}`),
 
-  // Bot Control
-  getBotStatus: () => fetchAPI('/bot/status'),
-  startBot: () => fetchAPI('/bot/start', { method: 'POST' }),
-  stopBot: () => fetchAPI('/bot/stop', { method: 'POST' }),
-
-  // Trades
-  getTrades: (params?: { mode?: string; date_from?: string; date_to?: string }) => {
-    const searchParams = new URLSearchParams();
-    if (params?.mode) searchParams.set('mode', params.mode);
-    if (params?.date_from) searchParams.set('date_from', params.date_from);
-    if (params?.date_to) searchParams.set('date_to', params.date_to);
-    const query = searchParams.toString();
-    return fetchAPI(`/trades${query ? `?${query}` : ''}`);
-  },
-  getActiveTrade: () => fetchAPI('/trades/active'),
-  exitTrade: (price?: number) => fetchAPI('/exit-trade', {
+  start: () => call<{ status: string }>('/start', { method: 'POST' }),
+  stop: () => call<{ status: string }>('/stop', { method: 'POST' }),
+  exitTrade: () => call<{ status: string; message: string }>('/exit-trade', {
     method: 'POST',
-    body: JSON.stringify({ price }),
+    body: JSON.stringify({}),
   }),
 
-  // P&L
-  getPnL: (mode?: string) => {
-    const query = mode ? `?mode=${mode}` : '';
-    return fetchAPI(`/pnl${query}`);
+  trades: (params: { mode?: string; limit?: number } = {}) => {
+    const query = new URLSearchParams();
+    if (params.mode) query.set('mode', params.mode);
+    query.set('limit', String(params.limit ?? 200));
+    return call<TradesResponse>(`/trades?${query}`);
   },
 
-  // Settings
-  getSettings: () => fetchAPI(`/settings?t=${Date.now()}`),
-  saveSettings: (settings: Partial<Settings> | Record<string, string>) => fetchAPI('/settings', {
+  settings: () => call<{ settings: Settings; secret_keys: string[] }>('/settings'),
+  saveSettings: (settings: Partial<Settings>) => call<{ status: string }>('/settings', {
     method: 'POST',
     body: JSON.stringify({ settings }),
   }),
 
-  // Logs
-  getLogs: (limit?: number, category?: string) => {
-    const params = new URLSearchParams();
-    if (limit) params.set('limit', String(limit));
-    if (category) params.set('category', category);
-    const query = params.toString();
-    return fetchAPI(`/logs${query ? `?${query}` : ''}`);
-  },
-
-  getMarginLogs: (limit?: number) => {
-    const query = limit ? `?limit=${limit}` : '';
-    return fetchAPI(`/logs/margin-failures${query}`);
-  },
-
-  // Margin
-  getMargin: () => fetchAPI('/margin'),
-
-  // Clear Data
-  clearData: () => fetchAPI('/clear-data', { method: 'POST' }),
+  clearData: () => call<{ status: string }>('/clear-data', { method: 'POST' }),
+  logs: (limit = 100) => call<{ logs: LogEntry[] }>(`/logs?limit=${limit}`),
 };
 
-// Server-side bot API (used by Next.js API routes)
-export const botApi = {
-  get: (path: string) => fetchBot(path),
-  post: (path: string, body?: unknown) => fetchBot(path, {
-    method: 'POST',
-    body: body ? JSON.stringify(body) : undefined,
-  }),
-};
+export interface LogEntry {
+  id: number;
+  timestamp: string;
+  level: string;
+  category: string;
+  message: string;
+}
+
+export const inr = (value: number, decimals = 0) =>
+  `${value < 0 ? '-' : ''}₹${Math.abs(value).toLocaleString('en-IN', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  })}`;
+
+export const num = (value: number | null | undefined, decimals = 2) =>
+  value === null || value === undefined ? '—' : value.toFixed(decimals);

@@ -1,368 +1,314 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { api } from '@/lib/api';
+import { useLoad } from '@/lib/hooks';
 import type { Settings } from '@/lib/types';
 
+type FieldType = 'text' | 'number' | 'password' | 'time' | 'select';
+
+interface Field {
+  key: string;
+  label: string;
+  type?: FieldType;
+  options?: { value: string; label: string }[];
+  hint?: string;
+  step?: string;
+}
+
+interface Group {
+  title: string;
+  blurb: string;
+  fields: Field[];
+}
+
+const GROUPS: Group[] = [
+  {
+    title: 'Mode',
+    blurb: 'Paper trades are simulated end to end. Live requires BOT_API_TOKEN on the server.',
+    fields: [
+      {
+        key: 'trading_mode',
+        label: 'Trading mode',
+        type: 'select',
+        options: [
+          { value: 'paper', label: 'Paper' },
+          { value: 'live', label: 'Live' },
+        ],
+      },
+      {
+        key: 'data_source',
+        label: 'Price source',
+        type: 'select',
+        options: [
+          { value: 'smartapi', label: 'Angel One live feed' },
+          { value: 'playback', label: 'CSV playback' },
+        ],
+      },
+    ],
+  },
+  {
+    title: 'Opening range',
+    blurb: 'How the range is built and what counts as a valid breakout.',
+    fields: [
+      { key: 'orb_or_minutes', label: 'Range length (minutes)', type: 'number', hint: 'Minutes from 09:15 used to set the high/low.' },
+      { key: 'orb_min_range_pct', label: 'Min range %', type: 'number', step: '0.01', hint: 'Skip the day if the range is narrower — usually noise.' },
+      { key: 'orb_max_range_pct', label: 'Max range %', type: 'number', step: '0.01', hint: 'Skip gap days where the stop would be too wide.' },
+      {
+        key: 'orb_entry_trigger',
+        label: 'Breakout trigger',
+        type: 'select',
+        options: [
+          { value: 'close', label: 'Candle close beyond the level' },
+          { value: 'touch', label: 'Any touch of the level' },
+        ],
+      },
+      { key: 'orb_confirm_interval_mins', label: 'Confirmation timeframe (min)', type: 'number', hint: 'Aggregate 1-min bars into this timeframe before confirming.' },
+      { key: 'orb_breakout_buffer_pct', label: 'Breakout buffer %', type: 'number', step: '0.01', hint: 'Extra distance past the level to filter false breaks.' },
+      { key: 'orb_entry_cutoff', label: 'Last entry time', type: 'time' },
+    ],
+  },
+  {
+    title: 'Exits',
+    blurb: 'Where the stop sits and how profits are taken.',
+    fields: [
+      {
+        key: 'orb_sl_mode',
+        label: 'Stop loss',
+        type: 'select',
+        options: [
+          { value: 'or_opposite', label: 'Opposite side of the range' },
+          { value: 'or_fraction', label: 'Fraction of the range' },
+        ],
+      },
+      { key: 'orb_sl_fraction', label: 'Stop fraction', type: 'number', step: '0.05', hint: 'Used only when the stop mode is a fraction of the range.' },
+      { key: 'orb_target_r', label: 'Target (R multiple)', type: 'number', step: '0.1' },
+      { key: 'orb_breakeven_after_r', label: 'Move to breakeven at (R)', type: 'number', step: '0.1', hint: '0 disables the breakeven move.' },
+      { key: 'orb_trail_r', label: 'Trail stop every (R)', type: 'number', step: '0.1', hint: '0 disables trailing.' },
+      { key: 'option_sl_pct', label: 'Hard premium stop (%)', type: 'number', step: '1', hint: 'Backstop on the option premium regardless of the index stop.' },
+      { key: 'square_off_time', label: 'Square off time', type: 'time' },
+    ],
+  },
+  {
+    title: 'Risk & sizing',
+    blurb: 'Position size and the daily kill switch.',
+    fields: [
+      {
+        key: 'position_sizing_mode',
+        label: 'Sizing mode',
+        type: 'select',
+        options: [
+          { value: 'fixed_lots', label: 'Fixed lots' },
+          { value: 'risk_percent', label: 'Risk % of capital' },
+        ],
+      },
+      { key: 'fixed_lots', label: 'Fixed lots', type: 'number' },
+      { key: 'risk_percent_per_trade', label: 'Risk per trade (%)', type: 'number', step: '0.1' },
+      { key: 'lot_size', label: 'Lot size', type: 'number' },
+      { key: 'min_lots', label: 'Min lots', type: 'number' },
+      { key: 'max_lots', label: 'Max lots', type: 'number' },
+      { key: 'max_capital_per_trade_pct', label: 'Max capital per trade (%)', type: 'number', step: '0.5' },
+      { key: 'max_daily_loss', label: 'Max daily loss (₹)', type: 'number', hint: 'Bot flattens and stops trading for the day when hit.' },
+      { key: 'orb_max_trades_per_day', label: 'Max trades per day', type: 'number' },
+      {
+        key: 'orb_allow_reversal',
+        label: 'Allow reversal trade',
+        type: 'select',
+        options: [
+          { value: 'false', label: 'No' },
+          { value: 'true', label: 'Yes — trade the other side after a stop' },
+        ],
+      },
+      { key: 'initial_capital', label: 'Capital (₹)', type: 'number' },
+    ],
+  },
+  {
+    title: 'Broker credentials',
+    blurb: 'Stored server-side and never sent back to the browser. Leave masked fields alone to keep the saved value.',
+    fields: [
+      { key: 'api_key', label: 'API key', type: 'password' },
+      { key: 'client_id', label: 'Client ID' },
+      { key: 'pin', label: 'PIN', type: 'password' },
+      { key: 'totp_secret', label: 'TOTP secret', type: 'password' },
+    ],
+  },
+  {
+    title: 'Playback',
+    blurb: 'Replay historical CSV data through the exact same strategy code as live.',
+    fields: [
+      { key: 'playback_file', label: 'CSV file' },
+      { key: 'playback_speed', label: 'Speed (bars/sec)', type: 'number' },
+      { key: 'playback_start_date', label: 'Start date', hint: 'YYYY-MM-DD, blank for the beginning.' },
+      { key: 'playback_end_date', label: 'End date', hint: 'YYYY-MM-DD, blank for the end.' },
+    ],
+  },
+];
+
 export default function SettingsPage() {
-  const [settings, setSettings] = useState<Settings>({
-    api_key: '', client_id: '', pin: '', totp_secret: '',
-    supertrend_period: '10', supertrend_multiplier: '3.0',
-    ema_9_period: '9', ema_21_period: '21',
-    adx_threshold: '20',
-    max_trades_per_day: '5', max_daily_loss: '10000',
-    morning_max_trades: '3', afternoon_max_trades: '2',
-    signal_cutoff_time: '15:00', square_off_time: '15:15', lot_size: '65', 
-    position_size_mode: 'fixed', fixed_lots: '2', max_capital_risk_pct: '1', 
-    trading_mode: 'paper', paper_capital: '500000', 
-    data_source: 'smartapi',
-    playback_file: 'bot/data/nifty_sample.csv', playback_speed: '1',
-    playback_start_date: '', playback_end_date: '', playback_period: 'all',
-    initial_capital: '500000',
-    position_sizing_mode: 'auto_compound',
-    risk_percent_per_trade: '5.0',
-    min_lots: '1',
-    max_lots: '',
-    max_sl_distance_pts: '50',
-    trailing_sl_enabled: 'true',
-    option_sl_pct: '40.0',
-    max_capital_per_trade_pct: '20.0',
-    max_trade_duration_mins: '90',
-  });
+  const [settings, setSettings] = useState<Settings>({});
+  const [secretKeys, setSecretKeys] = useState<string[]>([]);
+  const [dirty, setDirty] = useState<Record<string, string>>({});
+  const [status, setStatus] = useState<{ text: string; ok: boolean } | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
-  const fetchSettings = useCallback(async () => {
+  const load = useCallback(async () => {
     try {
-      // Add timestamp to prevent 304 caching
-      const data = await api.getSettings(); 
-      if (data && data.settings) {
-        setSettings(prev => ({ ...prev, ...data.settings }));
-      }
-    } catch {
-      // Bot not connected
+      const data = await api.settings();
+      setSettings(data.settings ?? {});
+      setSecretKeys(data.secret_keys ?? []);
+      setStatus(null);
+    } catch (err) {
+      setStatus({ text: err instanceof Error ? err.message : 'Cannot load settings', ok: false });
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    fetchSettings();
-  }, [fetchSettings]);
+  useLoad(load);
 
-  const showToast = (message: string, type: 'success' | 'error') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
+  const set = (key: string, value: string) => {
+    setSettings((prev) => ({ ...prev, [key]: value }));
+    setDirty((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleSave = async () => {
+  const save = async () => {
+    if (!Object.keys(dirty).length) return;
     setSaving(true);
     try {
-      await api.saveSettings(settings);
-      showToast('Settings saved successfully!', 'success');
-    } catch {
-      showToast('Failed to save settings', 'error');
+      await api.saveSettings(dirty);
+      setDirty({});
+      setStatus({ text: 'Saved. Restart the bot to apply credential or data-source changes.', ok: true });
+      await load();
+    } catch (err) {
+      setStatus({ text: err instanceof Error ? err.message : 'Save failed', ok: false });
     } finally {
       setSaving(false);
     }
   };
 
-  const handleChange = (key: keyof Settings, value: string) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
+  const clearData = async () => {
+    if (
+      !confirm(
+        'Clear all trades, signals and logs?\n\nSettings and Angel credentials are kept. Stop the bot first if it is running.',
+      )
+    ) {
+      return;
+    }
+    try {
+      await api.clearData();
+      setStatus({ text: 'All trades and logs cleared. Settings kept.', ok: true });
+    } catch (err) {
+      setStatus({ text: err instanceof Error ? err.message : 'Clear failed', ok: false });
+    }
   };
 
-  if (loading) {
-    return (
-      <div className="page-container flex items-center justify-center p-32">
-        <div className="animate-pulse text-gray-500">Loading settings...</div>
-      </div>
-    );
-  }
+  const dirtyCount = Object.keys(dirty).length;
 
   return (
-    <div className="page-container">
-      <h1 className="page-title">⚙️ Strategy Settings</h1>
-      
-      {/* 1. Market Access & Credentials */}
-      <div className="settings-section">
-        <h3>🔐 Angel One API Integration</h3>
-        <div className="form-grid">
-           <div className="form-group">
-            <label className="form-label">Trading Mode</label>
-            <select 
-              className="form-input" 
-              value={settings.trading_mode}
-              onChange={(e) => handleChange('trading_mode', e.target.value)}
-            >
-              <option value="paper">📝 Paper Trading</option>
-              <option value="live">💰 Live Trading (Real Money)</option>
-            </select>
-          </div>
-          <div className="form-group">
-            <label className="form-label">Data Source</label>
-            <select 
-              className="form-input" 
-              value={settings.data_source}
-              onChange={(e) => handleChange('data_source', e.target.value)}
-            >
-              <option value="smartapi">Angel One Live Feed</option>
-              <option value="playback">CSV Engine (Backtest)</option>
-            </select>
-          </div>
-          <div className="form-group">
-            <label className="form-label">Backtest Speed</label>
-            <select 
-              className="form-input" 
-              value={settings.playback_speed}
-              disabled={settings.data_source !== 'playback'}
-              onChange={(e) => handleChange('playback_speed', e.target.value)}
-            >
-              <option value="1">1x (Real-time)</option>
-              <option value="10">10x Speed</option>
-              <option value="50">50x Speed</option>
-              <option value="100">100x Speed</option>
-              <option value="500">🚀 Ultra Max (No Delay)</option>
-            </select>
-          </div>
-          <div className="form-group">
-            <label className="form-label">API Key</label>
-            <input type="password" title={settings.api_key} className="form-input" value={settings.api_key} onChange={(e) => handleChange('api_key', e.target.value)} placeholder="Enter API Key" />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Client ID</label>
-            <input type="text" className="form-input" value={settings.client_id} onChange={(e) => handleChange('client_id', e.target.value)} placeholder="S12345678" />
-          </div>
-          <div className="form-group">
-            <label className="form-label">MPIN</label>
-            <input type="password" title={settings.pin} className="form-input" value={settings.pin} onChange={(e) => handleChange('pin', e.target.value)} placeholder="4-digit PIN" />
-          </div>
-          <div className="form-group">
-            <label className="form-label">TOTP Secret</label>
-            <input type="password" title={settings.totp_secret} className="form-input" value={settings.totp_secret} onChange={(e) => handleChange('totp_secret', e.target.value)} placeholder="Enter TOTP Secret" />
-          </div>
+    <main className="mx-auto max-w-[1000px] px-4 py-4 pb-28 sm:px-5 sm:py-5 sm:pb-24">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="m-0 text-[1.05rem] font-semibold">Settings</h1>
+          <p className="m-0 mt-0.5 text-[0.78rem] text-[var(--faint)]">
+            Strategy changes apply on the next candle; credentials need a restart.
+          </p>
         </div>
-      </div>
-      
-      {/* 2. Backtest Config (only visible in playback) */}
-      <div className="settings-section border-l-4 border-indigo-500">
-        <h3 className="text-indigo-500">🧪 Backtest Configuration</h3>
-        <div className="form-grid">
-          <div className="form-group sm:col-span-1">
-            <label className="form-label">Playback Start Date</label>
-            <input 
-              type="date" 
-              className="form-input" 
-              value={settings.playback_start_date} 
-              onChange={(e) => handleChange('playback_start_date', e.target.value)} 
-            />
-          </div>
-          <div className="form-group sm:col-span-1">
-            <label className="form-label">Playback End Date (Optional)</label>
-            <input 
-              type="date" 
-              className="form-input" 
-              value={settings.playback_end_date} 
-              onChange={(e) => handleChange('playback_end_date', e.target.value)} 
-            />
-          </div>
-          <p className="col-span-2 text-[10px] text-gray-400 -mt-2">Leave dates empty to process the entire file.</p>
-          <div className="form-group">
-            <label className="form-label">Backtest Duration</label>
-            <select 
-              className="form-input" 
-              value={settings.playback_period} 
-              onChange={(e) => handleChange('playback_period', e.target.value)}
-            >
-              <option value="all">📊 Full Dataset</option>
-              <option value="1 month">📅 1 Month</option>
-              <option value="3 months">📅 3 Months</option>
-              <option value="6 months">📅 6 Months</option>
-              <option value="1 year">📅 1 Year</option>
-            </select>
-          </div>
-          <div className="form-group sm:col-span-1">
-            <label className="form-label text-indigo-400 font-bold">Initial Capital (₹)</label>
-            <input 
-              type="number" 
-              className="form-input border-indigo-500/30" 
-              value={settings.initial_capital} 
-              onChange={(e) => handleChange('initial_capital', e.target.value)} 
-            />
-          </div>
-        </div>
+        <button className="btn btn-danger w-full sm:w-auto" onClick={clearData}>
+          Clear trades &amp; logs
+        </button>
       </div>
 
-      {/* 3. Strategy Parameters */}
-      <div className="settings-section border-l-4 border-cyan-500">
-        <h3 className="text-cyan-400">📊 Strategy Parameters (EMA + Supertrend)</h3>
-        <div className="form-grid">
-          <div className="form-group">
-            <label className="form-label">Supertrend Period</label>
-            <input type="number" className="form-input" value={settings.supertrend_period} onChange={(e) => handleChange('supertrend_period', e.target.value)} />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Supertrend Multiplier</label>
-            <input type="number" step="0.1" className="form-input" value={settings.supertrend_multiplier} onChange={(e) => handleChange('supertrend_multiplier', e.target.value)} />
-          </div>
-          <div className="form-group border-l-2 border-blue-500/30 pl-4">
-            <label className="form-label">Short EMA Period</label>
-            <input type="number" className="form-input" value={settings.ema_9_period} onChange={(e) => handleChange('ema_9_period', e.target.value)} />
-          </div>
-          <div className="form-group border-l-2 border-blue-500/30 pl-4">
-            <label className="form-label">Long EMA Period</label>
-            <input type="number" className="form-input" value={settings.ema_21_period} onChange={(e) => handleChange('ema_21_period', e.target.value)} />
-          </div>
-          <div className="form-group col-span-2">
-            <label className="form-label flex items-center gap-1">
-              ADX Choppiness Filter (Threshold)
-              <span className="text-[10px] bg-yellow-500/20 text-yellow-400 px-1 rounded border border-yellow-500/30 cursor-help" title="Only trades when ADX is above this value. Prevents entry in sideways/range-bound markets. (Default 20)">i</span>
-            </label>
-            <input type="number" className="form-input" value={settings.adx_threshold} onChange={(e) => handleChange('adx_threshold', e.target.value)} />
-          </div>
+      {status && (
+        <div
+          className={`card mb-4 px-4 py-2.5 text-[0.8rem] ${
+            status.ok
+              ? 'border-[color-mix(in_srgb,var(--green)_40%,transparent)] text-[var(--green)]'
+              : 'border-[color-mix(in_srgb,var(--red)_40%,transparent)] text-[var(--red)]'
+          }`}
+        >
+          {status.text}
         </div>
-      </div>
-
-      {/* 5. Trade Execution */}
-      <div className="settings-section border-l-4 border-green-500">
-        <h3 className="text-green-500">🛡️ Execution & Risk</h3>
-        <div className="form-grid">
-          <div className="form-group col-span-2">
-            <label className="form-label">Position Sizing Mode</label>
-            <select className="form-input" value={settings.position_sizing_mode} onChange={(e) => handleChange('position_sizing_mode', e.target.value)}>
-              <option value="fixed_lots">📍 Fixed Lots</option>
-              <option value="auto_compound">⚖️ Auto-Compounding ( compounding)</option>
-            </select>
-          </div>
-          
-          {settings.position_sizing_mode === 'fixed_lots' ? (
-            <div className="form-group">
-              <label className="form-label">Fixed Lots</label>
-              <input type="number" className="form-input" value={settings.fixed_lots} onChange={(e) => handleChange('fixed_lots', e.target.value)} />
-            </div>
-          ) : (
-            <>
-              <div className="form-group">
-                <label className="form-label text-cyan-400">Risk Per Trade (%)</label>
-                <input type="number" step="0.1" className="form-input" value={settings.risk_percent_per_trade} onChange={(e) => handleChange('risk_percent_per_trade', e.target.value)} />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Min Lots</label>
-                <input type="number" className="form-input" value={settings.min_lots} onChange={(e) => handleChange('min_lots', e.target.value)} />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Max Lots</label>
-                <input type="number" className="form-input" value={settings.max_lots} onChange={(e) => handleChange('max_lots', e.target.value)} placeholder="Auto (₹10k/lot, min 10)" />
-              </div>
-            </>
-          )}
-          <div className="form-group">
-            <label className="form-label flex items-center gap-1">
-              Stop Loss Trailing
-              <span className="text-[10px] bg-blue-500/20 text-blue-400 px-1 rounded border border-blue-500/30 cursor-help" title="Static SL stays fixed. Trailing SL moves up with the Supertrend line on every 5-min candle close.">i</span>
-            </label>
-            <select className="form-input" value={settings.trailing_sl_enabled} onChange={(e) => handleChange('trailing_sl_enabled', e.target.value)}>
-              <option value="false">🛡️ Static SL (Fixed Position)</option>
-              <option value="true">📈 Trailing SL (Follow Supertrend)</option>
-            </select>
-          </div>
-
-          <div className="form-group border-l-2 border-red-500/30 pl-4">
-            <label className="form-label text-red-400 flex items-center gap-1">
-              Max SL Distance Filter
-              <span className="text-[10px] bg-red-500/20 text-red-400 px-1 rounded border border-red-500/30 cursor-help" title="Skips trades if the distance from entry price to Supertrend SL is wider than this value. (Default 50 pts)">i</span>
-            </label>
-            <input type="number" className="form-input border-red-500/20" value={settings.max_sl_distance_pts} onChange={(e) => handleChange('max_sl_distance_pts', e.target.value)} placeholder="Max SL distance in pts" />
-          </div>
-
-          <div className="form-group border-l-2 border-red-500/30 pl-4">
-            <label className="form-label text-red-400">Option Premium SL (%)</label>
-            <input type="number" className="form-input border-red-500/20" value={settings.option_sl_pct} onChange={(e) => handleChange('option_sl_pct', e.target.value)} />
-          </div>
-
-          <div className="form-group border-l-2 border-orange-500/30 pl-4">
-            <label className="form-label text-orange-400">Max Capital / Trade (%)</label>
-            <input type="number" className="form-input border-orange-500/20" value={settings.max_capital_per_trade_pct} onChange={(e) => handleChange('max_capital_per_trade_pct', e.target.value)} />
-          </div>
-
-          <div className="form-group border-l-2 border-yellow-500/30 pl-4">
-            <label className="form-label text-yellow-400">Max Duration (Mins)</label>
-            <input type="number" className="form-input border-yellow-500/20" value={settings.max_trade_duration_mins} onChange={(e) => handleChange('max_trade_duration_mins', e.target.value)} />
-          </div>
-        </div>
-      </div>
-
-      {/* 6. Market Controls */}
-      <div className="settings-section">
-        <h3>🚨 Safety Controls</h3>
-        <div className="form-grid">
-           <div className="form-group">
-            <label className="form-label">Total Max Trades / Day</label>
-            <input type="number" className="form-input" value={settings.max_trades_per_day} onChange={(e) => handleChange('max_trades_per_day', e.target.value)} />
-          </div>
-          <div className="form-group border-l-2 border-indigo-500/20 pl-2">
-            <label className="form-label text-indigo-300">Morning Max (9:15-12:30)</label>
-            <input type="number" className="form-input" value={settings.morning_max_trades} onChange={(e) => handleChange('morning_max_trades', e.target.value)} />
-          </div>
-          <div className="form-group border-l-2 border-indigo-500/20 pl-2">
-            <label className="form-label text-indigo-300">Afternoon Max (12:30-3:15)</label>
-            <input type="number" className="form-input" value={settings.afternoon_max_trades} onChange={(e) => handleChange('afternoon_max_trades', e.target.value)} />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Signal Cutoff</label>
-            <input type="time" className="form-input" value={settings.signal_cutoff_time} onChange={(e) => handleChange('signal_cutoff_time', e.target.value)} />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Auto Square Off</label>
-            <input type="time" className="form-input" value={settings.square_off_time} onChange={(e) => handleChange('square_off_time', e.target.value)} />
-          </div>
-          <div className="form-group bg-red-500/5 p-2 rounded border border-red-500/10">
-            <label className="form-label text-red-400 font-bold">Daily Loss Kill Switch (₹)</label>
-            <input type="number" className="form-input border-red-500/30" value={settings.max_daily_loss} onChange={(e) => handleChange('max_daily_loss', e.target.value)} />
-          </div>
-          <div className="form-group">
-            <label className="form-label">Lot Size (NIFTY)</label>
-            <input type="number" className="form-input" value={settings.lot_size} onChange={(e) => handleChange('lot_size', e.target.value)} />
-          </div>
-        </div>
-      </div>
-
-      <button className="save-btn" onClick={handleSave} disabled={saving}>
-        {saving ? '⏳ Saving Configuration...' : '💾 Apply All Settings'}
-      </button>
-
-      {/* 7. Danger Zone */}
-      <div className="settings-section border-l-4 border-red-600 mt-12 bg-red-950/10">
-        <h3 className="text-red-500">⚠️ Danger Zone</h3>
-        <p className="text-xs text-gray-400 mb-4">The following actions are irreversible. Use with caution.</p>
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between p-4 bg-red-500/5 rounded-xl border border-red-500/10">
-            <div>
-              <h4 className="text-sm font-bold text-red-200">Reset All Trade Data</h4>
-              <p className="text-[10px] text-gray-500">Clears trade history, signal logs, and performance stats. Your credentials will be preserved.</p>
-            </div>
-            <button 
-              className="px-4 py-2 bg-red-600/20 hover:bg-red-600/40 text-red-400 border border-red-600/30 rounded-lg text-xs font-bold transition-all"
-              onClick={async () => {
-                if (window.confirm('Are you absolutely sure? This will delete all trade history and cannot be undone.')) {
-                  try {
-                    const res = await api.clearData();
-                    showToast(res.message || 'Data cleared successfully', 'success');
-                  } catch (err) {
-                    showToast('Failed to clear data', 'error');
-                  }
-                }
-              }}
-            >
-              🗑️ Clear History
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {toast && (
-        <div className={`toast ${toast.type}`}>{toast.message}</div>
       )}
-    </div>
+
+      {loading ? (
+        <div className="card card-pad text-[0.85rem] text-[var(--faint)]">Loading settings…</div>
+      ) : (
+        <div className="flex flex-col gap-4">
+          {GROUPS.map((group) => (
+            <section key={group.title} className="card card-pad">
+              <h2 className="m-0 text-[0.9rem] font-semibold">{group.title}</h2>
+              <p className="m-0 mt-0.5 mb-4 text-[0.75rem] text-[var(--faint)]">{group.blurb}</p>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {group.fields.map((field) => (
+                  <FieldInput
+                    key={field.key}
+                    field={field}
+                    value={settings[field.key] ?? ''}
+                    secret={secretKeys.includes(field.key)}
+                    onChange={(value) => set(field.key, value)}
+                  />
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      )}
+
+      <div className="fixed inset-x-0 bottom-0 border-t border-[var(--border)] bg-[var(--bg)]/92 backdrop-blur pb-[env(safe-area-inset-bottom)]">
+        <div className="mx-auto flex max-w-[1000px] items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:px-5">
+          <span className="min-w-0 truncate text-[0.78rem] text-[var(--muted)]">
+            {dirtyCount ? `${dirtyCount} unsaved change${dirtyCount > 1 ? 's' : ''}` : 'All changes saved'}
+          </span>
+          <button className="btn btn-start shrink-0" onClick={save} disabled={saving || !dirtyCount}>
+            {saving ? 'Saving…' : 'Save changes'}
+          </button>
+        </div>
+      </div>
+    </main>
+  );
+}
+
+function FieldInput({
+  field,
+  value,
+  secret,
+  onChange,
+}: {
+  field: Field;
+  value: string;
+  secret: boolean;
+  onChange: (value: string) => void;
+}) {
+  const masked = secret && /^\*+$/.test(value);
+
+  return (
+    <label className="flex flex-col gap-1.5">
+      <span className="label">{field.label}</span>
+      {field.type === 'select' ? (
+        <select className="field" value={value} onChange={(e) => onChange(e.target.value)}>
+          {field.options?.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      ) : (
+        <input
+          className="field"
+          type={field.type === 'password' && !masked ? 'password' : field.type === 'number' ? 'number' : field.type === 'time' ? 'time' : 'text'}
+          step={field.step}
+          value={value}
+          placeholder={masked ? 'Stored — type to replace' : undefined}
+          onChange={(e) => onChange(e.target.value)}
+          onFocus={(e) => {
+            if (masked) {
+              e.target.select();
+            }
+          }}
+        />
+      )}
+      {field.hint && <span className="text-[0.7rem] leading-snug text-[var(--faint)]">{field.hint}</span>}
+    </label>
   );
 }

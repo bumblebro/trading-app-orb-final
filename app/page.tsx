@@ -1,318 +1,387 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
 import dynamic from 'next/dynamic';
-import PriceDisplay from '@/components/PriceDisplay';
-import SignalCard from '@/components/SignalCard';
-import StatsGrid from '@/components/StatsGrid';
-import ConnectionStatus from '@/components/ConnectionStatus';
-import LogViewer from '@/components/LogViewer';
-import MarginLogViewer from '@/components/MarginLogViewer';
-import TradeModeToggle from '@/components/TradeModeToggle';
-import TradeCard from '@/components/TradeCard';
-import StrategyFlow from '@/components/StrategyFlow';
-import { api } from '@/lib/api';
-import type { BotStatus, ChartData, Signal } from '@/lib/types';
+import { useCallback, useState } from 'react';
+import { api, inr, num } from '@/lib/api';
+import { usePoll } from '@/lib/hooks';
+import type { BotStatus, BrokerStatus, CandlePayload, Phase } from '@/lib/types';
 
-// Dynamic import for Chart (client-only, uses Canvas)
 const Chart = dynamic(() => import('@/components/Chart'), { ssr: false });
+
+const PHASES: { key: Phase; label: string }[] = [
+  { key: 'BUILDING_RANGE', label: 'Range' },
+  { key: 'WAITING_BREAKOUT', label: 'Watching' },
+  { key: 'IN_TRADE', label: 'In trade' },
+  { key: 'DONE', label: 'Done' },
+];
+
+const POLL_MS = 2000;
 
 export default function DashboardPage() {
   const [status, setStatus] = useState<BotStatus | null>(null);
-  const [signalInfo, setSignalInfo] = useState<Signal | null>(null);
-  const [chartData, setChartData] = useState<ChartData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [mounted, setMounted] = useState(false);
-  const [backendConnected, setBackendConnected] = useState(false);
-  const isFetching = useRef(false);
+  const [candles, setCandles] = useState<CandlePayload | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
-  const fetchData = useCallback(async () => {
-    if (isFetching.current) return;
+  const refresh = useCallback(async () => {
     try {
-      isFetching.current = true;
-      const [statusRes, candlesRes, signalRes] = await Promise.all([
-        api.getBotStatus(),
-        api.getCandles(),
-        api.getSignal(),
-      ]);
-      setStatus(statusRes);
-      setChartData(candlesRes);
-      setSignalInfo(signalRes);
-      setBackendConnected(true);
+      const [nextStatus, nextCandles] = await Promise.all([api.status(), api.candles()]);
+      setStatus(nextStatus);
+      setCandles(nextCandles);
+      setError(null);
     } catch (err) {
-      console.error('[Dashboard] Fetch error:', err);
-      setBackendConnected(false);
-    } finally {
-      isFetching.current = false;
-      setLoading(false);
+      setError(err instanceof Error ? err.message : 'Cannot reach the bot server');
     }
   }, []);
 
-  useEffect(() => {
-    setMounted(true);
-    fetchData();
-    const interval = setInterval(fetchData, 1000); // 1s for real-time feel
-    return () => clearInterval(interval);
-  }, [fetchData]);
+  usePoll(refresh, POLL_MS);
 
-  const handleStartStop = async () => {
+  const act = async (fn: () => Promise<unknown>) => {
+    setBusy(true);
     try {
-      if (status?.running) {
-        await api.stopBot();
-      } else {
-        await api.startBot();
-      }
-      await fetchData();
-    } catch (e) {
-      console.error('Bot control error:', e);
+      await fn();
+      await refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Action failed');
+    } finally {
+      setBusy(false);
     }
   };
 
-  const handleModeToggle = async (newMode: string) => {
-    try {
-      await api.saveSettings({ trading_mode: newMode });
-      await fetchData();
-    } catch (e) {
-      console.error('Mode toggle error:', e);
-    }
-  };
+  const strategy = status?.strategy;
+  const price = status?.price;
+  const position = strategy?.position;
+  const trade = status?.active_trade;
+  const running = status?.running ?? false;
+  const live = status?.mode === 'live';
+  const activeIndex = PHASES.findIndex((p) => p.key === strategy?.phase);
 
-  const priceInfo = status?.price || {} as Record<string, unknown>;
-  const mode = status?.mode || 'paper';
-  const phase = status?.phase || 'WATCHING';
-
-  if (!mounted) return (
-    <div className="page-container flex items-center justify-center p-32">
-      <span className="animate-pulse text-gray-500">Initializing Dashboard...</span>
-    </div>
-  );
+  const initialCapital = status?.initial_capital || 0;
+  const totalPnl = status?.total_pnl ?? 0;
+  const totalReturnPct =
+    initialCapital > 0 ? (totalPnl / initialCapital) * 100 : null;
 
   return (
-    <>
-      <TradeModeToggle mode={mode} onToggle={handleModeToggle} />
-      <div className="page-container">
-        {loading ? (
-          <div className="flex items-center justify-center p-16 text-gray-400">
-            <span className="animate-pulse">Loading dashboard...</span>
+    <main className="mx-auto max-w-[1400px] px-4 py-4 sm:px-5 sm:py-5">
+      {error && (
+        <div className="card mb-4 border-[color-mix(in_srgb,var(--red)_40%,transparent)] px-4 py-2.5 text-[0.8rem] text-[var(--red)]">
+          {error}
+        </div>
+      )}
+
+      {/* ---------------------------------------------------------- header */}
+      <section className="card card-pad mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4">
+        <div className="flex min-w-0 flex-wrap items-baseline gap-2 sm:gap-3">
+          <span className="metric text-[1.65rem] leading-none sm:text-[2rem]">{num(price?.price, 2)}</span>
+          <span
+            className={`metric text-[0.82rem] sm:text-[0.9rem] ${
+              (price?.change ?? 0) >= 0 ? 'up' : 'down'
+            }`}
+          >
+            {(price?.change ?? 0) >= 0 ? '+' : ''}
+            {num(price?.change, 2)} ({num(price?.change_pct, 2)}%)
+          </span>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+          <span className={live ? 'chip chip-live' : 'chip chip-paper'}>
+            {live ? 'LIVE' : 'PAPER'}
+          </span>
+          <BrokerChip broker={status?.broker} running={running} />
+          <span className="chip" title={status?.market_status}>
+            {status?.market_open ? 'Market open' : 'Market closed'}
+          </span>
+          <button
+            className={`btn w-full sm:w-auto ${running ? 'btn-stop' : 'btn-start'}`}
+            disabled={busy}
+            onClick={() => act(running ? api.stop : api.start)}
+          >
+            {running ? 'Stop bot' : 'Start bot'}
+          </button>
+        </div>
+      </section>
+
+      {status?.broker?.status === 'failed' && (
+        <div className="card mb-4 border-[color-mix(in_srgb,var(--red)_40%,transparent)] px-4 py-2.5 text-[0.8rem] text-[var(--red)]">
+          {status.broker.message}. Check Settings → Broker credentials, then restart the bot.
+        </div>
+      )}
+      {!running && status?.broker && !status.broker.credentials_configured && (
+        <div className="card mb-4 border-[color-mix(in_srgb,var(--amber)_40%,transparent)] px-4 py-2.5 text-[0.8rem] text-[var(--muted)]">
+          Angel One credentials are not saved yet. Add them in Settings before using the live feed.
+        </div>
+      )}
+
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_330px]">
+        <div className="flex flex-col gap-4">
+          <Chart data={candles} strategy={strategy} />
+
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-3 xl:grid-cols-5">
+            <Tile
+              label="Today P&L"
+              value={inr(status?.today_pnl ?? 0)}
+              tone={(status?.today_pnl ?? 0) >= 0 ? 'up' : 'down'}
+            />
+            <Tile
+              label="Today trades"
+              value={`${status?.today_trades ?? 0}`}
+              sub={`${status?.wins ?? 0}W / ${status?.losses ?? 0}L`}
+            />
+            <Tile
+              label="All-time P&L"
+              value={inr(totalPnl)}
+              tone={totalPnl >= 0 ? 'up' : 'down'}
+              sub={`${status?.total_trades ?? 0} trades`}
+            />
+            <Tile
+              label="Total return"
+              value={totalReturnPct === null ? '—' : `${totalReturnPct >= 0 ? '+' : ''}${num(totalReturnPct, 2)}%`}
+              tone={
+                totalReturnPct === null
+                  ? undefined
+                  : totalReturnPct >= 0
+                    ? 'up'
+                    : 'down'
+              }
+              sub={
+                initialCapital > 0
+                  ? `On ${inr(initialCapital)} capital`
+                  : undefined
+              }
+            />
+            <Tile
+              label="Win rate"
+              value={`${num(status?.all_time_win_rate, 1)}%`}
+              sub={`Capital ${inr(status?.capital ?? 0)}`}
+            />
           </div>
-        ) : (
-          <>
-            <div className="dashboard-grid">
-              <div className="dashboard-left">
-                {/* Chart Area */}
-                <div className="flex flex-col gap-4">
-                  <Chart data={chartData} />
-                  
-                  {/* Indicator & Backtest Info Cards */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {status?.backtest_capital && status.backtest_capital !== (status.initial_capital || 100000) ? (
-                      <>
-                        <div className="stat-info-card border-cyan-500/20">
-                           <span className="info-label text-cyan-400">Backtest Capital</span>
-                           <span className="info-value">₹{status.backtest_capital.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
-                           <span className="info-sub text-gray-400 font-mono text-[10px]">
-                             📅 {status.backtest_start} → {status.backtest_current} {status.backtest_duration ? `(${status.backtest_duration})` : ''}
-                           </span>
-                        </div>
-                        <div className="stat-info-card border-purple-500/20">
-                           <span className="info-label text-purple-400">Total Return</span>
-                           <span className="info-value">
-                             {(((status.backtest_capital - (status.initial_capital || 100000)) / (status.initial_capital || 100000)) * 100).toFixed(1)}%
-                           </span>
-                           <span className={`info-sub ${status.compounding_advantage && status.compounding_advantage > 0 ? 'text-green-500' : 'text-gray-500'}`}>
-                             Advantage: +₹{status.compounding_advantage?.toLocaleString() || '0'}
-                           </span>
-                        </div>
-                        <div className="stat-info-card">
-                           <span className="info-label">Max Drawdown</span>
-                           <span className="info-value text-red-400">
-                             {/* Calculated purely on capital history */}
-                             {status.capital_history && status.capital_history.length > 0 ? 
-                               (Math.min(...status.capital_history) < (status.initial_capital || 100000) ? 
-                                 ((1 - Math.min(...status.capital_history) / Math.max(...status.capital_history)) * 100).toFixed(1) : '0.0') : '0.0'}%
-                           </span>
-                           <span className="info-sub text-gray-500">Peak to Trough</span>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="stat-info-card">
-                           <span className="info-label">Supertrend</span>
-                           <span className="info-value">{status?.indicators?.supertrend?.toFixed(2) || '0.00'}</span>
-                           <span className={`info-sub ${status?.indicators?.supertrend_direction === 1 ? 'text-green-500' : 'text-red-500'}`}>
-                             {status?.indicators?.supertrend_direction === 1 ? '🟢 BULLISH TREND' : status?.indicators?.supertrend_direction === -1 ? '🔴 BEARISH TREND' : '--'}
-                           </span>
-                        </div>
-                        <div className="stat-info-card">
-                           <span className="info-label">EMA 9 / 21</span>
-                           <span className="info-value">
-                             {status?.indicators?.ema_short?.toFixed(1) || '0.0'} / {status?.indicators?.ema_long?.toFixed(1) || '0.0'}
-                           </span>
-                           <span className={`info-sub ${status?.indicators?.ema_short > status?.indicators?.ema_long ? 'text-green-500' : 'text-red-500'}`}>
-                             {status?.indicators?.ema_short > status?.indicators?.ema_long ? 'UPWARD CROSS' : 'DOWNWARD CROSS'}
-                           </span>
-                        </div>
-                        <div className="stat-info-card">
-                           <span className="info-label">ADX Filter</span>
-                           <span className="info-value">
-                             {status?.indicators?.adx?.toFixed(1) || '0.0'}
-                           </span>
-                           <span className={`info-sub ${status?.indicators?.adx > 20 ? 'text-green-400 font-bold' : 'text-yellow-500'}`}>
-                             {status?.indicators?.adx > 20 ? '🔥 STRONG TREND' : '❄️ CHOPPY MARKET'}
-                           </span>
-                        </div>
-                      </>
-                    )}
-                  </div>
+        </div>
 
-                  {/* Stats Grid */}
-                  <StatsGrid
-                    todayPnl={status?.today_pnl || 0}
-                    totalTrades={status?.today_trades || 0}
-                    winRate={status?.win_rate || 0}
-                    wins={status?.wins || 0}
-                    losses={status?.losses || 0}
-                    totalAllTimePnl={status?.total_pnl || 0}
-                    totalAllTimeTrades={status?.total_trades || 0}
-                    totalAllTimeWins={status?.total_wins || 0}
-                    totalAllTimeLosses={status?.total_losses || 0}
-                    allTimeWinRate={status?.all_time_win_rate || 0}
-                    mode={mode}
+        {/* ------------------------------------------------------- sidebar */}
+        <aside className="flex flex-col gap-4">
+          <section className="card card-pad">
+            <div className="label mb-3">Session</div>
+            <div className="mb-3 flex gap-1">
+              {PHASES.map((phase, i) => (
+                <div
+                  key={phase.key}
+                  className="flex-1 text-center"
+                  title={phase.key}
+                >
+                  <div
+                    className={`h-1 rounded-full ${
+                      activeIndex >= 0 && i <= activeIndex
+                        ? 'bg-[var(--blue)]'
+                        : 'bg-[var(--border)]'
+                    }`}
                   />
-                </div>
-              </div>
-
-              <div className="dashboard-right">
-                {/* Price Display */}
-                <PriceDisplay
-                  price={(priceInfo as { price?: number }).price || 0}
-                  change={(priceInfo as { change?: number }).change || 0}
-                  changePct={(priceInfo as { change_pct?: number }).change_pct || 0}
-                  connected={(priceInfo as { connected?: boolean }).connected || false}
-                  simulation={(priceInfo as { simulation?: boolean }).simulation || true}
-                  tick_count={(priceInfo as { tick_count?: number }).tick_count}
-                />
-
-                {/* Strategy Phase Tracker */}
-                <StrategyFlow phase={phase} strategyInfo={signalInfo} />
-
-                {/* Active Trade */}
-                <TradeCard 
-                  trade={status?.active_trade || null} 
-                  currentPrice={(priceInfo as { price?: number }).price} 
-                />
-
-                {/* Signal */}
-                <SignalCard signal={status?.signal || 'DISCONNECTED'} />
-
-                {/* Bot Control */}
-                <div className="bot-control">
-                  <div className="bot-status-indicator">
-                    <span className={`bot-dot ${status?.running ? 'running' : 'stopped'}`} />
-                    <span className={`bot-status-text ${status?.running ? 'running' : 'stopped'}`}>
-                      {status?.running ? 'Running' : 'Stopped'}
-                    </span>
+                  <div
+                    className={`mt-1.5 text-[0.66rem] ${
+                      i === activeIndex ? 'text-[var(--text)]' : 'text-[var(--faint)]'
+                    }`}
+                  >
+                    {phase.label}
                   </div>
-                  <ConnectionStatus
-                    backendConnected={backendConnected}
-                    wsConnected={(priceInfo as { connected?: boolean }).connected || false}
-                    botRunning={status?.running || false}
-                    marketOpen={status?.market_open || false}
-                    marketStatus={status?.market_status || 'Unknown'}
-                  />
-                  <button
-                    className={`bot-btn ${status?.running ? 'stop' : 'start'}`}
-                    onClick={handleStartStop}
-                  >
-                    {status?.running ? '⏹ Stop Bot' : '▶ Start Bot'}
-                  </button>
-
-                  <button
-                    className="w-full mt-4 py-2 px-4 rounded-xl border border-blue-500/30 bg-blue-500/10 text-blue-400 font-bold hover:bg-blue-500/20 transition-all text-sm flex items-center justify-center gap-2"
-                    onClick={async () => {
-                        try {
-                            const [tradesData, logsData, settingsData] = await Promise.all([
-                                api.getTrades({ mode: status?.mode || 'paper' }),
-                                api.getLogs(50),
-                                api.getSettings()
-                            ]);
-                            
-                            // Sanitize settings (remove secrets)
-                            const sanitizedSettings = { ...settingsData.settings };
-                            delete sanitizedSettings.api_key;
-                            delete sanitizedSettings.pin;
-                            delete sanitizedSettings.totp_secret;
-
-                            const report = {
-                                export_time: new Date().toLocaleString(),
-                                bot_status: {
-                                    running: status?.running,
-                                    mode: status?.mode,
-                                    phase: status?.phase,
-                                    signal: status?.signal,
-                                    backtest_range: status?.backtest_start ? `${status.backtest_start} to ${status.backtest_current} (${status.backtest_duration})` : 'N/A'
-                                },
-                                strategy_config: sanitizedSettings,
-                                performance: {
-                                    today_pnl: status?.today_pnl,
-                                    total_pnl: status?.total_pnl,
-                                    win_rate: status?.all_time_win_rate,
-                                    yearly_breakdown: tradesData.yearly_summary || []
-                                },
-                                latest_indicators: status?.indicators,
-                                active_trade: status?.active_trade,
-                                recent_trades: (tradesData.trades || []).slice(0, 50),
-                                recent_logs: (logsData.logs || []).slice(0, 30)
-                            };
-                            
-                            await navigator.clipboard.writeText(JSON.stringify(report, null, 2));
-                            alert('📑 Trading Intelligence copied to clipboard!');
-                        } catch (e) {
-                            alert('Failed to copy trading data.');
-                        }
-                    }}
-                  >
-                    📋 Copy History for Analysis
-                  </button>
                 </div>
-              </div>
+              ))}
+            </div>
+            <p className="m-0 text-[0.8rem] leading-snug text-[var(--muted)]">
+              {strategy?.phase_description || status?.market_status || 'Waiting for the bot.'}
+            </p>
+            {strategy?.skip_reason && (
+              <p className="m-0 mt-2 text-[0.75rem] warn">{strategy.skip_reason}</p>
+            )}
+          </section>
+
+          <section className="card card-pad">
+            <div className="label mb-3">Connection</div>
+            <Row label="Broker" value="Angel One" />
+            <Row
+              label="Status"
+              value={
+                status?.broker?.status === 'connected'
+                  ? status.broker.feed_connected
+                    ? 'Connected'
+                    : 'Logged in'
+                  : status?.broker?.status === 'failed'
+                    ? 'Login failed'
+                    : status?.broker?.status === 'playback'
+                      ? 'Playback (not used)'
+                      : running
+                        ? '—'
+                        : 'Bot stopped'
+              }
+            />
+            <Row
+              label="Feed"
+              value={status?.broker?.feed_connected ? 'Live' : 'Idle'}
+            />
+            <Row
+              label="Credentials"
+              value={
+                status?.broker?.credentials_configured ? 'Saved' : 'Missing'
+              }
+            />
+            <Row
+              label="Available cash"
+              value={
+                status?.broker?.available_cash == null
+                  ? '—'
+                  : inr(status.broker.available_cash)
+              }
+            />
+            {status?.broker?.message && (
+              <p className="m-0 mt-2 text-[0.72rem] leading-snug text-[var(--faint)]">
+                {status.broker.message}
+              </p>
+            )}
+          </section>
+
+          <section className="card card-pad">
+            <div className="label mb-3">Opening range</div>
+            <Row label="High" value={num(strategy?.orb_high, 1)} />
+            <Row label="Low" value={num(strategy?.orb_low, 1)} />
+            <Row
+              label="Range"
+              value={
+                strategy?.orb_range
+                  ? `${num(strategy.orb_range, 1)} (${num(strategy.orb_range_pct, 2)}%)`
+                  : '—'
+              }
+            />
+            <Row
+              label="Trades"
+              value={`${strategy?.trades_taken ?? 0} / ${strategy?.max_trades ?? 1}`}
+            />
+            <Row label="Entry cutoff" value={strategy?.entry_cutoff ?? '—'} />
+          </section>
+
+          <section className="card card-pad">
+            <div className="mb-3 flex items-center justify-between">
+              <span className="label">Position</span>
+              {position && (
+                <span className={position.direction === 'LONG' ? 'chip up' : 'chip down'}>
+                  {position.direction}
+                </span>
+              )}
             </div>
 
-            {/* Log Viewers */}
-            <LogViewer />
-            <MarginLogViewer />
-          </>
-        )}
+            {trade && position ? (
+              <>
+                <div className="mb-3">
+                  <div
+                    className={`metric text-[1.5rem] ${
+                      (trade.live_pnl ?? 0) >= 0 ? 'up' : 'down'
+                    }`}
+                  >
+                    {inr(trade.live_pnl ?? 0)}
+                  </div>
+                  <div className="text-[0.72rem] text-[var(--faint)]">
+                    {trade.trading_symbol} · {trade.quantity} qty
+                  </div>
+                </div>
+                <Row label="Premium" value={`${num(trade.entry_price)} → ${num(trade.current_price)}`} />
+                <Row
+                  label="Capital used"
+                  value={inr(
+                    trade.capital_used ??
+                      (trade.entry_price && trade.quantity
+                        ? trade.entry_price * trade.quantity
+                        : 0),
+                  )}
+                />
+                <Row label="Index entry" value={num(position.entry_index, 1)} />
+                <Row label="Stop" value={num(position.stop_index, 1)} />
+                <Row label="Target" value={num(position.target_index, 1)} />
+                <Row label="Risk" value={`${num(position.risk_points, 1)} pts`} />
+                {position.breakeven_done && <Row label="Stop moved" value="Breakeven" />}
+                <button
+                  className="btn btn-danger mt-3 w-full"
+                  disabled={busy}
+                  onClick={() => act(api.exitTrade)}
+                >
+                  Exit now
+                </button>
+              </>
+            ) : (
+              <p className="m-0 text-[0.8rem] text-[var(--faint)]">No open position.</p>
+            )}
+          </section>
+        </aside>
       </div>
+    </main>
+  );
+}
 
-      <style jsx>{`
-        .stat-info-card {
-          background: var(--bg-card);
-          border: 1px solid var(--border);
-          border-radius: 12px;
-          padding: 1rem;
-          display: flex;
-          flex-direction: column;
-          gap: 0.25rem;
-        }
-        .info-label {
-          font-size: 0.65rem;
-          font-weight: 700;
-          color: var(--text-muted);
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-        }
-        .info-value {
-          font-size: 1.1rem;
-          font-family: 'JetBrains Mono', monospace;
-          font-weight: 700;
-          color: var(--text-primary);
-        }
-        .info-sub {
-          font-size: 0.7rem;
-          font-weight: 600;
-        }
-      `}</style>
-    </>
+function BrokerChip({
+  broker,
+  running,
+}: {
+  broker?: BrokerStatus;
+  running: boolean;
+}) {
+  const status = running ? broker?.status ?? 'stopped' : 'stopped';
+  const feedOn = broker?.feed_connected ?? false;
+
+  let short = 'Stopped';
+  let full = 'Angel One · Bot stopped';
+  let on = false;
+  let bad = false;
+
+  if (status === 'connected') {
+    on = feedOn;
+    short = feedOn ? 'Connected' : 'Logged in';
+    full = feedOn ? 'Angel One · Connected' : 'Angel One · Logged in, feed idle';
+  } else if (status === 'failed') {
+    bad = true;
+    short = 'Login failed';
+    full = 'Angel One · Login failed';
+  } else if (status === 'playback') {
+    short = 'Playback';
+    full = 'Angel One · Not used (playback)';
+  } else if (!running && broker && !broker.credentials_configured) {
+    bad = true;
+    short = 'No credentials';
+    full = 'Angel One · Credentials missing';
+  } else if (!running && broker?.credentials_configured) {
+    short = 'Ready';
+    full = 'Angel One · Ready (bot stopped)';
+  }
+
+  return (
+    <span className={`chip ${bad ? 'chip-live' : ''}`} title={broker?.message ?? full}>
+      <span className={`dot ${on ? 'dot-on' : 'dot-off'}`} />
+      <span className="sm:hidden">{short}</span>
+      <span className="hidden sm:inline">{full}</span>
+    </span>
+  );
+}
+
+function Tile({
+  label,
+  value,
+  sub,
+  tone,
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  tone?: 'up' | 'down';
+}) {
+  return (
+    <div className="card card-pad">
+      <div className="label">{label}</div>
+      <div className={`metric mt-1.5 text-[1.15rem] ${tone ?? ''}`}>{value}</div>
+      {sub && <div className="mt-0.5 text-[0.72rem] text-[var(--faint)]">{sub}</div>}
+    </div>
+  );
+}
+
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-start justify-between gap-3 py-1 text-[0.8rem]">
+      <span className="shrink-0 text-[var(--muted)]">{label}</span>
+      <span className="metric max-w-[65%] break-all text-right">{value}</span>
+    </div>
   );
 }

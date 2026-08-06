@@ -47,3 +47,6 @@ next-env.d.ts
 *.db-wal
 *.log
 bot/instruments_cache.json
+
+# Backtest parse cache
+bot/data/.nifty_1min.cache

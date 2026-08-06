@@ -1,62 +1,46 @@
+export type Phase =
+  | 'PREOPEN'
+  | 'BUILDING_RANGE'
+  | 'WAITING_BREAKOUT'
+  | 'IN_TRADE'
+  | 'SKIP_DAY'
+  | 'DONE'
+  | 'CLOSED'
+  | 'DAILY_LOSS_LIMIT';
+
 export interface PriceInfo {
   price: number;
-  prev_price: number;
   change: number;
   change_pct: number;
-  last_update: string | null;
   connected: boolean;
-  simulation: boolean;
-  indicators: {
-    ema_short: number | null;
-    ema_long: number | null;
-    supertrend: number | null;
-    supertrend_direction: number | null;
-    adx: number | null;
-    phase: string;
-    ready: boolean;
-  };
+  last_update: string | null;
+  tick_count?: number;
+  playback?: boolean;
 }
 
-export interface Signal {
-  signal: string;
-  phase: string;
+export interface StrategyState {
+  phase: Phase;
   phase_description: string;
-  ema_short: number | null;
-  ema_long: number | null;
-  supertrend: number | null;
-  supertrend_direction: number | null;
-  adx: number | null;
-  timestamp: string;
-}
-
-export interface OrbData {
   orb_high: number | null;
   orb_low: number | null;
   orb_range: number | null;
-  is_valid: boolean;
+  orb_range_pct: number | null;
+  orb_locked_at: string | null;
   skip_reason: string | null;
-}
-
-export interface FibonacciData {
-  levels: {
-    '23.6': number;
-    '38.2': number;
-    '50.0': number;
-    '61.8': number;
-    '78.6': number;
-  } | null;
-  entry_zone_high: number | null;
-  entry_zone_low: number | null;
-  stop_loss_level: number | null;
-  direction: 'LONG' | 'SHORT' | null;
-}
-
-export interface StrategyPhase {
-  phase: 'BUILDING_ORB' | 'WAITING_BREAKOUT' | 'ORDER_PLACED' | 'IN_TRADE' | 'SKIP_TODAY' | 'MAX_TRADES_DONE' | 'WATCHING' | 'CLOSED';
-  phase_description: string;
-  breakout_direction: 'LONG' | 'SHORT' | null;
-  breakout_price: number | null;
-  breakout_time: string | null;
+  trades_taken: number;
+  max_trades: number;
+  entry_cutoff: string;
+  or_minutes: number;
+  signal?: string;
+  last_breakout: { direction: string; price: number; time: string } | null;
+  position?: {
+    direction: 'LONG' | 'SHORT';
+    entry_index: number;
+    stop_index: number;
+    target_index: number;
+    risk_points: number;
+    breakeven_done: boolean;
+  };
 }
 
 export interface Trade {
@@ -64,53 +48,48 @@ export interface Trade {
   date: string;
   time: string;
   type: 'CE' | 'PE';
+  direction: 'LONG' | 'SHORT' | null;
   strike_price: number;
   trading_symbol: string;
   entry_price: number;
   exit_price: number | null;
   quantity: number;
-  lot_size: number;
-  pnl: number;
-  status: 'open' | 'closed' | 'win' | 'loss';
+  status: 'open' | 'win' | 'loss';
   exit_reason: string | null;
   mode: 'paper' | 'live';
-  stop_loss: number | null;
-  target: number | null;
-  trailing_sl: number | null;
-  underlying_entry_price?: number;
-  token?: string;
-  supertrend_at_entry?: number;
-  adx_at_entry?: number;
-  ema_short_at_entry?: number;
-  ema_long_at_entry?: number;
-  exit_time?: string;
-  trailing_sl_used?: number;
+  capital_used: number | null;
+  total_capital: number | null;
+  orb_high: number | null;
+  orb_low: number | null;
+  orb_range: number | null;
+  underlying_entry_price: number | null;
+  underlying_exit_price: number | null;
+  stop_index: number | null;
+  target_index: number | null;
+  risk_points: number | null;
+  pnl: number;
+  net_pnl: number | null;
+  exit_time: string | null;
   current_price?: number;
   live_pnl?: number;
-  capital_used?: number;
-  total_capital?: number;
-  net_pnl?: number;
-  brokerage?: number;
-  stt?: number;
-  exc_charges?: number;
-  gst?: number;
 }
 
-export interface PnLSummary {
-  total_pnl: number;
-  total_trades: number;
-  wins: number;
-  losses: number;
-  win_rate: number;
-  open_trades: number;
+export interface BrokerStatus {
+  name: string;
+  status: 'stopped' | 'playback' | 'connected' | 'failed' | string;
+  message: string;
+  connected: boolean;
+  feed_connected: boolean;
+  credentials_configured: boolean;
+  available_cash?: number | null;
 }
 
 export interface BotStatus {
   running: boolean;
+  mode: 'paper' | 'live';
   signal: string;
-  indicators: Record<string, any>;
+  strategy: StrategyState;
   price: PriceInfo;
-  active_trade: Trade | null;
   today_pnl: number;
   today_trades: number;
   wins: number;
@@ -118,24 +97,23 @@ export interface BotStatus {
   win_rate: number;
   total_pnl: number;
   total_trades: number;
-  total_wins: number;
-  total_losses: number;
-  mode: 'paper' | 'live';
-  phase: string;
-  market_status: string;
-  market_open: boolean;
-  is_trading_day: boolean;
   all_time_win_rate: number;
-  backtest_capital?: number;
-  capital_history?: number[];
-  compounding_advantage?: number;
-  backtest_start?: string;
-  backtest_current?: string;
-  backtest_duration?: string;
-  initial_capital?: number;
+  total_charges: number;
+  capital: number;
+  initial_capital: number;
+  market_open: boolean;
+  market_status: string;
+  is_trading_day: boolean;
+  is_playback: boolean;
+  session_date: string | null;
+  data_source?: string;
+  broker?: BrokerStatus;
+  active_trade?: Trade;
+  error?: string;
+  offline?: boolean;
 }
 
-export interface CandleData {
+export interface Candle {
   time: number;
   open: number;
   high: number;
@@ -143,63 +121,47 @@ export interface CandleData {
   close: number;
 }
 
-export interface LineData {
-  time: number;
-  value: number;
+export interface CandlePayload {
+  candles: Candle[];
+  orb: { high: number; low: number; range: number; bars: number; date: string } | null;
+  or_minutes: number;
 }
 
-export interface ChartData {
-  candles: CandleData[];
-  ema9: LineData[];
-  ema21: LineData[];
-  supertrend: (LineData & { color: string })[];
+export interface EquityPoint {
+  date: string;
+  pnl: number;
+  trades: number;
+  cumulative_pnl: number;
 }
 
-export interface Settings {
-  api_key: string;
-  client_id: string;
-  pin: string;
-  totp_secret: string;
-  supertrend_period: string;
-  supertrend_multiplier: string;
-  ema_9_period: string;
-  ema_21_period: string;
-  adx_threshold: string;
-  max_sl_distance_pts: string;
-  max_trades_per_day: string;
-  max_daily_loss: string;
-  signal_cutoff_time: string;
-  square_off_time: string;
-  lot_size: string;
-  position_size_mode: string;
-  fixed_lots: string;
-  max_capital_risk_pct: string;
-  trading_mode: string;
-  paper_capital: string;
-  data_source: string;
-  playback_file: string;
-  playback_speed: string;
-  playback_start_date: string;
-  playback_end_date: string;
-  playback_period: string;
-  initial_capital: string;
-  position_sizing_mode: string;
-  risk_percent_per_trade: string;
-  min_lots: string;
-  max_lots: string;
-  morning_max_trades: string;
-  afternoon_max_trades: string;
-  trailing_sl_enabled: string;
-  option_sl_pct: string;
-  max_capital_per_trade_pct: string;
-  max_trade_duration_mins: string;
+export interface ExitReasonRow {
+  reason: string;
+  count: number;
+  net_pnl: number;
 }
 
-export interface LogEntry {
-  id: number;
-  timestamp: string;
-  level: string;
-  category: string;
-  message: string;
-  details: string | null;
+export interface Analytics {
+  equity_curve: EquityPoint[];
+  exit_reasons: ExitReasonRow[];
 }
+
+export interface TradesResponse {
+  trades: Trade[];
+  summary: {
+    all_time_pnl: number;
+    all_time_gross_pnl: number;
+    all_time_charges: number;
+    all_time_trades: number;
+    all_time_win_rate: number;
+    wins: number;
+    losses: number;
+    month_pnl: number;
+    month_trades: number;
+    month_label: string;
+    year_pnl: number;
+    year_trades: number;
+    year_label: string;
+  };
+}
+
+export type Settings = Record<string, string>;
