@@ -177,7 +177,7 @@ PYTHON_BOT_URL=http://YOUR_DROPLET_IP:8000
 BOT_API_TOKEN=<same token>
 ```
 
-### Restart / logs / update
+### Restart / logs
 
 ```bash
 ssh root@YOUR_DROPLET_IP
@@ -185,11 +185,50 @@ ssh root@YOUR_DROPLET_IP
 systemctl restart nifty-orb
 systemctl status nifty-orb
 journalctl -u nifty-orb -f
-
-# after git push from your laptop
-cd ~/trading-app-orb-final && git pull origin main
-systemctl restart nifty-orb
 ```
+
+### How to push server changes to droplet (for next time)
+
+Do this whenever bot code on your Mac needs to land on the droplet.
+
+**1. On your Mac** — commit (if needed) and push:
+
+```bash
+cd ~/Documents/trading-app-orb-final
+git add -A
+git status   # confirm you are not committing .env.local or secrets
+git commit -m "describe the change"
+git push origin main
+```
+
+**2. On the droplet** — SSH in, pull, restart:
+
+```bash
+ssh root@YOUR_DROPLET_IP
+
+cd ~/trading-app-orb-final
+
+# Keep live DB (credentials + trades). Droplet runtime files often block pull.
+cp bot/trading.db ~/trading.db.bak
+git checkout -- bot/trading.db bot/trading.log
+git pull origin main
+cp ~/trading.db.bak bot/trading.db
+
+# Prefer stop → wait → start after feed/WebSocket fixes (Angel allows 3 WS slots).
+systemctl stop nifty-orb
+sleep 120
+systemctl start nifty-orb
+
+# Quick restart is fine for small unrelated changes:
+# systemctl restart nifty-orb
+
+systemctl status nifty-orb
+journalctl -u nifty-orb -n 40 --no-pager
+```
+
+**3. In the UI** (Mac / localhost): Stop bot if it still shows running, then Start bot once. Check logs for `WebSocket CONNECTED` when using the live Angel feed.
+
+If `git pull` still complains about other local files, stash only those paths or copy them aside the same way — never wipe `trading.db` without a backup.
 
 ### If the bot freezes with an open trade
 

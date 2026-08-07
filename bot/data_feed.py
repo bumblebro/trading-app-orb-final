@@ -217,6 +217,11 @@ class DataFeed:
                 candles.append(dict(current))
             return candles
 
+    def closed_1min_candles(self) -> List[Dict]:
+        """Fully closed 1-minute bars only (excludes the in-progress candle)."""
+        with self._lock:
+            return [dict(c) for c in self._candles_1min]
+
     def seed_history(self, candles: List[Dict], interval: int = 60):
         if not candles:
             return

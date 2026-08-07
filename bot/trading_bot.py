@@ -141,6 +141,10 @@ class TradingBot:
         self._first_trade_date = get_first_trade_date(mode=mode)
         self.order_manager.update_context(data_feed=self.data_feed, capital=self.capital)
 
+        # Replay today's closed bars into the strategy *before* the live feed
+        # starts, so a late start still builds the real 09:15 opening range.
+        self._catch_up_strategy_from_history()
+
         self.data_feed.start()
         self._restore_open_position()
 
@@ -234,6 +238,49 @@ class TradingBot:
                 self.logger.info(f"Seeded {len(candles)} 1-minute candles from token {token}")
                 return
         self.logger.error("Could not seed historical candles from any NIFTY token")
+
+    def _catch_up_strategy_from_history(self):
+        """
+        Feed today's already-closed 1-min bars into the strategy after a late start.
+
+        Historical breakout signals are ignored — we only rebuild range / phase.
+        Live breakouts after catch-up can still trigger entries.
+        """
+        if not self.data_feed or self.is_playback:
+            return
+
+        session = get_ist_now().strftime("%Y-%m-%d")
+        closed = [
+            c for c in self.data_feed.closed_1min_candles()
+            if (c.get("time_key") or "").startswith(session)
+        ]
+        if not closed:
+            return
+
+        with self._lock:
+            for candle in closed:
+                bar = {
+                    "time": _candle_time(candle),
+                    "open": candle["open"], "high": candle["high"],
+                    "low": candle["low"], "close": candle["close"],
+                }
+                now = bar["time"]
+                self._last_candle_key = candle.get("time_key")
+                self._last_close = bar["close"]
+                self._handle_day_rollover(now, bar["close"])
+
+                should_run, _ = should_bot_run(now)
+                if not should_run:
+                    self.strategy.phase = PHASE_CLOSED
+                    continue
+
+                # Rebuild state only — do not place orders on past signals.
+                self.strategy.on_candle(bar, in_trade=False)
+
+        self.logger.info(
+            f"Caught up strategy from {len(closed)} closed bars "
+            f"(phase={self.strategy.phase})"
+        )
 
     # --------------------------------------------------------------- main loop
 
