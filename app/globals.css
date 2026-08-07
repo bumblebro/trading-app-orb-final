@@ -38,6 +38,7 @@ html,
 body {
   margin: 0;
   padding: 0;
+  max-width: 100%;
 }
 
 body {
@@ -48,19 +49,31 @@ body {
   overflow-x: hidden;
 }
 
+#__next,
+main {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 @media (max-width: 640px) {
   .card-pad {
-    padding: 0.85rem 0.9rem;
+    padding: 0.75rem 0.8rem;
   }
 
   .chip {
-    font-size: 0.7rem;
-    padding: 0.2rem 0.5rem;
+    font-size: 0.68rem;
+    padding: 0.18rem 0.45rem;
+    max-width: 100%;
   }
 
   .btn {
-    padding: 0.55rem 0.85rem;
-    font-size: 0.8rem;
+    padding: 0.65rem 0.85rem;
+    font-size: 0.82rem;
+    min-height: 44px;
+  }
+
+  .label {
+    font-size: 0.62rem;
   }
 
   .table {

@@ -1,113 +1,45 @@
 # NIFTY Opening Range Breakout Bot
 
-An automated intraday **Opening Range Breakout (ORB)** system for NIFTY 50 weekly
-options, with a Next.js dashboard, a FastAPI bot server, and a research
-backtester that runs the *same* strategy code as live trading.
+Intraday **Opening Range Breakout (ORB)** system for NIFTY 50 weekly options —
+Next.js dashboard, FastAPI bot, and a research backtester that shares the same
+strategy code as live trading.
 
-> **Educational software.** Options trading can lose money faster than you expect.
-> Nothing here is financial advice. Paper trade for months before risking capital.
+> **Educational software.** Options can lose money quickly. Not financial advice.
+> Paper trade before risking capital.
 
 ---
 
-## The strategy
-
-Everything is decided by the first hour of the session.
+## Strategy
 
 | Step | Rule |
 | --- | --- |
-| 09:15 – 10:15 | Build the opening range: the high and low of the first 60 minutes. |
-| Range check | Skip the day if the range is narrower than 0.25% or wider than 2.00% of spot. |
-| Entry | A 3-minute candle must **close** more than 5% of the range width beyond the high (buy CE) or low (buy PE). No entries after 13:30. |
-| Stop | The opposite side of the opening range. |
-| Target | 2R. The stop moves to breakeven once the trade is 1R in profit. |
-| Square off | 15:15, unconditionally. |
-| Limit | One trade per day. |
+| 09:15 – 10:15 | Build opening range (high/low of first 60 minutes) |
+| Range check | Skip if range &lt; 0.25% or &gt; 2.00% of spot |
+| Entry | 3-min candle **closes** beyond high/low by 5% of range width (CE/PE). No entries after 13:30 |
+| Stop | Opposite side of the opening range |
+| Target | 2R; stop → breakeven after 1R |
+| Square off | 15:15 always |
+| Limit | One trade per day |
 
-The bot buys ATM weekly options rather than trading the index, so the index-level
-stop and target are translated into option orders.
-
-### Why these numbers
-
-They came out of a parameter sweep over 2019–2026 NIFTY 1-minute data, chosen for
-**agreement between in-sample and out-of-sample results** rather than peak
-in-sample return. Three findings drove the defaults:
-
-- **60 minutes beats the textbook 15.** A 15-minute range is roughly break-even
-  after costs (PF ≈ 1.02); 60 minutes is comfortably profitable in both halves of
-  the sample.
-- **Wide breakout buffers are a trap.** A 0.30 buffer looked best in-sample
-  (PF 1.49) and was the worst out-of-sample (PF 1.15). A 0.05 buffer is the most
-  consistent across both.
-- **The premium stop only destroyed value.** Every setting tighter than "off"
-  reduced returns *without* reducing drawdown, because the index stop already
-  bounds the loss. It defaults to off (100%) and stays configurable.
-
-### Backtest results
-
-1 lot (75 qty), 2019-01-01 → 2026-04-08, costs modelled at 1% slippage per side
-plus real Indian brokerage, STT, exchange, SEBI, stamp and GST charges.
-
-| | Trades | Net P&L | Win rate | Profit factor | Sharpe | Max DD |
-| --- | --- | --- | --- | --- | --- | --- |
-| In-sample (2019–2023) | 957 | ₹234,258 | 42.6% | 1.267 | — | ₹-33,202 |
-| Out-of-sample (2024–2026) | 417 | ₹217,924 | 43.2% | 1.451 | — | ₹-29,394 |
-| **All** | **1,374** | **₹452,182** | **42.8%** | **1.332** | **1.59** | **₹-33,202** |
-
-Every one of the eight years is profitable, and out-of-sample performance is
-*better* than in-sample — the opposite of the usual overfitting signature.
-
-**Read this before trusting the numbers.** The CSV contains index prices only, so
-option premiums are modelled with Black-Scholes using realised volatility, not
-real option quotes. The edge is real but not enormous: it survives 1% slippage
-per side (PF 1.31) and 2% (PF 1.14), and disappears entirely near 3%. Most trades
-(74%) exit at the 15:15 square-off rather than at the target, so this is closer to
-"ride the breakout until the close" than a target-driven system.
+Buys ATM weekly options. Defaults came from a 2019–2026 parameter sweep chosen
+for in-sample / out-of-sample agreement (not peak in-sample return). Typical win
+rate ~43%; most exits are square-off. Premiums in research are Black-Scholes
+modelled from index data, not live option quotes.
 
 ---
 
-## Architecture
-
-```
-app/                    Next.js 16 dashboard (App Router)
-  api/bot/[...path]/    single proxy to the Python server; injects the API token
-components/             Navbar, Chart (lightweight-charts)
-lib/                    typed API client and shared types
-bot/
-  strategy_orb.py       pure ORB state machine — no I/O, no globals
-  trading_bot.py        session loop, day rollover, kill switch, order plumbing
-  order_manager.py      paper + live execution, order slicing, fill verification
-  data_feed.py          Angel One websocket, or CSV playback
-  option_pricing.py     Black-Scholes ATM pricing and expiry calendar
-  charges.py            Indian transaction cost model
-  database.py           SQLite schema, migrations, settings
-  server.py             FastAPI endpoints
-  research/backtest.py  backtester and parameter sweeps
-  tests/                52 tests over the strategy, pricing and charges
-```
-
-`strategy_orb.py` is deliberately pure and is imported by both the backtester and
-the live bot, so simulated and live behaviour cannot drift apart.
-
----
-
-## Setup
-
-### Backend
+## Setup (local / Mac)
 
 ```bash
+# backend
 cd bot
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-```
 
-### Frontend
-
-```bash
+# frontend (repo root)
 npm install
 ```
-
-### Environment
 
 Create `.env.local` in the project root:
 
@@ -116,132 +48,61 @@ PYTHON_BOT_URL=http://localhost:8000
 BOT_API_TOKEN=<a long random string>
 ```
 
-Export the same token for the bot server. `BOT_API_TOKEN` protects every
-state-changing endpoint, and **live trading refuses to start without it**.
+Same token must be set for the bot process (live trading requires it):
 
 ```bash
 export BOT_API_TOKEN=<the same string>
 export BOT_CORS_ORIGINS=http://localhost:3000
 ```
 
----
-
-## Running
+### Run locally
 
 ```bash
-# terminal 1
-cd bot && source venv/bin/activate && python server.py
+# terminal 1 — bot
+cd bot && source venv/bin/activate
+export BOT_API_TOKEN=<the same string>
+python server.py
 
-# terminal 2
+# terminal 2 — UI
 npm run dev
 ```
 
 Open http://localhost:3000.
 
-### Paper trading and playback
+- **Paper / playback:** Settings → data source *CSV playback* → Start bot.
+- **Live:** Angel credentials + *Angel One live feed* + *Live* mode → Start bot.
+  Keep the Mac awake during market hours.
 
-The defaults are paper mode with CSV playback, so you can exercise the whole
-system with no broker account. Set the data source to *CSV playback* in Settings,
-press **Start bot**, and the dashboard will replay `bot/data/nifty_sample.csv`
-through the live code path.
+Credentials are saved in the bot DB (enter once). Angel session is created on
+each bot start; if the feed dies, restart the bot.
 
-### Going live
+---
 
-#### Get Angel One credentials
+## Angel One credentials
 
-You need an Angel One demat/trading account, then a SmartAPI app and TOTP.
-
-1. **Trading account** — open or activate one at [angelone.in](https://www.angelone.in).
-   Note your **Client ID** (client code) and trading **PIN**.
-
-2. **API key** — go to [smartapi.angelone.in](https://smartapi.angelone.in), sign up /
-   log in with the same account, and **Create an App**:
-   - API type: **Trading API**
-   - Redirect URL: `https://localhost` or `http://127.0.0.1` is fine locally
-   - Copy the **API Key** after the app is created
-
-3. **TOTP secret** — open
-   [Enable TOTP](https://smartapi.angelbroking.com/enable-totp), enter Client ID +
-   PIN, verify the OTP from email/SMS, then copy the **secret string** shown with
-   the QR code (long base32 text). Optionally scan the QR into Google Authenticator
-   as well.
-
-   Paste that **secret string** into Settings — not the rotating 6-digit code. The
-   bot generates the code with `pyotp`.
+1. Trading account at [angelone.in](https://www.angelone.in) — note **Client ID** and **PIN**.
+2. [smartapi.angelone.in](https://smartapi.angelone.in) → Create App → **Trading API** → copy **API Key**.
+3. [Enable TOTP](https://smartapi.angelbroking.com/enable-totp) → copy the **secret string** (not the 6-digit code).
 
 | Angel One | Settings field |
 | --- | --- |
-| API Key from SmartAPI app | API key |
+| API Key | API key |
 | Client code | Client ID |
 | Trading PIN | PIN |
 | TOTP secret string | TOTP secret |
 
-Do not share these values. They are stored server-side and masked in the UI.
+---
 
-#### Start live trading
+## Capital & sizing phases
 
-1. In Settings, fill in the four broker fields above.
-2. Set **Price source** to **Angel One live feed** (`smartapi`). Playback skips
-   broker login and will not place live orders correctly.
-3. Set **Trading mode** to **Live**.
-4. Restart the bot with `BOT_API_TOKEN` exported (same value as `.env.local`), or
-   live start is refused.
-5. Press **Start bot** on the dashboard.
+**Phase 0 — Plumbing (2–4 weeks):** ₹15k–25k, fixed 1 lot, max 1 lot. Test fills/stops.
 
-#### Capital & sizing phases
+**Phase 1 — Prove live (1–3 months):** ₹25k–50k, still fixed 1 lot.
 
-Don’t jump straight into risk-% compounding. Scale in phases.
+**Phase 2 — Scale:** ₹75k–1.5L, fixed 2 lots only if Phase 1 is fine.
 
-**Phase 0 — Plumbing (first 2–4 weeks live)**
-
-| | |
-| --- | --- |
-| Capital | ₹15,000–25,000 free cash in Angel |
-| Sizing | Fixed lots = 1, max lots = 1 |
-| Goal | Login, fills, stops, and square-off work |
-| Mode | Live only when you can watch |
-
-Treat this as a plumbing test, not a profit run.
-
-**Phase 1 — Prove the edge live (1–3 months)**
-
-| | |
-| --- | --- |
-| Capital | ₹25,000–50,000 |
-| Sizing | Still fixed 1 lot |
-| Goal | 20–40+ real trades; win rate roughly 40–48%; no ops failures |
-| Rules | Keep max daily loss tight; don’t raise size after a win streak |
-
-If live P&L after costs is messy or fills are poor, stay here or stop.
-
-**Phase 2 — Small scale-up (only if Phase 1 is fine)**
-
-| | |
-| --- | --- |
-| Capital | ₹75,000–1.5 lakh |
-| Sizing | Fixed 2 lots (or max 2) — still fixed, not risk % |
-| Goal | Confirm the edge survives slightly larger size |
-
-Step up one notch at a time.
-
-**Phase 3 — Switch to risk % (compounding)**
-
-Only when all of these are true:
-
-- Months of live data look acceptable
-- You can take drawdowns without changing rules mid-streak
-- The account is large enough that 1% risk is at least ~1 lot
-
-| Setting | Start with |
-| --- | --- |
-| Sizing mode | Risk % of capital |
-| Risk per trade | 0.5–1% (not 2%) |
-| Max lots | Hard cap (e.g. 3–5) |
-| Max capital per trade | 10–15% |
-
-Risk % compounds as capital grows. Fixed lots do not.
-
-**Rule of thumb**
+**Phase 3 — Risk %:** Only after months of stable live data. Risk 0.5–1%, max lots 3–5,
+max capital per trade 10–15%.
 
 ```text
 New / unsure     → Fixed 1 lot
@@ -249,64 +110,108 @@ Stable live      → Fixed 2 lots
 Proven + bigger  → Risk 0.5–1% + max-lots cap
 ```
 
-Never jump from a small account into risk % with a high max-lots cap — that is
-how paper equity curves explode and live accounts get hurt.
+---
+
+## Deploy bot on DigitalOcean
+
+Run the **bot** on a Droplet. Keep the **UI** on your Mac (or Vercel later).
+
+**Droplet:** Ubuntu, **$6 / 1 GB RAM** (not 512 MB). Region: **Bangalore**, else **Singapore**.
+
+### On the droplet (SSH first — not on your Mac)
+
+```bash
+ssh root@YOUR_DROPLET_IP
+
+apt update && apt install -y git python3 python3-venv python3-pip
+cd ~
+git clone https://github.com/bumblebro/trading-app-orb-final.git
+cd trading-app-orb-final/bot
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+### Env file
+
+```bash
+cat >/etc/nifty-orb.env <<EOF
+BOT_API_TOKEN=<same token as .env.local>
+BOT_CORS_ORIGINS=http://localhost:3000
+EOF
+chmod 600 /etc/nifty-orb.env
+```
+
+### systemd service
+
+```bash
+cat >/etc/systemd/system/nifty-orb.service <<'EOF'
+[Unit]
+Description=NIFTY ORB bot API
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/trading-app-orb-final/bot
+EnvironmentFile=/etc/nifty-orb.env
+ExecStart=/root/trading-app-orb-final/bot/venv/bin/python server.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+systemctl enable --now nifty-orb
+ufw allow OpenSSH
+ufw allow 8000/tcp
+ufw --force enable
+```
+
+Point `.env.local` at the droplet:
+
+```bash
+PYTHON_BOT_URL=http://YOUR_DROPLET_IP:8000
+BOT_API_TOKEN=<same token>
+```
+
+### Restart / logs / update
+
+```bash
+ssh root@YOUR_DROPLET_IP
+
+systemctl restart nifty-orb
+systemctl status nifty-orb
+journalctl -u nifty-orb -f
+
+# after git push from your laptop
+cd ~/trading-app-orb-final && git pull origin main
+systemctl restart nifty-orb
+```
+
+### If the bot freezes with an open trade
+
+1. Dashboard **Exit now**, or  
+2. `systemctl restart nifty-orb` — it reloads the open trade from the DB, or  
+3. Square off manually in the Angel One app (backup).
 
 ---
 
-## Research
+## Research & tests
 
 ```bash
 cd bot
-
-# single run on the current defaults
 python research/backtest.py --run
-
-# parameter sweeps: structure | filters | exits | risk | quick | full
 python research/backtest.py --sweep filters --workers 7 --out /tmp/filters.json
-
-# override any OrbConfig field
-python research/backtest.py --run --config '{"or_minutes":30,"target_r":3.0}'
-```
-
-Sweeps report in-sample and out-of-sample metrics side by side and rank by
-in-sample only, so out-of-sample stays an honest check rather than another knob.
-
-## Tests
-
-```bash
-python -m pytest bot/tests -q
+python -m pytest tests -q
 ```
 
 ---
 
-## Operational notes
+## Notes
 
-- **Kill switch.** Hitting `max_daily_loss` flattens any open position and stops
-  trading for the rest of the day.
-- **Order execution.** Live entries are sliced to respect exchange freeze limits,
-  retried, and verified against the order book. If a slice fails mid-entry, the
-  filled portion is unwound rather than left as an unintended position.
-- **Secrets.** `GET /settings` masks credentials; saving a masked value is treated
-  as "unchanged" so the real secret is never overwritten by the UI.
-- **Charges** are shared between the backtester and the live bot, so reported P&L
-  is comparable across both.
-
-## Deployment
-
-```bash
-git add . && git commit -m "..." && git push origin main
-
-ssh root@your_droplet_ip
-cd ~/trading-app-orb-final
-git checkout -- bot/trading.db && git pull origin main
-
-cd bot
-docker stop nifty-bot && docker rm nifty-bot
-docker build -t trading-bot .
-docker run -d --name nifty-bot -p 8000:8000 \
-  -e BOT_API_TOKEN="$BOT_API_TOKEN" \
-  -e BOT_CORS_ORIGINS="https://your-dashboard-domain" \
-  -v $(pwd)/trading.db:/app/trading.db \
-  --restart always trading-bot
-```
+- **Kill switch:** `max_daily_loss` flattens and stops trading for the day.
+- **Live orders:** sliced for NSE freeze limits; partial entry failures are unwound.
+- **Clear history:** Trades page → Clear history (or Settings). Does not delete credentials.

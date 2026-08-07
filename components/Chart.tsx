@@ -26,8 +26,9 @@ interface LineSpec {
 }
 
 function chartHeight(width: number) {
-  if (width < 480) return 260;
-  if (width < 768) return 320;
+  if (width < 400) return 200;
+  if (width < 640) return 240;
+  if (width < 768) return 300;
   return 420;
 }
 
@@ -145,16 +146,16 @@ export default function Chart({ data, strategy }: ChartProps) {
   const orb = data?.orb;
 
   return (
-    <div className="card">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] px-4 py-3">
-        <div>
-          <h2 className="m-0 text-[0.9rem] font-semibold">NIFTY 50 · 1 min</h2>
-          <p className="m-0 mt-0.5 text-[0.72rem] text-[var(--faint)]">
+    <div className="card min-w-0 overflow-hidden">
+      <div className="flex flex-col gap-2 border-b border-[var(--border)] px-3 py-2.5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-3 sm:px-4 sm:py-3">
+        <div className="min-w-0">
+          <h2 className="m-0 text-[0.85rem] font-semibold sm:text-[0.9rem]">NIFTY 50 · 1 min</h2>
+          <p className="m-0 mt-0.5 text-[0.7rem] text-[var(--faint)]">
             Opening range · first {data?.or_minutes ?? 15} minutes
           </p>
         </div>
         {orb ? (
-          <div className="flex gap-4 text-[0.75rem]">
+          <div className="flex flex-wrap gap-x-3 gap-y-1 text-[0.72rem] sm:gap-4 sm:text-[0.75rem]">
             <span className="text-[var(--muted)]">
               High <span className="metric text-[var(--text)]">{orb.high.toFixed(1)}</span>
             </span>
@@ -169,7 +170,7 @@ export default function Chart({ data, strategy }: ChartProps) {
           <span className="label">Range not set</span>
         )}
       </div>
-      <div ref={containerRef} className="px-1 py-2" />
+      <div ref={containerRef} className="w-full min-w-0 px-0 py-1 sm:px-1 sm:py-2" />
     </div>
   );
 }
