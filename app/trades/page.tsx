@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { api, inr, num } from '@/lib/api';
 import { usePoll } from '@/lib/hooks';
 import type { Analytics, Trade, TradesResponse } from '@/lib/types';
@@ -9,8 +9,12 @@ const MODES = ['paper', 'live'] as const;
 type Mode = (typeof MODES)[number];
 const POLL_MS = 3000;
 
+function modeFromSettings(value: unknown): Mode {
+  return value === 'live' ? 'live' : 'paper';
+}
+
 export default function TradesPage() {
-  const [mode, setMode] = useState<Mode>('paper');
+  const [mode, setMode] = useState<Mode | null>(null);
   const [data, setData] = useState<TradesResponse | null>(null);
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [initialCapital, setInitialCapital] = useState(0);
@@ -19,7 +23,26 @@ export default function TradesPage() {
 
   const [clearing, setClearing] = useState(false);
 
+  // Match Settings → Trading mode on first visit (user can still toggle).
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .settings()
+      .then((res) => {
+        if (cancelled) return;
+        setMode(modeFromSettings(res.settings?.trading_mode));
+        setInitialCapital(Number(res.settings?.initial_capital) || 0);
+      })
+      .catch(() => {
+        if (!cancelled) setMode('paper');
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const load = useCallback(async () => {
+    if (!mode) return;
     try {
       const [trades, stats, settingsRes] = await Promise.all([
         api.trades({ mode, limit: 300 }),
@@ -92,8 +115,9 @@ export default function TradesPage() {
             {MODES.map((m) => (
               <button
                 key={m}
+                disabled={!mode}
                 onClick={() => {
-                  if (m === mode) return;
+                  if (!mode || m === mode) return;
                   setMode(m);
                   setLoading(true);
                 }}
