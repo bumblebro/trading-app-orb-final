@@ -76,57 +76,66 @@ export default function DashboardPage() {
             : 'Stopped';
 
   return (
-    <main className="mx-auto w-full max-w-[1400px] overflow-x-hidden px-3 py-3 sm:px-5 sm:py-5">
+    <main className="page-shell overflow-x-hidden py-3 sm:py-5">
       {error && (
         <div className="card mb-3 break-words border-[color-mix(in_srgb,var(--red)_40%,transparent)] px-3 py-2.5 text-[0.78rem] text-[var(--red)] sm:mb-4 sm:px-4">
           {error}
         </div>
       )}
 
-      {/* Mobile-first header: price + start */}
+      {/* Header: stacked on phone, single row on laptop */}
       <section className="card card-pad mb-3 sm:mb-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <div className="metric text-[1.75rem] leading-none tracking-tight sm:text-[2rem]">
-              {num(price?.price, 2)}
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-4">
+          <div className="flex min-w-0 items-start justify-between gap-3 md:items-center md:justify-start md:gap-4">
+            <div className="flex min-w-0 flex-col gap-1 md:flex-row md:items-baseline md:gap-3">
+              <div className="metric text-[1.75rem] leading-none tracking-tight sm:text-[2rem]">
+                {num(price?.price, 2)}
+              </div>
+              <div
+                className={`metric text-[0.8rem] ${
+                  (price?.change ?? 0) >= 0 ? 'up' : 'down'
+                }`}
+              >
+                {(price?.change ?? 0) >= 0 ? '+' : ''}
+                {num(price?.change, 2)} ({num(price?.change_pct, 2)}%)
+              </div>
             </div>
-            <div
-              className={`metric mt-1 text-[0.8rem] ${
-                (price?.change ?? 0) >= 0 ? 'up' : 'down'
-              }`}
+            <div className="flex shrink-0 gap-1.5 md:hidden">
+              <span className={live ? 'chip chip-live' : 'chip chip-paper'}>
+                {live ? 'LIVE' : 'PAPER'}
+              </span>
+              <span className="chip text-[0.65rem]">
+                {status?.market_open ? 'Open' : 'Closed'}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex min-w-0 flex-col gap-2 md:flex-row md:flex-wrap md:items-center md:justify-end md:gap-2.5">
+            <div className="hidden md:contents">
+              <span className={live ? 'chip chip-live' : 'chip chip-paper'}>
+                {live ? 'LIVE' : 'PAPER'}
+              </span>
+              <span className="chip">
+                {status?.market_open ? 'Market open' : 'Market closed'}
+              </span>
+            </div>
+            <BrokerChip broker={status?.broker} running={running} />
+            <span className="chip max-w-full truncate" title={status?.broker?.message}>
+              <span className={`dot ${status?.broker?.feed_connected ? 'dot-on' : 'dot-off'}`} />
+              Cash{' '}
+              {status?.broker?.available_cash == null
+                ? '—'
+                : inr(status.broker.available_cash)}
+            </span>
+            <button
+              className={`btn w-full md:w-auto ${running ? 'btn-stop' : 'btn-start'}`}
+              disabled={busy}
+              onClick={() => act(running ? api.stop : api.start)}
             >
-              {(price?.change ?? 0) >= 0 ? '+' : ''}
-              {num(price?.change, 2)} ({num(price?.change_pct, 2)}%)
-            </div>
-          </div>
-          <div className="flex shrink-0 flex-col items-end gap-1.5">
-            <span className={live ? 'chip chip-live' : 'chip chip-paper'}>
-              {live ? 'LIVE' : 'PAPER'}
-            </span>
-            <span className="chip text-[0.65rem]">
-              {status?.market_open ? 'Open' : 'Closed'}
-            </span>
+              {running ? 'Stop bot' : 'Start bot'}
+            </button>
           </div>
         </div>
-
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <BrokerChip broker={status?.broker} running={running} />
-          <span className="chip max-w-full truncate" title={status?.broker?.message}>
-            <span className={`dot ${status?.broker?.feed_connected ? 'dot-on' : 'dot-off'}`} />
-            Cash{' '}
-            {status?.broker?.available_cash == null
-              ? '—'
-              : inr(status.broker.available_cash)}
-          </span>
-        </div>
-
-        <button
-          className={`btn mt-3 w-full ${running ? 'btn-stop' : 'btn-start'}`}
-          disabled={busy}
-          onClick={() => act(running ? api.stop : api.start)}
-        >
-          {running ? 'Stop bot' : 'Start bot'}
-        </button>
       </section>
 
       {status?.broker?.status === 'failed' && (
@@ -150,7 +159,7 @@ export default function DashboardPage() {
         />
       </div>
 
-      <div className="mb-3 grid grid-cols-2 gap-2 sm:mb-4 sm:gap-3 md:grid-cols-4 xl:grid-cols-5">
+      <div className="mb-3 grid grid-cols-2 gap-2 sm:mb-4 sm:grid-cols-3 sm:gap-3 xl:grid-cols-5">
         <Tile
           label="Today P&L"
           value={inr(status?.today_pnl ?? 0)}
@@ -185,11 +194,11 @@ export default function DashboardPage() {
         <Tile
           label="Win rate"
           value={`${num(status?.all_time_win_rate, 0)}%`}
-          className="hidden xl:block"
+          className="col-span-2 sm:col-span-1"
         />
       </div>
 
-      <div className="grid min-w-0 gap-3 sm:gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
+      <div className="grid min-w-0 gap-3 sm:gap-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
         <div className="flex min-w-0 flex-col gap-3 sm:gap-4">
           <div className="min-w-0 overflow-hidden">
             <Chart data={candles} strategy={strategy} />

@@ -206,7 +206,7 @@ export default function SettingsPage() {
   const dirtyCount = Object.keys(dirty).length;
 
   return (
-    <main className="mx-auto max-w-[1000px] px-4 py-4 pb-28 sm:px-5 sm:py-5 sm:pb-24">
+    <main className="page-shell py-4 pb-28 sm:py-5 sm:pb-24">
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="m-0 text-[1.05rem] font-semibold">Settings</h1>
@@ -256,7 +256,7 @@ export default function SettingsPage() {
       )}
 
       <div className="fixed inset-x-0 bottom-0 border-t border-[var(--border)] bg-[var(--bg)]/92 backdrop-blur pb-[env(safe-area-inset-bottom)]">
-        <div className="mx-auto flex max-w-[1000px] items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:px-5">
+        <div className="page-shell flex items-center justify-between gap-3 py-3 sm:gap-4">
           <span className="min-w-0 truncate text-[0.78rem] text-[var(--muted)]">
             {dirtyCount ? `${dirtyCount} unsaved change${dirtyCount > 1 ? 's' : ''}` : 'All changes saved'}
           </span>

@@ -77,7 +77,7 @@ export default function TradesPage() {
   }, [analytics]);
 
   return (
-    <main className="mx-auto max-w-[1400px] px-4 py-4 sm:px-5 sm:py-5">
+    <main className="page-shell py-4 sm:py-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h1 className="m-0 text-[1.05rem] font-semibold">Trade history</h1>
         <div className="flex flex-wrap items-center gap-2">

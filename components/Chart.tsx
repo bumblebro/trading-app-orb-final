@@ -28,8 +28,9 @@ interface LineSpec {
 function chartHeight(width: number) {
   if (width < 400) return 200;
   if (width < 640) return 240;
-  if (width < 768) return 300;
-  return 420;
+  if (width < 900) return 320;
+  if (width < 1200) return 360;
+  return 400;
 }
 
 const IST_TIME = new Intl.DateTimeFormat('en-IN', {

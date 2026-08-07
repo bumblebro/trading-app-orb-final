@@ -14,7 +14,7 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--bg)]/85 backdrop-blur">
-      <div className="mx-auto flex h-12 max-w-[1400px] items-center gap-3 px-4 sm:h-14 sm:gap-6 sm:px-5">
+      <div className="page-shell flex h-12 items-center gap-3 sm:h-14 sm:gap-6">
         <Link href="/" className="flex shrink-0 items-baseline gap-2 no-underline">
           <span className="text-[0.95rem] font-bold tracking-tight text-[var(--text)]">ORB</span>
           <span className="label hidden sm:inline">Nifty 50</span>
