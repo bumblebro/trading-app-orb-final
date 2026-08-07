@@ -154,11 +154,29 @@ class DataFeed:
         self._connected = False
         with self._queue_cv:
             self._queue_cv.notify_all()
-        if self._ws:
-            try:
-                self._ws.close()
-            except Exception:
-                pass
+        self._close_ws()
+        # Drop references so daemon feed threads can exit cleanly.
+        self._threads = []
+
+    def _close_ws(self):
+        ws = self._ws
+        self._ws = None
+        if not ws:
+            return
+        try:
+            # SmartWebSocketV2 exposes close_connection(), not close().
+            if hasattr(ws, "close_connection"):
+                ws.close_connection()
+            elif hasattr(ws, "close"):
+                ws.close()
+        except Exception:
+            pass
+        try:
+            wsapp = getattr(ws, "wsapp", None)
+            if wsapp is not None:
+                wsapp.close()
+        except Exception:
+            pass
 
     def _spawn(self, target, name):
         thread = threading.Thread(target=target, daemon=True, name=name)
@@ -390,23 +408,35 @@ class DataFeed:
     def _connect(self):
         from SmartApi.smartWebSocketV2 import SmartWebSocketV2
 
-        auth = self.jwt_token
+        auth = (self.jwt_token or "").strip()
         if auth and not auth.startswith("Bearer "):
             auth = f"Bearer {auth}"
 
-        self._ws = SmartWebSocketV2(auth, self.api_key, self.client_id, self.feed_token)
+        # max_retry_attempt=0: disable the library's nested reconnect. We already
+        # reconnect in _websocket_loop. Nested retries leave zombie sockets and
+        # Angel One allows only 3 concurrent WS connections per client.
+        self._ws = SmartWebSocketV2(
+            auth, self.api_key, self.client_id, self.feed_token,
+            max_retry_attempt=0,
+        )
 
-        def on_open(_):
+        def on_open(_wsapp):
             log = self._log()
             if log:
                 log.websocket_event("CONNECTED")
             self._connected = True
             self._reconnects = 0
-            self._ws.subscribe("nifty_spot", 2,
-                               [{"exchangeType": EXCHANGE_TYPE_NSE,
-                                 "tokens": NIFTY_SPOT_TOKENS}])
+            try:
+                self._ws.subscribe(
+                    "nifty_spot",
+                    2,
+                    [{"exchangeType": EXCHANGE_TYPE_NSE, "tokens": list(NIFTY_SPOT_TOKENS)}],
+                )
+            except Exception as exc:
+                if log:
+                    log.websocket_event("ERROR", f"Subscribe failed: {exc}")
 
-        def on_data(_, message):
+        def on_data(_wsapp, message):
             try:
                 for msg in (message if isinstance(message, list) else [message]):
                     if not isinstance(msg, dict):
@@ -436,20 +466,45 @@ class DataFeed:
                 if log:
                     log.error(f"Tick handling failed: {exc}")
 
-        def on_error(_, error):
+        def on_error(*args):
+            # Library sometimes calls on_error(title, detail); websocket-client
+            # may also surface the raw error through patched _on_error below.
             self._connected = False
+            detail = " | ".join(str(a) for a in args if a not in (None, ""))
             log = self._log()
-            if log:
-                log.websocket_event("ERROR", str(error))
+            if log and detail:
+                log.websocket_event("ERROR", detail)
 
-        def on_close(_):
+        def on_close(*_args):
             self._connected = False
 
         self._ws.on_open = on_open
         self._ws.on_data = on_data
         self._ws.on_error = on_error
         self._ws.on_close = on_close
-        self._ws.connect()
+
+        # Log the real transport error; skip the library's nested reconnect.
+        def _on_error(_wsapp, error):
+            log = self._log()
+            if log and error:
+                log.websocket_event("ERROR", str(error))
+            self._connected = False
+            try:
+                self._ws.RESUBSCRIBE_FLAG = False
+                self._ws.close_connection()
+            except Exception:
+                pass
+
+        self._ws._on_error = _on_error
+        # websocket-client may pass (ws, code, reason) — accept extras.
+        self._ws._on_close = lambda wsapp, *rest: on_close(wsapp, *rest)
+
+        try:
+            self._ws.connect()
+        finally:
+            self._connected = False
+            if not self._running:
+                self._close_ws()
 
     def subscribe_token(self, token: str, exchange: str = "NFO"):
         if not (self._ws and self._connected and token):

@@ -111,11 +111,23 @@ class TradingBot:
             self.logger.warning("Bot is already running")
             return
 
+        # Ensure a previous soft-stop released any Angel WS slots.
+        if self.data_feed:
+            try:
+                self.data_feed.stop()
+            except Exception:
+                pass
+            self.data_feed = None
+
         self.reload_config()
         mode = self.mode
         data_source = get_setting("data_source") or "playback"
         self._data_source = data_source
         self._kill_switch_tripped = False
+        # Force a fresh session on every start so a pre-open CLOSED phase
+        # cannot stick around after a soft restart once the market is open.
+        self._session_date = None
+        self.strategy.reset_day()
 
         self.data_feed = self._build_feed(mode, data_source)
         smart_api = self._maybe_login(mode, data_source)
@@ -139,8 +151,7 @@ class TradingBot:
         self.logger.bot_status("STARTED", f"mode={mode} source={data_source}")
 
     def stop(self):
-        if not self._running:
-            return
+        was_running = self._running
         self._running = False
         if self.data_feed:
             self.data_feed.stop()
@@ -148,7 +159,8 @@ class TradingBot:
         self._broker_message = "Bot stopped"
         self._available_cash_cache = None
         self._available_cash_cached_at = 0.0
-        self.logger.bot_status("STOPPED")
+        if was_running:
+            self.logger.bot_status("STOPPED")
 
     def _build_feed(self, mode: str, data_source: str) -> DataFeed:
         from data_feed import reset_data_feed
