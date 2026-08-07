@@ -23,6 +23,7 @@ from pydantic import BaseModel
 from database import (
     SECRET_KEYS, clear_trade_data, get_active_trade, get_all_settings,
     get_equity_curve, get_exit_reason_breakdown, get_setting, get_today_pnl,
+    get_yearly_pnl,
     get_trades, init_db, save_settings,
 )
 from indicators import sanitize_nan, session_opening_range
@@ -226,6 +227,7 @@ async def analytics(mode: Optional[str] = None):
     return sanitize_nan({
         "equity_curve": get_equity_curve(mode=target_mode),
         "exit_reasons": get_exit_reason_breakdown(mode=target_mode),
+        "yearly_pnl": get_yearly_pnl(mode=target_mode),
     })
 
 

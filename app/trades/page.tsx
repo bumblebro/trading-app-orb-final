@@ -184,10 +184,36 @@ export default function TradesPage() {
         <Tile label="Max drawdown" value={inr(drawdown)} tone="down" />
       </div>
 
-      <div className="mb-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="mb-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px_280px]">
         <section className="card card-pad min-w-0">
           <div className="label mb-3">Equity curve · cumulative net P&L</div>
           <EquityCurve points={analytics?.equity_curve ?? []} />
+        </section>
+
+        <section className="card card-pad">
+          <div className="label mb-3">Year-wise P&L</div>
+          {analytics?.yearly_pnl?.length ? (
+            <div className="flex flex-col gap-2">
+              {analytics.yearly_pnl.map((row) => (
+                <div
+                  key={row.year}
+                  className="flex items-center justify-between gap-3 text-[0.8rem]"
+                >
+                  <div className="min-w-0">
+                    <div className="font-medium text-[var(--text)]">{row.year}</div>
+                    <div className="text-[0.72rem] text-[var(--faint)]">
+                      {row.trades} trades · {num(row.win_rate, 0)}% WR
+                    </div>
+                  </div>
+                  <span className={`metric shrink-0 ${row.net_pnl >= 0 ? 'up' : 'down'}`}>
+                    {inr(row.net_pnl)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="m-0 text-[0.8rem] text-[var(--faint)]">No closed trades yet.</p>
+          )}
         </section>
 
         <section className="card card-pad">

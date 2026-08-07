@@ -406,6 +406,41 @@ def get_exit_reason_breakdown(mode: str = None, db_path: str = None) -> List[Dic
         conn.close()
 
 
+def get_yearly_pnl(mode: str = None, db_path: str = None) -> List[Dict]:
+    """Net P&L, trades and win rate grouped by calendar year (newest first)."""
+    conn = get_connection(db_path)
+    try:
+        query = """
+            SELECT substr(date, 1, 4) AS year,
+                   SUM(COALESCE(net_pnl, pnl)) AS net_pnl,
+                   COUNT(*) AS trades,
+                   SUM(CASE WHEN status = 'win' THEN 1 ELSE 0 END) AS wins,
+                   SUM(CASE WHEN status = 'loss' THEN 1 ELSE 0 END) AS losses
+            FROM trades
+            WHERE status != 'open' AND date IS NOT NULL AND length(date) >= 4
+        """
+        params: List[Any] = []
+        if mode:
+            query += " AND mode = ?"
+            params.append(mode)
+        query += " GROUP BY substr(date, 1, 4) ORDER BY year DESC"
+        rows = []
+        for r in conn.execute(query, params):
+            trades = r["trades"] or 0
+            wins = r["wins"] or 0
+            rows.append({
+                "year": r["year"],
+                "net_pnl": round(r["net_pnl"] or 0, 2),
+                "trades": trades,
+                "wins": wins,
+                "losses": r["losses"] or 0,
+                "win_rate": round(wins / trades * 100, 1) if trades else 0.0,
+            })
+        return rows
+    finally:
+        conn.close()
+
+
 def get_last_trade_date(mode: str = None, db_path: str = None) -> Optional[str]:
     conn = get_connection(db_path)
     try:

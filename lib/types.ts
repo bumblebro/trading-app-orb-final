@@ -140,9 +140,19 @@ export interface ExitReasonRow {
   net_pnl: number;
 }
 
+export interface YearlyPnlRow {
+  year: string;
+  net_pnl: number;
+  trades: number;
+  wins: number;
+  losses: number;
+  win_rate: number;
+}
+
 export interface Analytics {
   equity_curve: EquityPoint[];
   exit_reasons: ExitReasonRow[];
+  yearly_pnl?: YearlyPnlRow[];
 }
 
 export interface TradesResponse {
