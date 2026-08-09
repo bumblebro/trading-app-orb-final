@@ -61,19 +61,35 @@ class OrderManager:
                     base = float(get_setting("paper_capital") or "500000")
                     available = base + get_all_time_pnl(mode="paper").get("all_time_pnl", 0)
                 result = {"available": available, "required": required,
-                          "sufficient": available >= required, "mode": "paper"}
+                          "sufficient": available >= required, "mode": "paper",
+                          "ok": True}
             else:
-                data = (self.smart_api.rmsLimit() or {}).get("data") or {}
-                available = float(data.get("availablecash", 0) or 0)
+                response = self.smart_api.rmsLimit() or {}
+                data = response.get("data") or {}
+                # Stale/expired sessions often return status=false or empty data.
+                # Do not treat that as a real ₹0 balance.
+                raw = data.get("availablecash")
+                if raw is None or raw == "":
+                    raw = data.get("net")
+                api_ok = bool(response.get("status")) and raw is not None and raw != ""
+                if not api_ok:
+                    message = response.get("message") or "RMS limit unavailable"
+                    self.logger.warning(f"Angel RMS failed: {message}")
+                    return {"available": 0, "required": required,
+                            "sufficient": False, "mode": "error", "ok": False,
+                            "message": message}
+                available = float(raw)
                 result = {"available": available, "required": required,
-                          "sufficient": available >= required, "mode": "live"}
+                          "sufficient": available >= required, "mode": "live",
+                          "ok": True}
 
             if log_check:
                 self.logger.margin_check(result["available"], required, result["sufficient"])
             return result
         except Exception as exc:
             self.logger.error("Margin check failed", exc)
-            return {"available": 0, "required": required, "sufficient": False, "mode": "error"}
+            return {"available": 0, "required": required, "sufficient": False,
+                    "mode": "error", "ok": False}
 
     # ------------------------------------------------------------------- entry
 

@@ -77,6 +77,7 @@ class TradingBot:
         self._broker_message = "Bot stopped"
         self._available_cash_cache: Optional[float] = None
         self._available_cash_cached_at = 0.0
+        self._last_session_refresh_at = 0.0
 
     # --------------------------------------------------------------- lifecycle
 
@@ -163,6 +164,7 @@ class TradingBot:
         self._broker_message = "Bot stopped"
         self._available_cash_cache = None
         self._available_cash_cached_at = 0.0
+        self._last_session_refresh_at = 0.0
         if was_running:
             self.logger.bot_status("STOPPED")
 
@@ -568,16 +570,48 @@ class TradingBot:
 
         return self._theoretical_premium(index_price, option_type, now)
 
+    def _refresh_broker_session(self) -> bool:
+        """Re-login when Angel RMS/session goes stale. Rate-limited to 2 min."""
+        now = time.time()
+        if now - self._last_session_refresh_at < 120:
+            return False
+        self._last_session_refresh_at = now
+        try:
+            smart_api, feed_token = login_and_get_session()
+            if not (smart_api and feed_token):
+                self.logger.warning("Angel session refresh failed")
+                return False
+            if self.order_manager:
+                self.order_manager.set_smart_api(smart_api)
+            if self.data_feed:
+                self.data_feed.update_credentials(
+                    get_setting("api_key"), get_setting("client_id"),
+                    feed_token, smart_api.access_token,
+                )
+            self._broker_status = "connected"
+            self._broker_message = "Angel One session refreshed"
+            self.logger.info("Angel One session refreshed after RMS failure")
+            return True
+        except Exception as exc:
+            self.logger.warning(f"Angel session refresh error: {exc}")
+            return False
+
     def _broker_available_cash(self) -> Optional[float]:
         """Angel available cash, cached briefly to avoid hammering rmsLimit."""
         if not (self._running and self.order_manager and self.order_manager.smart_api):
-            return None
+            return self._available_cash_cache
         now = time.time()
         if (self._available_cash_cache is not None
                 and now - self._available_cash_cached_at < 15):
             return self._available_cash_cache
         try:
             margin = self.order_manager.check_margin(mode="live", log_check=False)
+            if not margin.get("ok", True) or margin.get("mode") == "error":
+                if self._refresh_broker_session():
+                    margin = self.order_manager.check_margin(mode="live", log_check=False)
+            if not margin.get("ok", True) or margin.get("mode") == "error":
+                # Keep last good value instead of flashing ₹0 on API blips.
+                return self._available_cash_cache
             available = float(margin.get("available") or 0)
             self._available_cash_cache = available
             self._available_cash_cached_at = now
@@ -593,8 +627,25 @@ class TradingBot:
         if self.mode == "paper":
             base = float(get_setting("paper_capital") or "500000")
             return base + get_all_time_pnl(mode="paper").get("all_time_pnl", 0)
-        margin = self.order_manager.check_margin(mode="live", log_check=False)
-        return margin.get("available", 0)
+        # Prefer a fresh RMS read; fall back to last good cash so a blip
+        # does not size the next live order as zero.
+        if self.order_manager:
+            margin = self.order_manager.check_margin(mode="live", log_check=False)
+            if margin.get("ok", True) and margin.get("mode") != "error":
+                available = float(margin.get("available") or 0)
+                self._available_cash_cache = available
+                self._available_cash_cached_at = time.time()
+                return available
+            if self._refresh_broker_session():
+                margin = self.order_manager.check_margin(mode="live", log_check=False)
+                if margin.get("ok", True) and margin.get("mode") != "error":
+                    available = float(margin.get("available") or 0)
+                    self._available_cash_cache = available
+                    self._available_cash_cached_at = time.time()
+                    return available
+        if self._available_cash_cache is not None:
+            return self._available_cash_cache
+        return 0
 
     def _position_size(self, premium: float) -> int:
         """
