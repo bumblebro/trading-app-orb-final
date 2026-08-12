@@ -59,6 +59,12 @@ export interface Trade {
   mode: 'paper' | 'live';
   capital_used: number | null;
   total_capital: number | null;
+  estimated_entry_price?: number | null;
+  estimated_exit_price?: number | null;
+  /** ₹; positive = paid more than estimate (worse for long options). */
+  entry_slippage?: number | null;
+  /** ₹; positive = sold below estimate (worse for long options). */
+  exit_slippage?: number | null;
   orb_high: number | null;
   orb_low: number | null;
   orb_range: number | null;

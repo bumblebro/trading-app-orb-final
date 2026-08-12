@@ -253,7 +253,7 @@ export default function TradesPage() {
       {/* Desktop table */}
       <section className="card hidden overflow-hidden md:block">
         <div className="scroll-x scroll-y max-h-[540px]">
-          <table className="table min-w-[920px]">
+          <table className="table min-w-[1020px]">
             <thead>
               <tr>
                 <th>Date</th>
@@ -264,6 +264,7 @@ export default function TradesPage() {
                 <th>Entry</th>
                 <th>Exit</th>
                 <th>Capital used</th>
+                <th>Slip</th>
                 <th>Index in/out</th>
                 <th>Exit reason</th>
                 <th className="text-right">Net P&L</th>
@@ -275,7 +276,7 @@ export default function TradesPage() {
               ))}
               {!trades.length && (
                 <tr>
-                  <td colSpan={11} className="text-center text-[var(--faint)]">
+                  <td colSpan={12} className="text-center text-[var(--faint)]">
                     {loading ? 'Loading…' : `No ${mode} trades recorded.`}
                   </td>
                 </tr>
@@ -301,7 +302,20 @@ function tradeMeta(trade: Trade, capitalBase = 0) {
     capitalUsed != null && base != null && base > 0
       ? (capitalUsed / base) * 100
       : null;
-  return { pnl, open, capitalUsed, capitalPct };
+
+  const entrySlip = trade.entry_slippage;
+  const exitSlip = trade.exit_slippage;
+  const hasSlip =
+    trade.mode === 'live' &&
+    ((entrySlip != null && Number.isFinite(entrySlip)) ||
+      (exitSlip != null && Number.isFinite(exitSlip)));
+  const slipTotal = hasSlip ? (entrySlip ?? 0) + (exitSlip ?? 0) : null;
+  const slipPct =
+    slipTotal != null && capitalUsed != null && capitalUsed > 0
+      ? (slipTotal / capitalUsed) * 100
+      : null;
+
+  return { pnl, open, capitalUsed, capitalPct, slipTotal, slipPct, hasSlip };
 }
 
 function formatCapitalUsed(capitalUsed: number | null, capitalPct: number | null) {
@@ -310,8 +324,20 @@ function formatCapitalUsed(capitalUsed: number | null, capitalPct: number | null
   return `${inr(capitalUsed)} (${capitalPct.toFixed(1)}%)`;
 }
 
+function formatSlip(slipTotal: number | null, slipPct: number | null, hasSlip: boolean) {
+  if (!hasSlip || slipTotal == null) return '—';
+  const money = inr(slipTotal);
+  const signed = slipTotal > 0 ? `+${money}` : money;
+  if (slipPct == null) return signed;
+  const pct = `${slipPct > 0 ? '+' : ''}${slipPct.toFixed(1)}%`;
+  return `${signed} (${pct})`;
+}
+
 function TradeCard({ trade, capitalBase }: { trade: Trade; capitalBase: number }) {
-  const { pnl, open, capitalUsed, capitalPct } = tradeMeta(trade, capitalBase);
+  const { pnl, open, capitalUsed, capitalPct, slipTotal, slipPct, hasSlip } = tradeMeta(
+    trade,
+    capitalBase,
+  );
   return (
     <article className="card card-pad">
       <div className="mb-2 flex items-start justify-between gap-3">
@@ -337,6 +363,7 @@ function TradeCard({ trade, capitalBase }: { trade: Trade; capitalBase: number }
           label="Index"
           value={`${num(trade.underlying_entry_price, 0)} → ${num(trade.underlying_exit_price, 0)}`}
         />
+        <Meta label="Slip" value={formatSlip(slipTotal, slipPct, hasSlip)} />
         <Meta label="Reason" value={trade.exit_reason?.replace(/_/g, ' ') ?? '—'} />
       </div>
     </article>
@@ -353,7 +380,18 @@ function Meta({ label, value }: { label: string; value: string }) {
 }
 
 function TradeRow({ trade, capitalBase }: { trade: Trade; capitalBase: number }) {
-  const { pnl, open, capitalUsed, capitalPct } = tradeMeta(trade, capitalBase);
+  const { pnl, open, capitalUsed, capitalPct, slipTotal, slipPct, hasSlip } = tradeMeta(
+    trade,
+    capitalBase,
+  );
+  const slipClass =
+    !hasSlip || slipTotal == null
+      ? 'text-[var(--faint)]'
+      : slipTotal > 0
+        ? 'down'
+        : slipTotal < 0
+          ? 'up'
+          : 'text-[var(--muted)]';
   return (
     <tr>
       <td className="text-[var(--muted)]">{trade.date}</td>
@@ -364,6 +402,7 @@ function TradeRow({ trade, capitalBase }: { trade: Trade; capitalBase: number })
       <td>{num(trade.entry_price)}</td>
       <td>{trade.exit_price === null ? '—' : num(trade.exit_price)}</td>
       <td>{formatCapitalUsed(capitalUsed, capitalPct)}</td>
+      <td className={slipClass}>{formatSlip(slipTotal, slipPct, hasSlip)}</td>
       <td className="text-[var(--muted)]">
         {num(trade.underlying_entry_price, 0)} → {num(trade.underlying_exit_price, 0)}
       </td>

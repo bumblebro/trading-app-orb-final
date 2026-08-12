@@ -112,6 +112,7 @@ class OrderManager:
 
                 entry_price = estimated_premium if estimated_premium > 0 else \
                     round(index_price * 0.015, 2)
+                estimated_entry = round(float(entry_price), 2)
 
                 required = entry_price * quantity
                 margin = self.check_margin(required, mode=mode, log_check=False)
@@ -131,6 +132,9 @@ class OrderManager:
                     self.logger.info(f"Paper fill: {contract['symbol']} "
                                      f"@ Rs {entry_price} x{quantity}")
 
+                # Long options: entry slip > 0 means we paid above the estimate.
+                entry_slip = round((float(entry_price) - estimated_entry) * quantity, 2)
+
                 trade_id = insert_trade({
                     "type": option_type,
                     "strike_price": contract["strike"],
@@ -143,9 +147,17 @@ class OrderManager:
                     "underlying_entry_price": index_price,
                     "capital_used": round(entry_price * quantity, 2),
                     "total_capital": margin.get("available"),
+                    "estimated_entry_price": estimated_entry,
+                    "entry_slippage": entry_slip,
                     "entry_order_ids": ",".join(order_ids) if order_ids else None,
                     **(trade_context or {}),
                 }, timestamp=timestamp)
+
+                if mode == "live" and abs(entry_slip) >= 0.01:
+                    self.logger.info(
+                        f"Entry slip Rs {entry_slip:+,.2f} "
+                        f"(est {estimated_entry} → fill {entry_price})"
+                    )
 
                 self.logger.order_placed(f"BUY {option_type}", contract["strike"],
                                          entry_price, quantity, mode, timestamp=timestamp)
@@ -348,6 +360,8 @@ class OrderManager:
                 return 0.0
 
             exit_order_ids: List[str] = []
+            # Mark before live fill — used to measure exit slippage.
+            estimated_exit = round(float(exit_price), 2) if exit_price else None
             if mode == "live" and self.smart_api:
                 exit_order_ids, placed = self._execute_sliced(
                     trade["trading_symbol"], trade.get("token"), "SELL", trade["quantity"])
@@ -363,7 +377,16 @@ class OrderManager:
 
             pnl = close_trade(trade_id, exit_price, reason, timestamp=timestamp,
                               underlying_exit_price=underlying_price,
-                              exit_order_ids=",".join(exit_order_ids) or None)
+                              exit_order_ids=",".join(exit_order_ids) or None,
+                              estimated_exit_price=estimated_exit)
+
+            if mode == "live" and estimated_exit and estimated_exit > 0:
+                exit_slip = round((estimated_exit - float(exit_price)) * trade["quantity"], 2)
+                if abs(exit_slip) >= 0.01:
+                    self.logger.info(
+                        f"Exit slip Rs {exit_slip:+,.2f} "
+                        f"(est {estimated_exit} → fill {exit_price})"
+                    )
 
             self.logger.order_exit(reason, pnl, {
                 "trade_id": trade_id, "entry": trade["entry_price"],

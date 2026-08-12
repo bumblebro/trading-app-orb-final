@@ -74,12 +74,26 @@ CREATE TABLE IF NOT EXISTS trades (
     capital_used REAL,
     total_capital REAL,
 
+    -- Fill vs estimate (live). Paper usually has slip ~0.
+    estimated_entry_price REAL,
+    estimated_exit_price REAL,
+    entry_slippage REAL,
+    exit_slippage REAL,
+
     entry_order_ids TEXT,
     exit_order_ids TEXT,
     exit_time TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
 )
 """
+
+# Added after first ship; created via ALTER on existing DBs.
+_TRADE_COLUMN_MIGRATIONS = (
+    ("estimated_entry_price", "REAL"),
+    ("estimated_exit_price", "REAL"),
+    ("entry_slippage", "REAL"),
+    ("exit_slippage", "REAL"),
+)
 
 SIGNAL_LOG_SCHEMA = """
 CREATE TABLE IF NOT EXISTS signal_logs (
@@ -154,6 +168,7 @@ def init_db(db_path: str = None):
 
         conn.execute(TRADES_SCHEMA)
         conn.execute(SIGNAL_LOG_SCHEMA)
+        _ensure_trade_columns(conn)
         conn.execute("CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)")
         conn.execute("""
             CREATE TABLE IF NOT EXISTS logs (
@@ -173,6 +188,14 @@ def init_db(db_path: str = None):
         conn.close()
 
 
+def _ensure_trade_columns(conn):
+    """Add new trade columns on older databases without rebuilding the table."""
+    existing = _table_columns(conn, "trades")
+    for name, col_type in _TRADE_COLUMN_MIGRATIONS:
+        if name not in existing:
+            conn.execute(f"ALTER TABLE trades ADD COLUMN {name} {col_type}")
+
+
 # ------------------------------------------------------------------- trades
 
 _INSERT_FIELDS = (
@@ -180,7 +203,9 @@ _INSERT_FIELDS = (
     "entry_price", "quantity", "lot_size", "status", "mode",
     "orb_high", "orb_low", "orb_range", "underlying_entry_price",
     "stop_index", "target_index", "risk_points", "stop_loss", "target",
-    "capital_used", "total_capital", "entry_order_ids",
+    "capital_used", "total_capital",
+    "estimated_entry_price", "entry_slippage",
+    "entry_order_ids",
 )
 
 
@@ -222,7 +247,8 @@ def update_trade(trade_id: int, updates: Dict[str, Any], db_path: str = None):
 
 def close_trade(trade_id: int, exit_price: float, exit_reason: str,
                 timestamp: datetime = None, underlying_exit_price: float = None,
-                exit_order_ids: str = None, db_path: str = None) -> float:
+                exit_order_ids: str = None, estimated_exit_price: float = None,
+                db_path: str = None) -> float:
     """Close a trade, booking charges. Returns net P&L."""
     if exit_reason not in EXIT_REASONS:
         raise ValueError(f"unknown exit_reason {exit_reason!r}; "
@@ -239,17 +265,25 @@ def close_trade(trade_id: int, exit_price: float, exit_reason: str,
         net_pnl = round(gross_pnl - fees["total_charges"], 2)
         now = timestamp or get_ist_now()
 
+        # Long options: exit slip > 0 means we sold below the pre-order mark.
+        est_exit = estimated_exit_price
+        exit_slip = None
+        if est_exit is not None and est_exit > 0:
+            exit_slip = round((float(est_exit) - float(exit_price)) * trade["quantity"], 2)
+
         conn.execute("""
             UPDATE trades SET
                 exit_price = ?, underlying_exit_price = ?, pnl = ?, net_pnl = ?,
                 brokerage = ?, stt = ?, exc_charges = ?, gst = ?,
-                status = ?, exit_reason = ?, exit_time = ?, exit_order_ids = ?
+                status = ?, exit_reason = ?, exit_time = ?, exit_order_ids = ?,
+                estimated_exit_price = ?, exit_slippage = ?
             WHERE id = ?
         """, (
             exit_price, underlying_exit_price, gross_pnl, net_pnl,
             fees["brokerage"], fees["stt"], fees["exc_charges"], fees["gst"],
             "win" if net_pnl > 0 else "loss", exit_reason,
-            now.strftime("%H:%M:%S"), exit_order_ids, trade_id,
+            now.strftime("%H:%M:%S"), exit_order_ids,
+            est_exit, exit_slip, trade_id,
         ))
         conn.commit()
         return net_pnl
