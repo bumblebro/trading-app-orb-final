@@ -22,6 +22,42 @@ interface Group {
   fields: Field[];
 }
 
+/**
+ * Live defaults for a larger account (~₹1L).
+ * Credentials and playback paths are left alone.
+ */
+const LIVE_DEFAULTS_1L: Settings = {
+  trading_mode: 'live',
+  data_source: 'smartapi',
+
+  orb_or_minutes: '60',
+  orb_min_range_pct: '0.25',
+  orb_max_range_pct: '2.00',
+  orb_entry_trigger: 'close',
+  orb_confirm_interval_mins: '3',
+  orb_breakout_buffer_pct: '0.05',
+  orb_entry_cutoff: '13:30',
+  orb_sl_mode: 'or_opposite',
+  orb_sl_fraction: '0.50',
+  orb_target_r: '2.0',
+  orb_breakeven_after_r: '1.0',
+  orb_trail_r: '0',
+  orb_max_trades_per_day: '1',
+  orb_allow_reversal: 'false',
+  option_sl_pct: '100.0',
+  square_off_time: '15:15',
+
+  position_sizing_mode: 'risk_percent',
+  fixed_lots: '1',
+  lot_size: '65',
+  min_lots: '1',
+  max_lots: '5',
+  risk_percent_per_trade: '2.0',
+  max_capital_per_trade_pct: '15.0',
+  max_daily_loss: '10000',
+  initial_capital: '100000',
+};
+
 const GROUPS: Group[] = [
   {
     title: 'Mode',
@@ -203,6 +239,44 @@ export default function SettingsPage() {
     }
   };
 
+  const applyLiveDefaults = async () => {
+    if (
+      !confirm(
+        'Apply live defaults for ~₹1L capital?\n\n' +
+          '• Live + Angel feed\n' +
+          '• Risk 2% per trade, max 5 lots, lot size 65\n' +
+          '• Max capital / trade 15%\n' +
+          '• Max daily loss ₹10,000, capital ₹1,00,000\n' +
+          '• Standard ORB strategy exits\n\n' +
+          'Broker credentials and playback paths are kept.\n' +
+          'Not for ₹15k Phase 0 — use Fixed 1 lot / max capital 100% there.\n' +
+          'Stop → Start the bot after save.',
+      )
+    ) {
+      return;
+    }
+
+    setSettings((prev) => ({ ...prev, ...LIVE_DEFAULTS_1L }));
+    setDirty((prev) => ({ ...prev, ...LIVE_DEFAULTS_1L }));
+    setSaving(true);
+    try {
+      await api.saveSettings(LIVE_DEFAULTS_1L);
+      setDirty({});
+      setStatus({
+        text: 'Live defaults (~₹1L) saved. Stop → Start the bot to apply.',
+        ok: true,
+      });
+      await load();
+    } catch (err) {
+      setStatus({
+        text: err instanceof Error ? err.message : 'Could not save live defaults',
+        ok: false,
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const dirtyCount = Object.keys(dirty).length;
 
   return (
@@ -214,9 +288,14 @@ export default function SettingsPage() {
             Strategy changes apply on the next candle; credentials need a restart.
           </p>
         </div>
-        <button className="btn btn-danger w-full sm:w-auto" onClick={clearData}>
-          Clear trades &amp; logs
-        </button>
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+          <button className="btn w-full sm:w-auto" onClick={applyLiveDefaults} disabled={saving}>
+            Apply ₹1L live defaults
+          </button>
+          <button className="btn btn-danger w-full sm:w-auto" onClick={clearData}>
+            Clear trades &amp; logs
+          </button>
+        </div>
       </div>
 
       {status && (

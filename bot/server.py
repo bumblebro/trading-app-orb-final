@@ -8,6 +8,7 @@ Security notes:
   * CORS defaults to localhost; set BOT_CORS_ORIGINS for anything else.
 """
 
+import asyncio
 import os
 import sys
 
@@ -100,7 +101,8 @@ async def start_bot():
         )
 
     try:
-        bot.start()
+        # bot.start() is sync and can do I/O — keep the event loop free.
+        await asyncio.to_thread(bot.start)
     except Exception as exc:
         logger.error("Bot failed to start", exc)
         raise HTTPException(status_code=500, detail=str(exc))
@@ -114,53 +116,59 @@ async def stop_bot():
     bot = get_bot()
     if not bot.is_running:
         return {"status": "already_stopped"}
-    bot.stop()
+    await asyncio.to_thread(bot.stop)
     return {"status": "stopped"}
 
 
 @app.get("/status")
 async def status_endpoint():
-    return sanitize_nan(get_bot().get_status())
+    return sanitize_nan(await asyncio.to_thread(get_bot().get_status))
 
 
 @app.get("/price")
 async def price():
-    bot = get_bot()
-    info = bot.data_feed.get_price_info() if bot.data_feed else {
-        "price": 0, "change": 0, "change_pct": 0, "connected": False,
-    }
-    return sanitize_nan({**info, "strategy": bot.strategy_state})
+    def _price():
+        bot = get_bot()
+        info = bot.data_feed.get_price_info() if bot.data_feed else {
+            "price": 0, "change": 0, "change_pct": 0, "connected": False,
+        }
+        return sanitize_nan({**info, "strategy": bot.strategy_state})
+
+    return await asyncio.to_thread(_price)
 
 
 @app.get("/orb")
 async def orb_state():
     """Current opening range, phase and any pending breakout levels."""
-    return sanitize_nan(get_bot().strategy_state)
+    return sanitize_nan(await asyncio.to_thread(lambda: get_bot().strategy_state))
 
 
 @app.get("/candles")
 async def candles():
     """1-minute candles for the current session plus the opening range band."""
-    bot = get_bot()
-    or_minutes = bot.strategy.config.or_minutes
-    if not bot.data_feed:
-        return {"candles": [], "orb": None, "or_minutes": or_minutes}
+    def _candles():
+        bot = get_bot()
+        or_minutes = bot.strategy.config.or_minutes
+        if not bot.data_feed:
+            return {"candles": [], "orb": None, "or_minutes": or_minutes}
 
-    raw = bot.data_feed.get_all_candles(interval="1minute")
-    session_date = bot._session_date
-    if session_date:
-        raw = [c for c in raw if (c.get("time_key") or "").startswith(session_date)]
+        raw = bot.data_feed.get_all_candles(interval="1minute")
+        session_date = bot._session_date
+        if session_date:
+            raw = [c for c in raw if (c.get("time_key") or "").startswith(session_date)]
 
-    payload = [
-        {"time": c["time"], "open": c["open"], "high": c["high"],
-         "low": c["low"], "close": c["close"]}
-        for c in raw if "time" in c
-    ]
-    return sanitize_nan({
-        "candles": payload,
-        "orb": session_opening_range(raw, or_minutes, session_date),
-        "or_minutes": or_minutes,
-    })
+        payload = [
+            {"time": c["time"], "open": c["open"], "high": c["high"],
+             "low": c["low"], "close": c["close"]}
+            for c in raw if "time" in c
+        ]
+        return sanitize_nan({
+            "candles": payload,
+            "orb": session_opening_range(raw, or_minutes, session_date),
+            "or_minutes": or_minutes,
+        })
+
+    return await asyncio.to_thread(_candles)
 
 
 # -------------------------------------------------------------------- trades

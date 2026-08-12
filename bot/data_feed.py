@@ -347,6 +347,7 @@ class DataFeed:
                     return
 
                 period_start: Optional[datetime] = None
+                rows_seen = 0
                 for row in reader:
                     if not self._running:
                         break
@@ -377,6 +378,11 @@ class DataFeed:
 
                     if delay:
                         time.sleep(delay)
+                    else:
+                        # delay=0 at ≥500x — still yield so uvicorn can answer.
+                        rows_seen += 1
+                        if rows_seen % 64 == 0:
+                            time.sleep(0.001)
 
             if log:
                 log.info("Replay finished")

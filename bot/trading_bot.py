@@ -303,9 +303,9 @@ class TradingBot:
             if not self.data_feed:
                 return
 
-            # Closed candles carry their own timestamps, which is what the
-            # session logic must follow when replaying history.
-            for candle in self.data_feed.drain_closed_candles():
+            # Small batches so /status and other callers can take the lock
+            # during fast CSV replay (full sample is ~1M rows @ 500x).
+            for candle in self.data_feed.drain_closed_candles(limit=40):
                 self._on_closed_candle(candle)
 
             if not self.is_playback:

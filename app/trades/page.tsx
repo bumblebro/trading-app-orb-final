@@ -241,7 +241,7 @@ export default function TradesPage() {
       {/* Mobile trade cards */}
       <section className="flex flex-col gap-3 md:hidden">
         {trades.map((trade) => (
-          <TradeCard key={trade.id} trade={trade} />
+          <TradeCard key={trade.id} trade={trade} capitalBase={initialCapital} />
         ))}
         {!trades.length && (
           <div className="card card-pad text-center text-[0.8rem] text-[var(--faint)]">
@@ -271,7 +271,7 @@ export default function TradesPage() {
             </thead>
             <tbody>
               {trades.map((trade) => (
-                <TradeRow key={trade.id} trade={trade} />
+                <TradeRow key={trade.id} trade={trade} capitalBase={initialCapital} />
               ))}
               {!trades.length && (
                 <tr>
@@ -288,7 +288,7 @@ export default function TradesPage() {
   );
 }
 
-function tradeMeta(trade: Trade) {
+function tradeMeta(trade: Trade, capitalBase = 0) {
   const pnl = trade.net_pnl ?? trade.pnl ?? 0;
   const open = trade.status === 'open';
   const capitalUsed =
@@ -296,11 +296,22 @@ function tradeMeta(trade: Trade) {
     (trade.entry_price && trade.quantity
       ? trade.entry_price * trade.quantity
       : null);
-  return { pnl, open, capitalUsed };
+  const base = trade.total_capital ?? (capitalBase > 0 ? capitalBase : null);
+  const capitalPct =
+    capitalUsed != null && base != null && base > 0
+      ? (capitalUsed / base) * 100
+      : null;
+  return { pnl, open, capitalUsed, capitalPct };
 }
 
-function TradeCard({ trade }: { trade: Trade }) {
-  const { pnl, open, capitalUsed } = tradeMeta(trade);
+function formatCapitalUsed(capitalUsed: number | null, capitalPct: number | null) {
+  if (capitalUsed == null) return '—';
+  if (capitalPct == null) return inr(capitalUsed);
+  return `${inr(capitalUsed)} (${capitalPct.toFixed(1)}%)`;
+}
+
+function TradeCard({ trade, capitalBase }: { trade: Trade; capitalBase: number }) {
+  const { pnl, open, capitalUsed, capitalPct } = tradeMeta(trade, capitalBase);
   return (
     <article className="card card-pad">
       <div className="mb-2 flex items-start justify-between gap-3">
@@ -319,7 +330,7 @@ function TradeCard({ trade }: { trade: Trade }) {
       </div>
       <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[0.75rem]">
         <Meta label="Qty" value={String(trade.quantity)} />
-        <Meta label="Capital" value={capitalUsed == null ? '—' : inr(capitalUsed)} />
+        <Meta label="Capital" value={formatCapitalUsed(capitalUsed, capitalPct)} />
         <Meta label="Entry" value={num(trade.entry_price)} />
         <Meta label="Exit" value={trade.exit_price === null ? '—' : num(trade.exit_price)} />
         <Meta
@@ -341,8 +352,8 @@ function Meta({ label, value }: { label: string; value: string }) {
   );
 }
 
-function TradeRow({ trade }: { trade: Trade }) {
-  const { pnl, open, capitalUsed } = tradeMeta(trade);
+function TradeRow({ trade, capitalBase }: { trade: Trade; capitalBase: number }) {
+  const { pnl, open, capitalUsed, capitalPct } = tradeMeta(trade, capitalBase);
   return (
     <tr>
       <td className="text-[var(--muted)]">{trade.date}</td>
@@ -352,7 +363,7 @@ function TradeRow({ trade }: { trade: Trade }) {
       <td>{trade.quantity}</td>
       <td>{num(trade.entry_price)}</td>
       <td>{trade.exit_price === null ? '—' : num(trade.exit_price)}</td>
-      <td>{capitalUsed == null ? '—' : inr(capitalUsed)}</td>
+      <td>{formatCapitalUsed(capitalUsed, capitalPct)}</td>
       <td className="text-[var(--muted)]">
         {num(trade.underlying_entry_price, 0)} → {num(trade.underlying_exit_price, 0)}
       </td>

@@ -116,12 +116,13 @@ Proven + bigger  → Risk 0.5–1% + max-lots cap
 
 Run the **bot** on a Droplet. Keep the **UI** on your Mac (or Vercel later).
 
-**Droplet:** Ubuntu, **$6 / 1 GB RAM** (not 512 MB). Region: **Bangalore**, else **Singapore**.
+**Droplet:** Ubuntu, **$6 / 1 GB RAM** (not 512 MB). Region: **Bangalore**, else **Singapore**.  
+**Current IP:** `168.144.177.107` (SSH: `ssh root@168.144.177.107`).
 
 ### On the droplet (SSH first — not on your Mac)
 
 ```bash
-ssh root@YOUR_DROPLET_IP
+ssh root@168.144.177.107
 
 apt update && apt install -y git python3 python3-venv python3-pip
 cd ~
@@ -173,14 +174,14 @@ ufw --force enable
 Point `.env.local` at the droplet:
 
 ```bash
-PYTHON_BOT_URL=http://YOUR_DROPLET_IP:8000
+PYTHON_BOT_URL=http://168.144.177.107:8000
 BOT_API_TOKEN=<same token>
 ```
 
 ### Restart / logs
 
 ```bash
-ssh root@YOUR_DROPLET_IP
+ssh root@168.144.177.107
 
 systemctl restart nifty-orb
 systemctl status nifty-orb
@@ -201,34 +202,23 @@ git commit -m "describe the change"
 git push origin main
 ```
 
-**2. On the droplet** — SSH in, pull, restart:
+**2. On your Mac** — one command to update the droplet (after step 1 is on GitHub):
 
 ```bash
-ssh root@YOUR_DROPLET_IP
+ssh root@168.144.177.107 'cd ~/trading-app-orb-final && cp bot/trading.db ~/trading.db.bak && git checkout -- bot/trading.db bot/trading.log bot/instruments_cache.json && git pull origin main && cp ~/trading.db.bak bot/trading.db && systemctl restart nifty-orb && systemctl status nifty-orb --no-pager'
+```
 
-cd ~/trading-app-orb-final
+That keeps `trading.db`, discards runtime noise that blocks pull (`trading.log`, `instruments_cache.json`), pulls `main`, restores the DB, restarts the bot.
 
-# Keep live DB (credentials + trades). Droplet runtime files often block pull.
-cp bot/trading.db ~/trading.db.bak
-git checkout -- bot/trading.db bot/trading.log
-git pull origin main
-cp ~/trading.db.bak bot/trading.db
+For **WebSocket / feed** fixes, prefer a longer gap instead of plain restart:
 
-# Prefer stop → wait → start after feed/WebSocket fixes (Angel allows 3 WS slots).
-systemctl stop nifty-orb
-sleep 120
-systemctl start nifty-orb
-
-# Quick restart is fine for small unrelated changes:
-# systemctl restart nifty-orb
-
-systemctl status nifty-orb
-journalctl -u nifty-orb -n 40 --no-pager
+```bash
+ssh root@168.144.177.107 'cd ~/trading-app-orb-final && cp bot/trading.db ~/trading.db.bak && git checkout -- bot/trading.db bot/trading.log bot/instruments_cache.json && git pull origin main && cp ~/trading.db.bak bot/trading.db && systemctl stop nifty-orb && sleep 120 && systemctl start nifty-orb && systemctl status nifty-orb --no-pager'
 ```
 
 **3. In the UI** (Mac / localhost): Stop bot if it still shows running, then Start bot once. Check logs for `WebSocket CONNECTED` when using the live Angel feed.
 
-If `git pull` still complains about other local files, stash only those paths or copy them aside the same way — never wipe `trading.db` without a backup.
+If `git pull` still complains about another local file, add it to the `git checkout -- ...` list — never wipe `trading.db` without a backup.
 
 ### If the bot freezes with an open trade
 
