@@ -12,6 +12,7 @@ left as an unintended position.
 from __future__ import annotations
 
 import math
+import re
 import threading
 import time
 from datetime import datetime
@@ -33,9 +34,10 @@ FILL_POLL_ATTEMPTS = 6
 FILL_POLL_DELAY_SEC = 0.5
 # NIFTY option tick; used to round LIMIT prices.
 OPTION_TICK = 0.05
-# Marketable-limit cushion so LIMIT still fills on a fast tape.
-LIMIT_BUY_PAD = 0.01   # +1% above ref
-LIMIT_SELL_PAD = 0.01  # -1% below ref
+# Small cushion above/below LTP so LIMIT still fills without breaching LPP.
+LIMIT_BUY_TICKS = 4   # +₹0.20
+LIMIT_SELL_TICKS = 4  # -₹0.20
+_LPP_PRICE_RE = re.compile(r"<\s*([0-9]+(?:\.[0-9]+)?)\s*>")
 
 
 class OrderManager:
@@ -269,21 +271,59 @@ class OrderManager:
             return self.data_feed.get_token_price(token)
         return 0.0
 
-    def _limit_price(self, side: str, token: Optional[str],
+    def _fetch_ltp(self, symbol: str, token: Optional[str]) -> float:
+        """Prefer websocket LTP; fall back to Angel ltpData REST."""
+        last = self._last_price(token)
+        if last > 0:
+            return last
+        if not (self.smart_api and symbol and token):
+            return 0.0
+        try:
+            resp = self.smart_api.ltpData("NFO", symbol, str(token)) or {}
+            if not resp.get("status"):
+                self.logger.warning(f"ltpData failed for {symbol}: {resp}")
+                return 0.0
+            data = resp.get("data") or {}
+            for key in ("ltp", "Ltp", "lastPrice", "lasttradeprice"):
+                if data.get(key) is not None:
+                    return float(data[key])
+        except Exception as exc:
+            self.logger.warning(f"ltpData raised for {symbol}: {exc}")
+        return 0.0
+
+    def _limit_price(self, side: str, symbol: str, token: Optional[str],
                      hint_price: float = 0.0) -> Optional[float]:
-        """Build a marketable LIMIT price (LTP preferred, else estimate)."""
-        ref = self._last_price(token)
+        """Build a marketable LIMIT from live LTP (estimate only as last resort)."""
+        ref = self._fetch_ltp(symbol, token)
+        source = "ltp"
         if ref <= 0:
             ref = float(hint_price or 0)
+            source = "estimate"
         if ref <= 0:
             return None
         if side == "BUY":
-            raw = ref * (1.0 + LIMIT_BUY_PAD)
+            raw = ref + LIMIT_BUY_TICKS * OPTION_TICK
             stepped = math.ceil(raw / OPTION_TICK) * OPTION_TICK
         else:
-            raw = ref * (1.0 - LIMIT_SELL_PAD)
+            raw = ref - LIMIT_SELL_TICKS * OPTION_TICK
             stepped = math.floor(raw / OPTION_TICK) * OPTION_TICK
-        return max(round(stepped, 2), OPTION_TICK)
+        price = max(round(stepped, 2), OPTION_TICK)
+        self.logger.info(
+            f"LIMIT {side} {symbol}: ref={ref:.2f} ({source}) -> {price:.2f}"
+        )
+        return price
+
+    @staticmethod
+    def _parse_lpp_bound(message: str) -> Optional[float]:
+        if not message:
+            return None
+        match = _LPP_PRICE_RE.search(message)
+        if not match:
+            return None
+        try:
+            return float(match.group(1))
+        except ValueError:
+            return None
 
     def _execute_sliced(self, symbol: str, token: str, side: str,
                         quantity: int, hint_price: float = 0.0
@@ -316,53 +356,71 @@ class OrderManager:
     def _place_chunk(self, symbol: str, token: str, side: str,
                      quantity: int, hint_price: float = 0.0) -> Optional[str]:
         # Angel algo rules (from Apr 2026): MARKET / IOC not allowed via API.
-        limit_price = self._limit_price(side, token, hint_price=hint_price)
+        limit_price = self._limit_price(side, symbol, token, hint_price=hint_price)
         if limit_price is None:
             self.logger.error(
                 f"Cannot place {side} LIMIT for {symbol}: no LTP/estimate price")
             return None
 
-        params = {
-            "variety": "NORMAL",
-            "tradingsymbol": symbol,
-            "symboltoken": str(token) if token is not None else "",
-            "transactiontype": side,
-            "exchange": "NFO",
-            "ordertype": "LIMIT",
-            "producttype": "INTRADAY",
-            "duration": "DAY",
-            "price": str(limit_price),
-            "squareoff": "0",
-            "stoploss": "0",
-            "quantity": str(quantity),
-        }
         for attempt in range(1, ORDER_RETRIES + 1):
+            params = {
+                "variety": "NORMAL",
+                "tradingsymbol": symbol,
+                "symboltoken": str(token) if token is not None else "",
+                "transactiontype": side,
+                "exchange": "NFO",
+                "ordertype": "LIMIT",
+                "producttype": "INTRADAY",
+                "duration": "DAY",
+                "price": str(limit_price),
+                "squareoff": "0",
+                "stoploss": "0",
+                "quantity": str(quantity),
+            }
             try:
                 # Full response so Angel's message/errorcode reaches our logs.
                 place = getattr(self.smart_api, "placeOrderFullResponse", None)
-                if callable(place):
-                    response = place(dict(params))
-                    order_id = None
-                    if isinstance(response, dict):
-                        data = response.get("data") or {}
-                        if response.get("status") and isinstance(data, dict):
-                            order_id = data.get("orderid")
-                        if not order_id:
-                            self.logger.error(
-                                f"{side} attempt {attempt} rejected for {symbol} "
-                                f"@ {limit_price}: {response}"
-                            )
-                    else:
-                        self.logger.error(
-                            f"{side} attempt {attempt} unexpected response: {response!r}"
-                        )
-                else:
+                response = place(dict(params)) if callable(place) else None
+                order_id = None
+                if response is None and not callable(place):
                     order_id = self.smart_api.placeOrder(dict(params))
                     if not order_id:
                         self.logger.warning(
                             f"{side} attempt {attempt} returned no order id "
                             f"for {symbol} @ {limit_price}"
                         )
+                elif isinstance(response, dict):
+                    data = response.get("data") or {}
+                    if response.get("status") and isinstance(data, dict):
+                        order_id = data.get("orderid")
+                    if not order_id:
+                        message = str(response.get("message") or "")
+                        self.logger.error(
+                            f"{side} attempt {attempt} rejected for {symbol} "
+                            f"@ {limit_price}: {response}"
+                        )
+                        # Exchange Limit Price Protection — retry inside the band.
+                        if response.get("errorcode") == "AB1007":
+                            bound = self._parse_lpp_bound(message)
+                            if bound and bound > 0:
+                                if side == "BUY":
+                                    limit_price = max(
+                                        round(math.floor(bound / OPTION_TICK) * OPTION_TICK, 2),
+                                        OPTION_TICK,
+                                    )
+                                else:
+                                    limit_price = max(
+                                        round(math.ceil(bound / OPTION_TICK) * OPTION_TICK, 2),
+                                        OPTION_TICK,
+                                    )
+                                self.logger.info(
+                                    f"Retrying inside LPP band @ {limit_price}"
+                                )
+                                continue
+                else:
+                    self.logger.error(
+                        f"{side} attempt {attempt} unexpected response: {response!r}"
+                    )
 
                 if order_id:
                     self.logger.info(
