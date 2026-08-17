@@ -569,6 +569,11 @@ class TradingBot:
                 entry = float(trade.get("entry_price") or 0)
                 if ltp > 0 and entry > 0 and ltp > max(entry * 20, 500):
                     ltp = ltp / 100.0
+                if ltp <= 0 and self.order_manager:
+                    # WS may not have the option token yet — use Angel REST LTP.
+                    ltp = self.order_manager._fetch_ltp(
+                        trade.get("trading_symbol") or "", trade.get("token"),
+                    )
                 if ltp > 0:
                     return ltp
 

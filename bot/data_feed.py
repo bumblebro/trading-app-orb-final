@@ -73,6 +73,8 @@ class DataFeed:
         self._connected = False
         self._reconnects = 0
         self._playback_finished = False
+        # Extra NFO tokens (open option) to (re)subscribe after WS connects.
+        self._extra_nfo_tokens: set = set()
 
         self.on_price_update: Optional[Callable] = None
         self._logger = None
@@ -446,6 +448,8 @@ class DataFeed:
             except Exception as exc:
                 if log:
                     log.websocket_event("ERROR", f"Subscribe failed: {exc}")
+            # Re-attach any open-option tokens requested before the socket was up.
+            self._flush_extra_subscriptions()
 
         def on_data(_wsapp, message):
             try:
@@ -516,24 +520,52 @@ class DataFeed:
                 self._close_ws()
 
     def subscribe_token(self, token: str, exchange: str = "NFO"):
-        if not (self._ws and self._connected and token):
+        if not token:
+            return
+        token = str(token)
+        if exchange == "NFO":
+            self._extra_nfo_tokens.add(token)
+        if not (self._ws and self._connected):
+            # WS not ready yet (common right after restore on start).
             return
         try:
             ex_type = EXCHANGE_TYPE_NFO if exchange == "NFO" else EXCHANGE_TYPE_NSE
             self._ws.subscribe("position", 1,
-                               [{"exchangeType": ex_type, "tokens": [str(token)]}])
+                               [{"exchangeType": ex_type, "tokens": [token]}])
         except Exception as exc:
             log = self._log()
             if log:
                 log.warning(f"Could not subscribe to {token}: {exc}")
 
+    def _flush_extra_subscriptions(self):
+        if not (self._ws and self._connected and self._extra_nfo_tokens):
+            return
+        tokens = list(self._extra_nfo_tokens)
+        try:
+            self._ws.subscribe(
+                "position",
+                1,
+                [{"exchangeType": EXCHANGE_TYPE_NFO, "tokens": tokens}],
+            )
+            log = self._log()
+            if log:
+                log.info(f"Subscribed to option tokens: {', '.join(tokens)}")
+        except Exception as exc:
+            log = self._log()
+            if log:
+                log.warning(f"Could not subscribe option tokens {tokens}: {exc}")
+
     def unsubscribe_token(self, token: str, exchange: str = "NFO"):
-        if not (self._ws and self._connected and token):
+        if not token:
+            return
+        token = str(token)
+        self._extra_nfo_tokens.discard(token)
+        if not (self._ws and self._connected):
             return
         try:
             ex_type = EXCHANGE_TYPE_NFO if exchange == "NFO" else EXCHANGE_TYPE_NSE
             self._ws.unsubscribe("position", 1,
-                                 [{"exchangeType": ex_type, "tokens": [str(token)]}])
+                                 [{"exchangeType": ex_type, "tokens": [token]}])
         except Exception as exc:
             log = self._log()
             if log:
