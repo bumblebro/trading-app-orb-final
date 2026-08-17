@@ -2,14 +2,16 @@
 Order placement and exit for NIFTY options.
 
 Paper mode books a simulated fill at the theoretical premium. Live mode routes
-market orders through Angel One SmartAPI, slicing above the exchange freeze
-quantity, and then *verifies* the fill from the order book instead of assuming
-the requested price. If part of a sliced entry fails, the filled portion is
-sold back immediately rather than left as an unintended position.
+LIMIT orders through Angel One SmartAPI (MARKET is blocked for algo APIs since
+Apr 2026), slicing above the exchange freeze quantity, and then *verifies* the
+fill from the order book instead of assuming the requested price. If part of a
+sliced entry fails, the filled portion is sold back immediately rather than
+left as an unintended position.
 """
 
 from __future__ import annotations
 
+import math
 import threading
 import time
 from datetime import datetime
@@ -29,6 +31,11 @@ RETRY_DELAY_SEC = 0.5
 SLICE_DELAY_SEC = 0.3
 FILL_POLL_ATTEMPTS = 6
 FILL_POLL_DELAY_SEC = 0.5
+# NIFTY option tick; used to round LIMIT prices.
+OPTION_TICK = 0.05
+# Marketable-limit cushion so LIMIT still fills on a fast tape.
+LIMIT_BUY_PAD = 0.01   # +1% above ref
+LIMIT_SELL_PAD = 0.01  # -1% below ref
 
 
 class OrderManager:
@@ -122,7 +129,8 @@ class OrderManager:
 
                 order_ids: List[str] = []
                 if mode == "live":
-                    filled = self._enter_live(contract, quantity)
+                    filled = self._enter_live(contract, quantity,
+                                              hint_price=estimated_entry)
                     if filled is None:
                         return None
                     order_ids, avg_price, filled_qty = filled
@@ -214,14 +222,17 @@ class OrderManager:
         self.logger.margin_check(margin["available"], price * reduced, True)
         return reduced
 
-    def _enter_live(self, contract: Dict, quantity: int
+    def _enter_live(self, contract: Dict, quantity: int,
+                    hint_price: float = 0.0
                     ) -> Optional[Tuple[List[str], float, int]]:
         """
         Place the buy, then confirm what actually filled.
         Returns (order_ids, average_fill_price, filled_quantity).
         """
-        order_ids, placed_qty = self._execute_sliced(contract["symbol"], contract["token"],
-                                                     "BUY", quantity)
+        order_ids, placed_qty = self._execute_sliced(
+            contract["symbol"], contract["token"], "BUY", quantity,
+            hint_price=hint_price,
+        )
         if not order_ids:
             self.logger.order_failed("Entry rejected — no order was accepted")
             return None
@@ -237,7 +248,8 @@ class OrderManager:
             self.logger.error(
                 f"Partial entry: {filled_qty}/{quantity} filled. "
                 f"Unwinding the filled portion immediately.")
-            self._execute_sliced(contract["symbol"], contract["token"], "SELL", filled_qty)
+            self._execute_sliced(contract["symbol"], contract["token"], "SELL",
+                                 filled_qty, hint_price=avg_price or hint_price)
             return None
 
         if avg_price <= 0:
@@ -246,7 +258,8 @@ class OrderManager:
             avg_price = self._last_price(contract["token"])
             if avg_price <= 0:
                 self.logger.order_failed("Cannot determine the entry fill price")
-                self._execute_sliced(contract["symbol"], contract["token"], "SELL", filled_qty)
+                self._execute_sliced(contract["symbol"], contract["token"], "SELL",
+                                     filled_qty, hint_price=hint_price)
                 return None
 
         return order_ids, round(avg_price, 2), filled_qty
@@ -256,9 +269,26 @@ class OrderManager:
             return self.data_feed.get_token_price(token)
         return 0.0
 
+    def _limit_price(self, side: str, token: Optional[str],
+                     hint_price: float = 0.0) -> Optional[float]:
+        """Build a marketable LIMIT price (LTP preferred, else estimate)."""
+        ref = self._last_price(token)
+        if ref <= 0:
+            ref = float(hint_price or 0)
+        if ref <= 0:
+            return None
+        if side == "BUY":
+            raw = ref * (1.0 + LIMIT_BUY_PAD)
+            stepped = math.ceil(raw / OPTION_TICK) * OPTION_TICK
+        else:
+            raw = ref * (1.0 - LIMIT_SELL_PAD)
+            stepped = math.floor(raw / OPTION_TICK) * OPTION_TICK
+        return max(round(stepped, 2), OPTION_TICK)
+
     def _execute_sliced(self, symbol: str, token: str, side: str,
-                        quantity: int) -> Tuple[List[str], int]:
-        """Place a market order, splitting it across the freeze limit."""
+                        quantity: int, hint_price: float = 0.0
+                        ) -> Tuple[List[str], int]:
+        """Place LIMIT orders, splitting across the freeze limit."""
         if not self.smart_api:
             return [], 0
 
@@ -268,7 +298,8 @@ class OrderManager:
 
         while remaining > 0:
             chunk = min(remaining, MAX_QTY_PER_ORDER)
-            order_id = self._place_chunk(symbol, token, side, chunk)
+            order_id = self._place_chunk(symbol, token, side, chunk,
+                                         hint_price=hint_price)
             if order_id is None:
                 self.logger.error(f"{side} slice of {chunk} failed after "
                                   f"{ORDER_RETRIES} attempts; stopping")
@@ -283,25 +314,61 @@ class OrderManager:
         return order_ids, placed
 
     def _place_chunk(self, symbol: str, token: str, side: str,
-                     quantity: int) -> Optional[str]:
+                     quantity: int, hint_price: float = 0.0) -> Optional[str]:
+        # Angel algo rules (from Apr 2026): MARKET / IOC not allowed via API.
+        limit_price = self._limit_price(side, token, hint_price=hint_price)
+        if limit_price is None:
+            self.logger.error(
+                f"Cannot place {side} LIMIT for {symbol}: no LTP/estimate price")
+            return None
+
         params = {
             "variety": "NORMAL",
             "tradingsymbol": symbol,
-            "symboltoken": token,
+            "symboltoken": str(token) if token is not None else "",
             "transactiontype": side,
             "exchange": "NFO",
-            "ordertype": "MARKET",
+            "ordertype": "LIMIT",
             "producttype": "INTRADAY",
             "duration": "DAY",
+            "price": str(limit_price),
+            "squareoff": "0",
+            "stoploss": "0",
             "quantity": str(quantity),
         }
         for attempt in range(1, ORDER_RETRIES + 1):
             try:
-                order_id = self.smart_api.placeOrder(params)
+                # Full response so Angel's message/errorcode reaches our logs.
+                place = getattr(self.smart_api, "placeOrderFullResponse", None)
+                if callable(place):
+                    response = place(dict(params))
+                    order_id = None
+                    if isinstance(response, dict):
+                        data = response.get("data") or {}
+                        if response.get("status") and isinstance(data, dict):
+                            order_id = data.get("orderid")
+                        if not order_id:
+                            self.logger.error(
+                                f"{side} attempt {attempt} rejected for {symbol} "
+                                f"@ {limit_price}: {response}"
+                            )
+                    else:
+                        self.logger.error(
+                            f"{side} attempt {attempt} unexpected response: {response!r}"
+                        )
+                else:
+                    order_id = self.smart_api.placeOrder(dict(params))
+                    if not order_id:
+                        self.logger.warning(
+                            f"{side} attempt {attempt} returned no order id "
+                            f"for {symbol} @ {limit_price}"
+                        )
+
                 if order_id:
-                    self.logger.info(f"{side} {quantity} {symbol} -> order {order_id}")
+                    self.logger.info(
+                        f"{side} {quantity} {symbol} LIMIT {limit_price} -> order {order_id}"
+                    )
                     return str(order_id)
-                self.logger.warning(f"{side} attempt {attempt} returned no order id")
             except Exception as exc:
                 self.logger.error(f"{side} attempt {attempt} raised: {exc}")
             if attempt < ORDER_RETRIES:
@@ -364,7 +431,9 @@ class OrderManager:
             estimated_exit = round(float(exit_price), 2) if exit_price else None
             if mode == "live" and self.smart_api:
                 exit_order_ids, placed = self._execute_sliced(
-                    trade["trading_symbol"], trade.get("token"), "SELL", trade["quantity"])
+                    trade["trading_symbol"], trade.get("token"), "SELL",
+                    trade["quantity"], hint_price=estimated_exit or 0.0,
+                )
                 if placed < trade["quantity"]:
                     # The book is now out of sync with reality; make it loud.
                     self.logger.error(
