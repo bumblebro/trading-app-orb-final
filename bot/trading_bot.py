@@ -565,6 +565,10 @@ class TradingBot:
             trade = get_active_trade(mode="live")
             if trade and trade.get("token"):
                 ltp = self.data_feed.get_token_price(trade["token"])
+                # Guard: if an old tick was cached in paise, rescale once.
+                entry = float(trade.get("entry_price") or 0)
+                if ltp > 0 and entry > 0 and ltp > max(entry * 20, 500):
+                    ltp = ltp / 100.0
                 if ltp > 0:
                     return ltp
 

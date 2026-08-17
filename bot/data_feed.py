@@ -456,9 +456,8 @@ class DataFeed:
                     ltp = msg.get("last_traded_price") or msg.get("ltp")
                     if ltp is None:
                         continue
-                    ltp = float(ltp)
-                    if ltp > 100000:      # Angel reports paise for some feeds
-                        ltp /= 100.0
+                    # Angel SmartWebSocketV2 quotes all non-currency prices in paise.
+                    ltp = float(ltp) / 100.0
                     if ltp <= 0:
                         continue
 
@@ -467,8 +466,7 @@ class DataFeed:
                             self._token_prices[token] = ltp
                         day_open = msg.get("open_price_of_the_day") or msg.get("open")
                         if day_open:
-                            day_open = float(day_open)
-                            self._session_open = day_open / 100.0 if day_open > 100000 else day_open
+                            self._session_open = float(day_open) / 100.0
 
                     if token in NIFTY_SPOT_TOKENS:
                         self._process_tick(ltp, volume=msg.get("volume_traded_today"))
