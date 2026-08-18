@@ -166,9 +166,27 @@ export default function Chart({ data, strategy }: ChartProps) {
             <span className="text-[var(--muted)]">
               Range <span className="metric text-[var(--text)]">{orb.range.toFixed(1)}</span>
             </span>
+            {strategy?.orb_range_pct != null && (
+              <span className="text-[var(--muted)]">
+                Width{' '}
+                <span className="metric text-[var(--text)]">
+                  {strategy.orb_range_pct.toFixed(2)}%
+                </span>
+                <span className="text-[var(--faint)]">
+                  {' '}
+                  · allow {(strategy.min_or_pct ?? 0.25).toFixed(2)}–
+                  {(strategy.max_or_pct ?? 2).toFixed(2)}%
+                </span>
+              </span>
+            )}
           </div>
         ) : (
-          <span className="label">Range not set</span>
+          <span className="label">
+            Range not set
+            {strategy?.min_or_pct != null && (
+              <> · allow {strategy.min_or_pct.toFixed(2)}–{(strategy.max_or_pct ?? 2).toFixed(2)}%</>
+            )}
+          </span>
         )}
       </div>
       <div ref={containerRef} className="w-full min-w-0 px-0 py-1 sm:px-1 sm:py-2" />

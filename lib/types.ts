@@ -26,6 +26,9 @@ export interface StrategyState {
   orb_range: number | null;
   orb_range_pct: number | null;
   orb_locked_at: string | null;
+  /** Allowed OR width as % of spot (skip outside this band). */
+  min_or_pct?: number;
+  max_or_pct?: number;
   skip_reason: string | null;
   trades_taken: number;
   max_trades: number;

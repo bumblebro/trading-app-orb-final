@@ -250,6 +250,8 @@ class OrbStrategy:
             "orb_range": round(orb.width, 2) if orb else None,
             "orb_range_pct": round(orb.width / orb.mid * 100, 3) if orb and orb.mid else None,
             "orb_locked_at": orb.end.strftime("%H:%M") if orb else None,
+            "min_or_pct": self.config.min_or_pct,
+            "max_or_pct": self.config.max_or_pct,
             "skip_reason": self.skip_reason,
             "trades_taken": self.trades_taken,
             "max_trades": self.config.max_trades_per_day,

@@ -306,6 +306,10 @@ export default function DashboardPage() {
               }
             />
             <Row
+              label="Range check"
+              value={formatRangeCheck(strategy)}
+            />
+            <Row
               label="Trades"
               value={`${strategy?.trades_taken ?? 0} / ${strategy?.max_trades ?? 1}`}
             />
@@ -450,4 +454,21 @@ function Row({ label, value }: { label: string; value: string }) {
       <span className="metric max-w-[60%] break-all text-right">{value}</span>
     </div>
   );
+}
+
+function formatRangeCheck(strategy: BotStatus['strategy'] | null | undefined): string {
+  const min = strategy?.min_or_pct ?? 0.25;
+  const max = strategy?.max_or_pct ?? 2;
+  const band = `${num(min, 2)}–${num(max, 2)}%`;
+  const pct = strategy?.orb_range_pct;
+
+  if (strategy?.phase === 'BUILDING_RANGE' || pct == null) {
+    return `Building · allow ${band}`;
+  }
+  if (strategy?.phase === 'SKIP_DAY') {
+    return `Skip · ${num(pct, 2)}% (need ${band})`;
+  }
+  if (pct < min) return `Too narrow · ${num(pct, 2)}% < ${num(min, 2)}%`;
+  if (pct > max) return `Too wide · ${num(pct, 2)}% > ${num(max, 2)}%`;
+  return `OK · ${num(pct, 2)}% in ${band}`;
 }
