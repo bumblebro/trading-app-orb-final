@@ -244,4 +244,5 @@ python -m pytest tests -q
 - **Kill switch:** `max_daily_loss` flattens and stops trading for the day.
 - **Live orders:** sliced for NSE freeze limits; partial entry failures are unwound.
 - **Live exits:** LIMIT pad → 1.5× → force LIMIT (~8% of LTP) → MARKET/MPP last resort; incomplete exit logs `ALERT EXIT INCOMPLETE`.
-- **Clear history:** Trades page → Clear history (or Settings). Does not delete credentials.
+- **WhatsApp (free):** CallMeBot personal alerts — enable in Settings (`whatsapp_*`). Alerts on entry, exit, exit incomplete, kill switch, recover.
+- **Clear history:** Trades page → Clear history (or Settings). Does not delete credentials. Blocked while a trade is open.

@@ -159,6 +159,28 @@ const GROUPS: Group[] = [
     ],
   },
   {
+    title: 'WhatsApp alerts (free)',
+    blurb:
+      'Personal alerts via CallMeBot. Add +34 694 29 84 96 on WhatsApp, send “I allow callmebot to send me messages”, then paste the APIKEY here. Phone = country code + number (e.g. 9198XXXXXXXX).',
+    fields: [
+      {
+        key: 'whatsapp_enabled',
+        label: 'Enable WhatsApp alerts',
+        type: 'select',
+        options: [
+          { value: 'false', label: 'Off' },
+          { value: 'true', label: 'On' },
+        ],
+      },
+      {
+        key: 'whatsapp_phone',
+        label: 'WhatsApp phone',
+        hint: 'Digits with country code, no + (India: 91…).',
+      },
+      { key: 'whatsapp_apikey', label: 'CallMeBot API key', type: 'password' },
+    ],
+  },
+  {
     title: 'Broker credentials',
     blurb: 'Stored server-side and never sent back to the browser. Leave masked fields alone to keep the saved value.',
     fields: [
@@ -277,6 +299,22 @@ export default function SettingsPage() {
     }
   };
 
+  const testWhatsApp = async () => {
+    if (dirtyCount) {
+      setStatus({ text: 'Save WhatsApp settings first, then test.', ok: false });
+      return;
+    }
+    try {
+      await api.testWhatsApp();
+      setStatus({ text: 'Test WhatsApp sent — check your phone.', ok: true });
+    } catch (err) {
+      setStatus({
+        text: err instanceof Error ? err.message : 'WhatsApp test failed',
+        ok: false,
+      });
+    }
+  };
+
   const dirtyCount = Object.keys(dirty).length;
 
   return (
@@ -289,6 +327,9 @@ export default function SettingsPage() {
           </p>
         </div>
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+          <button className="btn w-full sm:w-auto" onClick={testWhatsApp} disabled={saving}>
+            Test WhatsApp
+          </button>
           <button className="btn w-full sm:w-auto" onClick={applyLiveDefaults} disabled={saving}>
             Apply ₹1L live defaults
           </button>

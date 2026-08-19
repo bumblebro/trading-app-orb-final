@@ -140,6 +140,11 @@ class OrderManager:
 
                 order_ids: List[str] = []
                 if mode == "live":
+                    # Slip baseline = live option LTP just before the order
+                    # (not BS), so pad/fill quality is measured correctly.
+                    pre_ltp = self._fetch_ltp(contract["symbol"], contract.get("token"))
+                    if pre_ltp > 0:
+                        estimated_entry = round(pre_ltp, 2)
                     filled = self._enter_live(contract, quantity,
                                               hint_price=estimated_entry)
                     if filled is None:
@@ -151,7 +156,7 @@ class OrderManager:
                     self.logger.info(f"Paper fill: {contract['symbol']} "
                                      f"@ Rs {entry_price} x{quantity}")
 
-                # Long options: entry slip > 0 means we paid above the estimate.
+                # Long options: entry slip > 0 means we paid above the pre-order mark.
                 entry_slip = round((float(entry_price) - estimated_entry) * quantity, 2)
 
                 trade_id = insert_trade({
@@ -688,6 +693,13 @@ class OrderManager:
                         f"{qty}. All exit tiers failed — MANUAL SQUARE-OFF NOW. "
                         f"Position still open at broker."
                     )
+                    try:
+                        from notify import notify_exit_incomplete
+                        notify_exit_incomplete(
+                            trade_id, filled, qty, symbol=symbol or "",
+                        )
+                    except Exception:
+                        pass
                     return 0.0
 
                 if filled > 0 and notional > 0:

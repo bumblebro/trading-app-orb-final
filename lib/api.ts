@@ -48,6 +48,8 @@ export const api = {
       '/recover-position',
       { method: 'POST' },
     ),
+  testWhatsApp: () =>
+    call<{ status: string; detail?: string }>('/notify/test', { method: 'POST' }),
   logs: (limit = 100) => call<{ logs: LogEntry[] }>(`/logs?limit=${limit}`),
 };
 

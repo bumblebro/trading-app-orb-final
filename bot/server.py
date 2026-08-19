@@ -232,6 +232,16 @@ async def recover_position():
     return result
 
 
+@app.post("/notify/test", dependencies=Protected)
+async def notify_test():
+    """Send a test WhatsApp via CallMeBot using saved settings."""
+    from notify import notify_test as _test
+    result = await asyncio.to_thread(_test)
+    if not result.get("ok"):
+        raise HTTPException(status_code=400, detail=result.get("message") or "Send failed")
+    return {"status": "sent", "detail": result.get("message")}
+
+
 @app.get("/pnl")
 async def pnl(mode: Optional[str] = None):
     bot = get_bot()

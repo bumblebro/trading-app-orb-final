@@ -50,7 +50,7 @@ class TradingBot:
         self.data_feed: Optional[DataFeed] = None
         self.order_manager: Optional[OrderManager] = None
         self.strategy = OrbStrategy(OrbConfig())
-
+        
         self._running = False
         self._thread: Optional[threading.Thread] = None
         self._lock = threading.RLock()
@@ -412,6 +412,11 @@ class TradingBot:
             self.logger.warning(f"Daily loss limit reached (Rs {pnl:,.0f} <= "
                                 f"-Rs {max_loss:,.0f}); no further trades today")
             self._kill_switch_tripped = True
+            try:
+                from notify import notify_kill_switch
+                notify_kill_switch(pnl)
+            except Exception:
+                pass
 
         self.strategy.phase = PHASE_DAILY_LOSS_LIMIT
         return True
@@ -487,6 +492,15 @@ class TradingBot:
             f"stop {signal.stop_index:.2f} target {signal.target_index:.2f} "
             f"risk {signal.risk_points:.1f}pts"
         )
+        try:
+            from notify import notify_entry
+            notify_entry(
+                signal.option_type, self._strike, entry_premium, quantity,
+                index_price=index_price, stop=signal.stop_index,
+                target=signal.target_index,
+            )
+        except Exception:
+            pass
 
         if mode == "live" and result.get("token") and self.data_feed:
             self.data_feed.subscribe_token(result["token"])
@@ -538,6 +552,11 @@ class TradingBot:
         self.strategy.register_exit()
         self.logger.info(f"ORB EXIT [{reason}] @ Rs {option_price} | "
                          f"index {index_price:.2f} | net P&L Rs {pnl:,.2f}")
+        try:
+            from notify import notify_exit
+            notify_exit(reason, option_price, pnl, index_price=index_price)
+        except Exception:
+            pass
 
     def manual_exit(self, price: Optional[float] = None) -> Dict:
         with self._lock:
@@ -838,6 +857,11 @@ class TradingBot:
             f"ADOPTED broker position as trade #{trade_id}: {symbol} "
             f"@ {avg} x{quantity} stop={stop_index:.2f} target={target_index:.2f}"
         )
+        try:
+            from notify import notify_adopted
+            notify_adopted(symbol, avg, quantity)
+        except Exception:
+            pass
         return {
             "status": "recovered",
             "trade_id": trade_id,

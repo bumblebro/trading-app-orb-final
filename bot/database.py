@@ -543,11 +543,16 @@ def get_consecutive_losses(date_override: str = None, mode: str = None, db_path:
 
 # ----------------------------------------------------------------- settings
 
-SECRET_KEYS = {"api_key", "pin", "totp_secret", "api_token"}
+SECRET_KEYS = {"api_key", "pin", "totp_secret", "api_token", "whatsapp_apikey"}
 
 DEFAULT_SETTINGS = {
     # Broker credentials (never returned in plaintext over the API)
     "api_key": "", "client_id": "", "pin": "", "totp_secret": "",
+
+    # Free personal WhatsApp alerts (CallMeBot)
+    "whatsapp_enabled": "false",
+    "whatsapp_phone": "",
+    "whatsapp_apikey": "",
 
     # Mode
     "trading_mode": "paper",
