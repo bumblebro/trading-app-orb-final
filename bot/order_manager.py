@@ -30,13 +30,14 @@ MAX_QTY_PER_ORDER = 1800
 ORDER_RETRIES = 3
 RETRY_DELAY_SEC = 0.5
 SLICE_DELAY_SEC = 0.3
-FILL_POLL_ATTEMPTS = 6
+FILL_POLL_ATTEMPTS = 8
 FILL_POLL_DELAY_SEC = 0.5
 # NIFTY option tick; used to round LIMIT prices.
 OPTION_TICK = 0.05
 # Small cushion above/below LTP so LIMIT still fills without breaching LPP.
-LIMIT_BUY_TICKS = 4   # +₹0.20
-LIMIT_SELL_TICKS = 4  # -₹0.20
+# Entry: tight (less chase). Exit: wider so stops / square-off fill like old MARKET.
+LIMIT_BUY_TICKS = 4    # +₹0.20
+LIMIT_SELL_TICKS = 10  # -₹0.50
 _LPP_PRICE_RE = re.compile(r"<\s*([0-9]+(?:\.[0-9]+)?)\s*>")
 
 
@@ -241,11 +242,18 @@ class OrderManager:
 
         avg_price, filled_qty = self._confirm_fills(order_ids)
 
+        # Don't leave a DAY LIMIT resting for hours — cancel anything still open.
+        if filled_qty < quantity:
+            self._cancel_orders(order_ids)
+            avg_price, filled_qty = self._confirm_fills(order_ids, attempts=3)
+
         if filled_qty <= 0:
-            self.logger.order_failed("Entry orders accepted but nothing filled")
+            self.logger.order_failed(
+                "Entry missed — limit not filled in time; pending orders cancelled"
+            )
             return None
 
-        if placed_qty < quantity:
+        if filled_qty < quantity:
             # A slice failed mid-way. Do not carry an unintended position.
             self.logger.error(
                 f"Partial entry: {filled_qty}/{quantity} filled. "
@@ -433,13 +441,29 @@ class OrderManager:
                 time.sleep(RETRY_DELAY_SEC)
         return None
 
-    def _confirm_fills(self, order_ids: List[str]) -> Tuple[float, int]:
+    def _cancel_orders(self, order_ids: List[str]) -> None:
+        """Cancel resting LIMIT orders so they cannot fill hours later unmanaged."""
+        if not self.smart_api or not order_ids:
+            return
+        for order_id in order_ids:
+            try:
+                resp = self.smart_api.cancelOrder(str(order_id), "NORMAL")
+                self.logger.info(f"Cancelled order {order_id}: {resp}")
+            except Exception as exc:
+                self.logger.warning(f"Cancel failed for order {order_id}: {exc}")
+
+    def _confirm_fills(self, order_ids: List[str],
+                       attempts: int = FILL_POLL_ATTEMPTS) -> Tuple[float, int]:
         """
         Poll the order book until the given orders reach a terminal state.
         Returns (quantity-weighted average fill price, total filled quantity).
+        On timeout, returns whatever quantity has filled so far (may be 0).
         """
-        wanted = set(order_ids)
-        for attempt in range(FILL_POLL_ATTEMPTS):
+        wanted = set(str(oid) for oid in order_ids)
+        best_qty = 0
+        best_notional = 0.0
+
+        for attempt in range(attempts):
             try:
                 book = (self.smart_api.orderBook() or {}).get("data") or []
             except Exception as exc:
@@ -457,19 +481,28 @@ class OrderManager:
                 filled = int(float(row.get("filledshares") or 0))
                 avg = float(row.get("averageprice") or 0)
 
-                if status in ("complete", "rejected", "cancelled"):
-                    if filled > 0 and avg > 0:
-                        total_qty += filled
-                        notional += avg * filled
-                else:
+                if filled > 0 and avg > 0:
+                    total_qty += filled
+                    notional += avg * filled
+
+                if status not in ("complete", "rejected", "cancelled"):
                     pending = True
 
-            if not pending and total_qty > 0:
-                return notional / total_qty, total_qty
-            if attempt < FILL_POLL_ATTEMPTS - 1:
+            if total_qty > best_qty:
+                best_qty = total_qty
+                best_notional = notional
+
+            if not pending:
+                if total_qty > 0 and notional > 0:
+                    return notional / total_qty, total_qty
+                return 0.0, 0
+
+            if attempt < attempts - 1:
                 time.sleep(FILL_POLL_DELAY_SEC)
 
         self.logger.warning("Timed out waiting for fill confirmation")
+        if best_qty > 0 and best_notional > 0:
+            return best_notional / best_qty, best_qty
         return 0.0, 0
 
     # -------------------------------------------------------------------- exit
@@ -492,15 +525,27 @@ class OrderManager:
                     trade["trading_symbol"], trade.get("token"), "SELL",
                     trade["quantity"], hint_price=estimated_exit or 0.0,
                 )
-                if placed < trade["quantity"]:
-                    # The book is now out of sync with reality; make it loud.
+                if not exit_order_ids:
                     self.logger.error(
-                        f"EXIT INCOMPLETE for trade {trade_id}: sold {placed} of "
-                        f"{trade['quantity']}. Manual intervention required.")
-                if exit_order_ids:
-                    avg, filled = self._confirm_fills(exit_order_ids)
-                    if avg > 0:
-                        exit_price = round(avg, 2)
+                        f"EXIT FAILED for trade {trade_id}: sell order not accepted. "
+                        f"Position may still be open at the broker."
+                    )
+                    return 0.0
+
+                avg, filled = self._confirm_fills(exit_order_ids)
+                if filled < trade["quantity"]:
+                    self._cancel_orders(exit_order_ids)
+                    avg, filled = self._confirm_fills(exit_order_ids, attempts=3)
+
+                if filled < trade["quantity"]:
+                    self.logger.error(
+                        f"EXIT INCOMPLETE for trade {trade_id}: sold {filled} of "
+                        f"{trade['quantity']}. Pending limits cancelled where possible. "
+                        f"Manual intervention required.")
+                    return 0.0
+
+                if avg > 0:
+                    exit_price = round(avg, 2)
 
             pnl = close_trade(trade_id, exit_price, reason, timestamp=timestamp,
                               underlying_exit_price=underlying_price,
