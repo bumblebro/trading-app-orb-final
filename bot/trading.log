@@ -11815,3 +11815,1223 @@
 [2026-08-19 22:15:00 IST] [INFO] [ORDER] [2020-02-06 11:55:00] EXIT | Reason=stoploss | P&L=-23480.30
 [2026-08-19 22:15:00 IST] [INFO] [SYSTEM] ORB EXIT [stoploss] @ Rs 1.94 | index 12150.85 | net P&L Rs -23,480.30
 [2026-08-19 22:15:00 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -23,480 <= -Rs 10,000); no further trades today
+[2026-08-19 22:15:01 IST] [INFO] [SYSTEM] New session 2020-02-07 — strategy state reset
+[2026-08-19 22:15:01 IST] [INFO] [SYSTEM] Margin Check | Available=6750149.69 | Required=129988.95 | PASS
+[2026-08-19 22:15:01 IST] [INFO] [SYSTEM] Paper fill: NIFTY12100PE @ Rs 95.23 x1365
+[2026-08-19 22:15:01 IST] [INFO] [ORDER] [2020-02-07 10:32:00] BUY PE | Strike=12100 | Price=95.23 | Qty=1365 | Mode=paper
+[2026-08-19 22:15:01 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 12100 @ Rs 95.23 x1365 | index 12100.50 stop 12151.15 target 11999.20 risk 50.6pts
+[2026-08-19 22:15:03 IST] [INFO] [ORDER] [2020-02-07 15:15:00] EXIT | Reason=squareoff | P&L=-1124.07
+[2026-08-19 22:15:03 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 94.61 | index 12098.80 | net P&L Rs -1,124.07
+[2026-08-19 22:15:03 IST] [INFO] [SYSTEM] New session 2020-02-10 — strategy state reset
+[2026-08-19 22:15:04 IST] [INFO] [SYSTEM] Margin Check | Available=6749025.62 | Required=114092.55 | PASS
+[2026-08-19 22:15:04 IST] [INFO] [SYSTEM] Paper fill: NIFTY12000PE @ Rs 65.01 x1755
+[2026-08-19 22:15:04 IST] [INFO] [ORDER] [2020-02-10 10:20:00] BUY PE | Strike=12000 | Price=65.01 | Qty=1755 | Mode=paper
+[2026-08-19 22:15:04 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 12000 @ Rs 65.01 x1755 | index 12009.75 stop 12102.40 target 11824.45 risk 92.6pts
+[2026-08-19 22:15:05 IST] [INFO] [ORDER] [2020-02-10 15:15:00] EXIT | Reason=squareoff | P&L=-23109.84
+[2026-08-19 22:15:05 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 51.97 | index 12034.90 | net P&L Rs -23,109.84
+[2026-08-19 22:15:05 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -23,110 <= -Rs 10,000); no further trades today
+[2026-08-19 22:15:05 IST] [INFO] [SYSTEM] New session 2020-02-11 — strategy state reset
+[2026-08-19 22:15:06 IST] [INFO] [SYSTEM] New session 2020-02-12 — strategy state reset
+[2026-08-19 22:15:06 IST] [INFO] [SYSTEM] Margin Check | Available=6725915.78 | Required=63934.65 | PASS
+[2026-08-19 22:15:06 IST] [INFO] [SYSTEM] Paper fill: NIFTY12250CE @ Rs 36.43 x1755
+[2026-08-19 22:15:06 IST] [INFO] [ORDER] [2020-02-12 10:32:00] BUY CE | Strike=12250 | Price=36.43 | Qty=1755 | Mode=paper
+[2026-08-19 22:15:06 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 12250 @ Rs 36.43 x1755 | index 12226.75 stop 12145.05 target 12390.15 risk 81.7pts
+[2026-08-19 22:15:06 IST] [INFO] [ORDER] [2020-02-12 15:15:00] EXIT | Reason=squareoff | P&L=-27403.08
+[2026-08-19 22:15:06 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 20.89 | index 12195.25 | net P&L Rs -27,403.08
+[2026-08-19 22:15:06 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -27,403 <= -Rs 10,000); no further trades today
+[2026-08-19 22:15:06 IST] [INFO] [SYSTEM] New session 2020-02-13 — strategy state reset
+[2026-08-19 22:15:07 IST] [INFO] [SYSTEM] Margin Check | Available=6698512.70 | Required=30905.55 | PASS
+[2026-08-19 22:15:07 IST] [INFO] [SYSTEM] Paper fill: NIFTY12150PE @ Rs 17.61 x1755
+[2026-08-19 22:15:07 IST] [INFO] [ORDER] [2020-02-13 10:29:00] BUY PE | Strike=12150 | Price=17.61 | Qty=1755 | Mode=paper
+[2026-08-19 22:15:07 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 12150 @ Rs 17.61 x1755 | index 12152.50 stop 12219.65 target 12018.20 risk 67.1pts
+[2026-08-19 22:15:07 IST] [INFO] [ORDER] [2020-02-13 15:15:00] EXIT | Reason=squareoff | P&L=-30885.36
+[2026-08-19 22:15:07 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 0.05 | index 12173.40 | net P&L Rs -30,885.36
+[2026-08-19 22:15:07 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -30,885 <= -Rs 10,000); no further trades today
+[2026-08-19 22:15:07 IST] [INFO] [SYSTEM] New session 2020-02-14 — strategy state reset
+[2026-08-19 22:15:08 IST] [INFO] [SYSTEM] Margin Check | Available=6667627.34 | Required=129302.55 | PASS
+[2026-08-19 22:15:08 IST] [INFO] [SYSTEM] Paper fill: NIFTY12150PE @ Rs 86.49 x1495
+[2026-08-19 22:15:08 IST] [INFO] [ORDER] [2020-02-14 10:50:00] BUY PE | Strike=12150 | Price=86.49 | Qty=1495 | Mode=paper
+[2026-08-19 22:15:08 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 12150 @ Rs 86.49 x1495 | index 12171.25 stop 12246.50 target 12020.75 risk 75.2pts
+[2026-08-19 22:15:08 IST] [INFO] [ORDER] [2020-02-14 15:15:00] EXIT | Reason=squareoff | P&L=+37607.97
+[2026-08-19 22:15:08 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 111.86 | index 12116.20 | net P&L Rs 37,607.97
+[2026-08-19 22:15:08 IST] [INFO] [SYSTEM] New session 2020-02-17 — strategy state reset
+[2026-08-19 22:15:09 IST] [INFO] [SYSTEM] Margin Check | Available=6705235.31 | Required=97262.10 | PASS
+[2026-08-19 22:15:09 IST] [INFO] [SYSTEM] Paper fill: NIFTY12050PE @ Rs 55.42 x1755
+[2026-08-19 22:15:09 IST] [INFO] [ORDER] [2020-02-17 12:26:00] BUY PE | Strike=12050 | Price=55.42 | Qty=1755 | Mode=paper
+[2026-08-19 22:15:09 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 12050 @ Rs 55.42 x1755 | index 12067.50 stop 12159.35 target 11883.80 risk 91.9pts
+[2026-08-19 22:15:09 IST] [INFO] [ORDER] [2020-02-17 15:15:00] EXIT | Reason=squareoff | P&L=+19150.49
+[2026-08-19 22:15:09 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 66.47 | index 12041.60 | net P&L Rs 19,150.49
+[2026-08-19 22:15:09 IST] [INFO] [SYSTEM] New session 2020-02-18 — strategy state reset
+[2026-08-19 22:15:09 IST] [INFO] [SYSTEM] Margin Check | Available=6724385.80 | Required=101825.10 | PASS
+[2026-08-19 22:15:09 IST] [INFO] [SYSTEM] Paper fill: NIFTY11950PE @ Rs 58.02 x1755
+[2026-08-19 22:15:09 IST] [INFO] [ORDER] [2020-02-18 10:41:00] BUY PE | Strike=11950 | Price=58.02 | Qty=1755 | Mode=paper
+[2026-08-19 22:15:09 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 11950 @ Rs 58.02 x1755 | index 11943.90 stop 12028.90 target 11773.90 risk 85.0pts
+[2026-08-19 22:15:10 IST] [INFO] [ORDER] [2020-02-18 15:15:00] EXIT | Reason=squareoff | P&L=-45631.89
+[2026-08-19 22:15:10 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 32.12 | index 11999.60 | net P&L Rs -45,631.89
+[2026-08-19 22:15:10 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -45,632 <= -Rs 10,000); no further trades today
+[2026-08-19 22:15:10 IST] [INFO] [SYSTEM] New session 2020-02-19 — strategy state reset
+[2026-08-19 22:15:10 IST] [INFO] [SYSTEM] Margin Check | Available=6678753.91 | Required=75816.00 | PASS
+[2026-08-19 22:15:10 IST] [INFO] [SYSTEM] Paper fill: NIFTY12050PE @ Rs 43.2 x1755
+[2026-08-19 22:15:10 IST] [INFO] [ORDER] [2020-02-19 10:26:00] BUY PE | Strike=12050 | Price=43.20 | Qty=1755 | Mode=paper
+[2026-08-19 22:15:10 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 12050 @ Rs 43.2 x1755 | index 12047.10 stop 12118.80 target 11903.70 risk 71.7pts
+[2026-08-19 22:15:11 IST] [INFO] [ORDER] [2020-02-19 12:57:00] EXIT | Reason=stoploss | P&L=-49477.28
+[2026-08-19 22:15:11 IST] [INFO] [SYSTEM] ORB EXIT [stoploss] @ Rs 15.08 | index 12118.80 | net P&L Rs -49,477.28
+[2026-08-19 22:15:11 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -49,477 <= -Rs 10,000); no further trades today
+[2026-08-19 22:15:11 IST] [INFO] [SYSTEM] New session 2020-02-20 — strategy state reset
+[2026-08-19 22:15:11 IST] [INFO] [SYSTEM] Margin Check | Available=6629276.63 | Required=17901.00 | PASS
+[2026-08-19 22:15:11 IST] [INFO] [SYSTEM] Paper fill: NIFTY12150CE @ Rs 10.2 x1755
+[2026-08-19 22:15:11 IST] [INFO] [ORDER] [2020-02-20 11:41:00] BUY CE | Strike=12150 | Price=10.20 | Qty=1755 | Mode=paper
+[2026-08-19 22:15:11 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 12150 @ Rs 10.2 x1755 | index 12137.55 stop 12093.40 target 12225.85 risk 44.1pts
+[2026-08-19 22:15:12 IST] [INFO] [ORDER] [2020-02-20 14:55:00] EXIT | Reason=stoploss | P&L=-17872.28
+[2026-08-19 22:15:12 IST] [INFO] [SYSTEM] ORB EXIT [stoploss] @ Rs 0.05 | index 12093.40 | net P&L Rs -17,872.28
+[2026-08-19 22:15:12 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -17,872 <= -Rs 10,000); no further trades today
+[2026-08-19 22:15:12 IST] [INFO] [SYSTEM] New session 2020-02-24 — strategy state reset
+[2026-08-19 22:15:13 IST] [INFO] [SYSTEM] New session 2020-02-25 — strategy state reset
+[2026-08-19 22:15:13 IST] [INFO] [SYSTEM] New session 2020-02-26 — strategy state reset
+[2026-08-19 22:15:14 IST] [INFO] [SYSTEM] Margin Check | Available=6611404.35 | Required=77149.80 | PASS
+[2026-08-19 22:15:14 IST] [INFO] [SYSTEM] Paper fill: NIFTY11750CE @ Rs 43.96 x1755
+[2026-08-19 22:15:14 IST] [INFO] [ORDER] [2020-02-26 13:17:00] BUY CE | Strike=11750 | Price=43.96 | Qty=1755 | Mode=paper
+[2026-08-19 22:15:14 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 11750 @ Rs 43.96 x1755 | index 11748.15 stop 11680.10 target 11884.25 risk 68.0pts
+[2026-08-19 22:15:14 IST] [INFO] [ORDER] [2020-02-26 14:31:00] EXIT | Reason=stoploss | P&L=-47428.62
+[2026-08-19 22:15:14 IST] [INFO] [SYSTEM] ORB EXIT [stoploss] @ Rs 17.01 | index 11680.10 | net P&L Rs -47,428.62
+[2026-08-19 22:15:14 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -47,429 <= -Rs 10,000); no further trades today
+[2026-08-19 22:15:14 IST] [INFO] [SYSTEM] New session 2020-02-27 — strategy state reset
+[2026-08-19 22:15:15 IST] [INFO] [SYSTEM] Margin Check | Available=6563975.73 | Required=40031.55 | PASS
+[2026-08-19 22:15:15 IST] [INFO] [SYSTEM] Paper fill: NIFTY11550PE @ Rs 22.81 x1755
+[2026-08-19 22:15:15 IST] [INFO] [ORDER] [2020-02-27 10:32:00] BUY PE | Strike=11550 | Price=22.81 | Qty=1755 | Mode=paper
+[2026-08-19 22:15:15 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 11550 @ Rs 22.81 x1755 | index 11541.95 stop 11661.25 target 11303.35 risk 119.3pts
+[2026-08-19 22:15:16 IST] [INFO] [ORDER] [2020-02-27 15:15:00] EXIT | Reason=squareoff | P&L=-40017.33
+[2026-08-19 22:15:16 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 0.05 | index 11637.50 | net P&L Rs -40,017.33
+[2026-08-19 22:15:16 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -40,017 <= -Rs 10,000); no further trades today
+[2026-08-19 22:15:16 IST] [INFO] [SYSTEM] New session 2020-02-28 — strategy state reset
+[2026-08-19 22:15:16 IST] [INFO] [SYSTEM] Margin Check | Available=6523958.40 | Required=125908.25 | PASS
+[2026-08-19 22:15:16 IST] [INFO] [SYSTEM] Paper fill: NIFTY11250PE @ Rs 101.95 x1235
+[2026-08-19 22:15:16 IST] [INFO] [ORDER] [2020-02-28 12:08:00] BUY PE | Strike=11250 | Price=101.95 | Qty=1235 | Mode=paper
+[2026-08-19 22:15:16 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 11250 @ Rs 101.95 x1235 | index 11261.85 stop 11382.00 target 11021.55 risk 120.1pts
+[2026-08-19 22:15:17 IST] [INFO] [ORDER] [2020-02-28 15:15:00] EXIT | Reason=squareoff | P&L=+26029.11
+[2026-08-19 22:15:17 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 123.27 | index 11216.45 | net P&L Rs 26,029.11
+[2026-08-19 22:15:17 IST] [INFO] [SYSTEM] New session 2020-03-02 — strategy state reset
+[2026-08-19 22:15:17 IST] [INFO] [SYSTEM] New session 2020-03-03 — strategy state reset
+[2026-08-19 22:15:18 IST] [INFO] [SYSTEM] Margin Check | Available=6549987.51 | Required=99596.25 | PASS
+[2026-08-19 22:15:18 IST] [INFO] [SYSTEM] Paper fill: NIFTY11200PE @ Rs 56.75 x1755
+[2026-08-19 22:15:18 IST] [INFO] [ORDER] [2020-03-03 10:35:00] BUY PE | Strike=11200 | Price=56.75 | Qty=1755 | Mode=paper
+[2026-08-19 22:15:18 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 11200 @ Rs 56.75 x1755 | index 11209.55 stop 11316.80 target 10995.05 risk 107.2pts
+[2026-08-19 22:15:18 IST] [INFO] [ORDER] [2020-03-03 14:41:00] EXIT | Reason=stoploss | P&L=-66594.11
+[2026-08-19 22:15:18 IST] [INFO] [SYSTEM] ORB EXIT [stoploss] @ Rs 18.89 | index 11316.80 | net P&L Rs -66,594.11
+[2026-08-19 22:15:18 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -66,594 <= -Rs 10,000); no further trades today
+[2026-08-19 22:15:18 IST] [INFO] [SYSTEM] New session 2020-03-04 — strategy state reset
+[2026-08-19 22:15:18 IST] [INFO] [SYSTEM] Margin Check | Available=6483393.40 | Required=74183.85 | PASS
+[2026-08-19 22:15:18 IST] [INFO] [SYSTEM] Paper fill: NIFTY11250PE @ Rs 42.27 x1755
+[2026-08-19 22:15:18 IST] [INFO] [ORDER] [2020-03-04 10:53:00] BUY PE | Strike=11250 | Price=42.27 | Qty=1755 | Mode=paper
+[2026-08-19 22:15:18 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 11250 @ Rs 42.27 x1755 | index 11253.85 stop 11354.95 target 11051.65 risk 101.1pts
+[2026-08-19 22:15:19 IST] [INFO] [ORDER] [2020-03-04 15:10:00] EXIT | Reason=breakeven_stop | P&L=-6051.96
+[2026-08-19 22:15:19 IST] [INFO] [SYSTEM] ORB EXIT [breakeven_stop] @ Rs 38.92 | index 11253.85 | net P&L Rs -6,051.96
+[2026-08-19 22:15:19 IST] [INFO] [SYSTEM] New session 2020-03-05 — strategy state reset
+[2026-08-19 22:15:19 IST] [INFO] [SYSTEM] Margin Check | Available=6477341.44 | Required=32274.45 | PASS
+[2026-08-19 22:15:19 IST] [INFO] [SYSTEM] Paper fill: NIFTY11350CE @ Rs 18.39 x1755
+[2026-08-19 22:15:19 IST] [INFO] [ORDER] [2020-03-05 10:50:00] BUY CE | Strike=11350 | Price=18.39 | Qty=1755 | Mode=paper
+[2026-08-19 22:15:19 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 11350 @ Rs 18.39 x1755 | index 11351.90 stop 11250.20 target 11555.30 risk 101.7pts
+[2026-08-19 22:15:20 IST] [INFO] [ORDER] [2020-03-05 15:15:00] EXIT | Reason=squareoff | P&L=-32255.15
+[2026-08-19 22:15:20 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 0.05 | index 11264.95 | net P&L Rs -32,255.15
+[2026-08-19 22:15:20 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -32,255 <= -Rs 10,000); no further trades today
+[2026-08-19 22:15:20 IST] [INFO] [SYSTEM] New session 2020-03-06 — strategy state reset
+[2026-08-19 22:15:21 IST] [INFO] [SYSTEM] Margin Check | Available=6445086.29 | Required=127686.00 | PASS
+[2026-08-19 22:15:21 IST] [INFO] [SYSTEM] Paper fill: NIFTY11000CE @ Rs 130.96 x975
+[2026-08-19 22:15:21 IST] [INFO] [ORDER] [2020-03-06 13:17:00] BUY CE | Strike=11000 | Price=130.96 | Qty=975 | Mode=paper
+[2026-08-19 22:15:21 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 11000 @ Rs 130.96 x975 | index 10999.35 stop 10831.30 target 11335.45 risk 168.1pts
+[2026-08-19 22:15:21 IST] [INFO] [ORDER] [2020-03-06 15:15:00] EXIT | Reason=squareoff | P&L=-3517.72
+[2026-08-19 22:15:21 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 127.63 | index 10994.70 | net P&L Rs -3,517.72
+[2026-08-19 22:15:21 IST] [INFO] [SYSTEM] New session 2020-03-09 — strategy state reset
+[2026-08-19 22:15:21 IST] [INFO] [SYSTEM] Margin Check | Available=6441568.57 | Required=125911.50 | PASS
+[2026-08-19 22:15:21 IST] [INFO] [SYSTEM] Paper fill: NIFTY10550PE @ Rs 88.05 x1430
+[2026-08-19 22:15:21 IST] [INFO] [ORDER] [2020-03-09 10:41:00] BUY PE | Strike=10550 | Price=88.05 | Qty=1430 | Mode=paper
+[2026-08-19 22:15:21 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 10550 @ Rs 88.05 x1430 | index 10545.15 stop 10743.70 target 10148.05 risk 198.6pts
+[2026-08-19 22:15:22 IST] [INFO] [ORDER] [2020-03-09 15:15:00] EXIT | Reason=squareoff | P&L=+72962.14
+[2026-08-19 22:15:22 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 139.32 | index 10452.35 | net P&L Rs 72,962.14
+[2026-08-19 22:15:22 IST] [INFO] [SYSTEM] New session 2020-03-11 — strategy state reset
+[2026-08-19 22:15:23 IST] [INFO] [SYSTEM] New session 2020-03-12 — strategy state reset
+[2026-08-19 22:15:23 IST] [INFO] [SYSTEM] Margin Check | Available=6514530.71 | Required=34292.70 | PASS
+[2026-08-19 22:15:23 IST] [INFO] [SYSTEM] Paper fill: NIFTY9850PE @ Rs 19.54 x1755
+[2026-08-19 22:15:23 IST] [INFO] [ORDER] [2020-03-12 10:44:00] BUY PE | Strike=9850 | Price=19.54 | Qty=1755 | Mode=paper
+[2026-08-19 22:15:23 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 9850 @ Rs 19.54 x1755 | index 9861.90 stop 10039.95 target 9505.80 risk 178.1pts
+[2026-08-19 22:15:24 IST] [INFO] [ORDER] [2020-03-12 15:15:00] EXIT | Reason=squareoff | P&L=+458675.82
+[2026-08-19 22:15:24 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 281.25 | index 9568.75 | net P&L Rs 458,675.82
+[2026-08-19 22:15:24 IST] [INFO] [SYSTEM] New session 2020-03-13 — strategy state reset
+[2026-08-19 22:15:24 IST] [INFO] [SYSTEM] New session 2020-03-16 — strategy state reset
+[2026-08-19 22:15:25 IST] [INFO] [SYSTEM] New session 2020-03-17 — strategy state reset
+[2026-08-19 22:15:26 IST] [INFO] [SYSTEM] New session 2020-03-18 — strategy state reset
+[2026-08-19 22:15:27 IST] [INFO] [SYSTEM] New session 2020-03-19 — strategy state reset
+[2026-08-19 22:15:27 IST] [INFO] [SYSTEM] New session 2020-03-20 — strategy state reset
+[2026-08-19 22:15:28 IST] [INFO] [SYSTEM] New session 2020-03-23 — strategy state reset
+[2026-08-19 22:15:29 IST] [INFO] [SYSTEM] New session 2020-03-24 — strategy state reset
+[2026-08-19 22:15:29 IST] [INFO] [SYSTEM] New session 2020-03-25 — strategy state reset
+[2026-08-19 22:15:30 IST] [INFO] [SYSTEM] New session 2020-03-26 — strategy state reset
+[2026-08-19 22:15:31 IST] [INFO] [SYSTEM] New session 2020-03-27 — strategy state reset
+[2026-08-19 22:15:32 IST] [INFO] [SYSTEM] New session 2020-03-30 — strategy state reset
+[2026-08-19 22:15:33 IST] [INFO] [SYSTEM] New session 2020-03-31 — strategy state reset
+[2026-08-19 22:15:33 IST] [INFO] [SYSTEM] New session 2020-04-01 — strategy state reset
+[2026-08-19 22:15:34 IST] [INFO] [SYSTEM] New session 2020-04-03 — strategy state reset
+[2026-08-19 22:15:35 IST] [INFO] [SYSTEM] New session 2020-04-07 — strategy state reset
+[2026-08-19 22:15:35 IST] [INFO] [SYSTEM] Margin Check | Available=6973206.53 | Required=135889.00 | PASS
+[2026-08-19 22:15:35 IST] [INFO] [SYSTEM] Paper fill: NIFTY8450CE @ Rs 209.06 x650
+[2026-08-19 22:15:35 IST] [INFO] [ORDER] [2020-04-07 11:05:00] BUY CE | Strike=8450 | Price=209.06 | Qty=650 | Mode=paper
+[2026-08-19 22:15:35 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 8450 @ Rs 209.06 x650 | index 8472.75 stop 8361.95 target 8694.35 risk 110.8pts
+[2026-08-19 22:15:35 IST] [INFO] [ORDER] [2020-04-07 13:58:00] EXIT | Reason=target | P&L=+85544.05
+[2026-08-19 22:15:35 IST] [INFO] [SYSTEM] ORB EXIT [target] @ Rs 341.26 | index 8694.35 | net P&L Rs 85,544.05
+[2026-08-19 22:15:36 IST] [INFO] [SYSTEM] New session 2020-04-08 — strategy state reset
+[2026-08-19 22:15:36 IST] [INFO] [SYSTEM] New session 2020-04-09 — strategy state reset
+[2026-08-19 22:15:37 IST] [INFO] [SYSTEM] Margin Check | Available=7058750.58 | Required=100245.60 | PASS
+[2026-08-19 22:15:37 IST] [INFO] [SYSTEM] Paper fill: NIFTY9050CE @ Rs 57.12 x1755
+[2026-08-19 22:15:37 IST] [INFO] [ORDER] [2020-04-09 11:50:00] BUY CE | Strike=9050 | Price=57.12 | Qty=1755 | Mode=paper
+[2026-08-19 22:15:37 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 9050 @ Rs 57.12 x1755 | index 9053.15 stop 8920.40 target 9318.65 risk 132.8pts
+[2026-08-19 22:15:37 IST] [INFO] [ORDER] [2020-04-09 15:15:00] EXIT | Reason=squareoff | P&L=+8679.62
+[2026-08-19 22:15:37 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 62.2 | index 9111.50 | net P&L Rs 8,679.62
+[2026-08-19 22:15:37 IST] [INFO] [SYSTEM] New session 2020-04-13 — strategy state reset
+[2026-08-19 22:15:38 IST] [INFO] [SYSTEM] New session 2020-04-15 — strategy state reset
+[2026-08-19 22:15:38 IST] [INFO] [SYSTEM] Margin Check | Available=7067430.20 | Required=134988.75 | PASS
+[2026-08-19 22:15:38 IST] [INFO] [SYSTEM] Paper fill: NIFTY9250CE @ Rs 159.75 x845
+[2026-08-19 22:15:38 IST] [INFO] [ORDER] [2020-04-15 10:29:00] BUY CE | Strike=9250 | Price=159.75 | Qty=845 | Mode=paper
+[2026-08-19 22:15:38 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 9250 @ Rs 159.75 x845 | index 9249.00 stop 9114.90 target 9517.20 risk 134.1pts
+[2026-08-19 22:15:38 IST] [INFO] [ORDER] [2020-04-15 13:24:00] EXIT | Reason=stoploss | P&L=-56948.62
+[2026-08-19 22:15:38 IST] [INFO] [SYSTEM] ORB EXIT [stoploss] @ Rs 92.62 | index 9114.90 | net P&L Rs -56,948.62
+[2026-08-19 22:15:38 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -56,949 <= -Rs 10,000); no further trades today
+[2026-08-19 22:15:38 IST] [INFO] [SYSTEM] New session 2020-04-16 — strategy state reset
+[2026-08-19 22:15:39 IST] [INFO] [SYSTEM] Margin Check | Available=7010481.58 | Required=99719.10 | PASS
+[2026-08-19 22:15:39 IST] [INFO] [SYSTEM] Paper fill: NIFTY9000CE @ Rs 56.82 x1755
+[2026-08-19 22:15:39 IST] [INFO] [ORDER] [2020-04-16 11:29:00] BUY CE | Strike=9000 | Price=56.82 | Qty=1755 | Mode=paper
+[2026-08-19 22:15:39 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 9000 @ Rs 56.82 x1755 | index 8998.05 stop 8823.20 target 9347.75 risk 174.8pts
+[2026-08-19 22:15:39 IST] [INFO] [ORDER] [2020-04-16 15:15:00] EXIT | Reason=squareoff | P&L=-78514.88
+[2026-08-19 22:15:39 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 12.16 | index 8995.30 | net P&L Rs -78,514.88
+[2026-08-19 22:15:39 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -78,515 <= -Rs 10,000); no further trades today
+[2026-08-19 22:15:39 IST] [INFO] [SYSTEM] New session 2020-04-17 — strategy state reset
+[2026-08-19 22:15:39 IST] [INFO] [SYSTEM] Margin Check | Available=6931966.70 | Required=133976.70 | PASS
+[2026-08-19 22:15:39 IST] [INFO] [SYSTEM] Paper fill: NIFTY9150PE @ Rs 343.53 x390
+[2026-08-19 22:15:39 IST] [INFO] [ORDER] [2020-04-17 10:35:00] BUY PE | Strike=9150 | Price=343.53 | Qty=390 | Mode=paper
+[2026-08-19 22:15:39 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 9150 @ Rs 343.53 x390 | index 9167.05 stop 9323.45 target 8854.25 risk 156.4pts
+[2026-08-19 22:15:40 IST] [INFO] [ORDER] [2020-04-17 15:15:00] EXIT | Reason=squareoff | P&L=-21224.73
+[2026-08-19 22:15:40 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 289.78 | index 9275.70 | net P&L Rs -21,224.73
+[2026-08-19 22:15:40 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -21,225 <= -Rs 10,000); no further trades today
+[2026-08-19 22:15:40 IST] [INFO] [SYSTEM] New session 2020-04-20 — strategy state reset
+[2026-08-19 22:15:41 IST] [INFO] [SYSTEM] New session 2020-04-21 — strategy state reset
+[2026-08-19 22:15:41 IST] [INFO] [SYSTEM] Margin Check | Available=6910741.97 | Required=128596.00 | PASS
+[2026-08-19 22:15:41 IST] [INFO] [SYSTEM] Paper fill: NIFTY8950PE @ Rs 197.84 x650
+[2026-08-19 22:15:41 IST] [INFO] [ORDER] [2020-04-21 12:26:00] BUY PE | Strike=8950 | Price=197.84 | Qty=650 | Mode=paper
+[2026-08-19 22:15:41 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 8950 @ Rs 197.84 x650 | index 8960.10 stop 9042.35 target 8795.60 risk 82.2pts
+[2026-08-19 22:15:41 IST] [INFO] [ORDER] [2020-04-21 15:15:00] EXIT | Reason=squareoff | P&L=-11872.16
+[2026-08-19 22:15:41 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 179.98 | index 8986.25 | net P&L Rs -11,872.16
+[2026-08-19 22:15:41 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -11,872 <= -Rs 10,000); no further trades today
+[2026-08-19 22:15:41 IST] [INFO] [SYSTEM] New session 2020-04-22 — strategy state reset
+[2026-08-19 22:15:42 IST] [INFO] [SYSTEM] Margin Check | Available=6898869.81 | Required=135449.60 | PASS
+[2026-08-19 22:15:42 IST] [INFO] [SYSTEM] Paper fill: NIFTY9050CE @ Rs 130.24 x1040
+[2026-08-19 22:15:42 IST] [INFO] [ORDER] [2020-04-22 10:35:00] BUY CE | Strike=9050 | Price=130.24 | Qty=1040 | Mode=paper
+[2026-08-19 22:15:42 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 9050 @ Rs 130.24 x1040 | index 9038.40 stop 8946.65 target 9221.90 risk 91.8pts
+[2026-08-19 22:15:42 IST] [INFO] [ORDER] [2020-04-22 15:15:00] EXIT | Reason=squareoff | P&L=+77582.23
+[2026-08-19 22:15:42 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 205.2 | index 9185.75 | net P&L Rs 77,582.23
+[2026-08-19 22:15:42 IST] [INFO] [SYSTEM] New session 2020-04-23 — strategy state reset
+[2026-08-19 22:15:42 IST] [INFO] [SYSTEM] Margin Check | Available=6976452.04 | Required=87399.00 | PASS
+[2026-08-19 22:15:42 IST] [INFO] [SYSTEM] Paper fill: NIFTY9300CE @ Rs 49.8 x1755
+[2026-08-19 22:15:42 IST] [INFO] [ORDER] [2020-04-23 10:35:00] BUY CE | Strike=9300 | Price=49.80 | Qty=1755 | Mode=paper
+[2026-08-19 22:15:42 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 9300 @ Rs 49.8 x1755 | index 9285.45 stop 9171.50 target 9513.35 risk 114.0pts
+[2026-08-19 22:15:43 IST] [INFO] [ORDER] [2020-04-23 15:15:00] EXIT | Reason=squareoff | P&L=-52933.83
+[2026-08-19 22:15:43 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 19.72 | index 9312.05 | net P&L Rs -52,933.83
+[2026-08-19 22:15:43 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -52,934 <= -Rs 10,000); no further trades today
+[2026-08-19 22:15:43 IST] [INFO] [SYSTEM] New session 2020-04-24 — strategy state reset
+[2026-08-19 22:15:44 IST] [INFO] [SYSTEM] Margin Check | Available=6923518.21 | Required=137455.50 | PASS
+[2026-08-19 22:15:44 IST] [INFO] [SYSTEM] Paper fill: NIFTY9250CE @ Rs 302.1 x455
+[2026-08-19 22:15:44 IST] [INFO] [ORDER] [2020-04-24 12:23:00] BUY CE | Strike=9250 | Price=302.10 | Qty=455 | Mode=paper
+[2026-08-19 22:15:44 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 9250 @ Rs 302.1 x455 | index 9244.20 stop 9149.35 target 9433.90 risk 94.9pts
+[2026-08-19 22:15:44 IST] [INFO] [ORDER] [2020-04-24 15:02:00] EXIT | Reason=stoploss | P&L=-22807.35
+[2026-08-19 22:15:44 IST] [INFO] [SYSTEM] ORB EXIT [stoploss] @ Rs 252.56 | index 9149.35 | net P&L Rs -22,807.35
+[2026-08-19 22:15:44 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -22,807 <= -Rs 10,000); no further trades today
+[2026-08-19 22:15:44 IST] [INFO] [SYSTEM] New session 2020-04-27 — strategy state reset
+[2026-08-19 22:15:44 IST] [INFO] [SYSTEM] Margin Check | Available=6900710.86 | Required=133947.45 | PASS
+[2026-08-19 22:15:44 IST] [INFO] [SYSTEM] Paper fill: NIFTY9350CE @ Rs 228.97 x585
+[2026-08-19 22:15:44 IST] [INFO] [ORDER] [2020-04-27 10:20:00] BUY CE | Strike=9350 | Price=228.97 | Qty=585 | Mode=paper
+[2026-08-19 22:15:44 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 9350 @ Rs 228.97 x585 | index 9362.40 stop 9259.20 target 9568.80 risk 103.2pts
+[2026-08-19 22:15:45 IST] [INFO] [ORDER] [2020-04-27 15:15:00] EXIT | Reason=squareoff | P&L=-28135.48
+[2026-08-19 22:15:45 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 181.31 | index 9280.65 | net P&L Rs -28,135.48
+[2026-08-19 22:15:45 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -28,135 <= -Rs 10,000); no further trades today
+[2026-08-19 22:15:45 IST] [INFO] [SYSTEM] New session 2020-04-28 — strategy state reset
+[2026-08-19 22:15:46 IST] [INFO] [SYSTEM] New session 2020-04-29 — strategy state reset
+[2026-08-19 22:15:46 IST] [INFO] [SYSTEM] Margin Check | Available=6872575.38 | Required=136878.30 | PASS
+[2026-08-19 22:15:46 IST] [INFO] [SYSTEM] Paper fill: NIFTY9500CE @ Rs 116.99 x1170
+[2026-08-19 22:15:46 IST] [INFO] [ORDER] [2020-04-29 10:17:00] BUY CE | Strike=9500 | Price=116.99 | Qty=1170 | Mode=paper
+[2026-08-19 22:15:46 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 9500 @ Rs 116.99 x1170 | index 9475.60 stop 9396.10 target 9634.60 risk 79.5pts
+[2026-08-19 22:15:46 IST] [INFO] [ORDER] [2020-04-29 15:15:00] EXIT | Reason=squareoff | P&L=+34968.18
+[2026-08-19 22:15:46 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 147.16 | index 9554.40 | net P&L Rs 34,968.18
+[2026-08-19 22:15:46 IST] [INFO] [SYSTEM] New session 2020-04-30 — strategy state reset
+[2026-08-19 22:15:46 IST] [INFO] [SYSTEM] Margin Check | Available=6907543.56 | Required=87960.60 | PASS
+[2026-08-19 22:15:46 IST] [INFO] [SYSTEM] Paper fill: NIFTY9850CE @ Rs 50.12 x1755
+[2026-08-19 22:15:46 IST] [INFO] [ORDER] [2020-04-30 10:23:00] BUY CE | Strike=9850 | Price=50.12 | Qty=1755 | Mode=paper
+[2026-08-19 22:15:46 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 9850 @ Rs 50.12 x1755 | index 9850.25 stop 9734.30 target 10082.15 risk 116.0pts
+[2026-08-19 22:15:47 IST] [INFO] [ORDER] [2020-04-30 15:15:00] EXIT | Reason=squareoff | P&L=-41592.77
+[2026-08-19 22:15:47 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 26.51 | index 9873.45 | net P&L Rs -41,592.77
+[2026-08-19 22:15:47 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -41,593 <= -Rs 10,000); no further trades today
+[2026-08-19 22:15:47 IST] [INFO] [SYSTEM] New session 2020-05-04 — strategy state reset
+[2026-08-19 22:15:48 IST] [INFO] [SYSTEM] Margin Check | Available=6865950.79 | Required=127949.90 | PASS
+[2026-08-19 22:15:48 IST] [INFO] [SYSTEM] Paper fill: NIFTY9350PE @ Rs 151.42 x845
+[2026-08-19 22:15:48 IST] [INFO] [ORDER] [2020-05-04 12:56:00] BUY PE | Strike=9350 | Price=151.42 | Qty=845 | Mode=paper
+[2026-08-19 22:15:48 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 9350 @ Rs 151.42 x845 | index 9343.85 stop 9533.50 target 8964.55 risk 189.6pts
+[2026-08-19 22:15:48 IST] [INFO] [ORDER] [2020-05-04 15:15:00] EXIT | Reason=squareoff | P&L=+23071.31
+[2026-08-19 22:15:48 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 179.08 | index 9286.70 | net P&L Rs 23,071.31
+[2026-08-19 22:15:48 IST] [INFO] [SYSTEM] New session 2020-05-05 — strategy state reset
+[2026-08-19 22:15:48 IST] [INFO] [SYSTEM] Margin Check | Available=6889022.10 | Required=133350.75 | PASS
+[2026-08-19 22:15:48 IST] [INFO] [SYSTEM] Paper fill: NIFTY9350PE @ Rs 136.77 x975
+[2026-08-19 22:15:48 IST] [INFO] [ORDER] [2020-05-05 12:05:00] BUY PE | Strike=9350 | Price=136.77 | Qty=975 | Mode=paper
+[2026-08-19 22:15:48 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 9350 @ Rs 136.77 x975 | index 9325.25 stop 9450.00 target 9075.75 risk 124.8pts
+[2026-08-19 22:15:49 IST] [INFO] [ORDER] [2020-05-05 15:15:00] EXIT | Reason=squareoff | P&L=+63330.61
+[2026-08-19 22:15:49 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 202.09 | index 9209.25 | net P&L Rs 63,330.61
+[2026-08-19 22:15:49 IST] [INFO] [SYSTEM] New session 2020-05-06 — strategy state reset
+[2026-08-19 22:15:49 IST] [INFO] [SYSTEM] Margin Check | Available=6952352.71 | Required=137851.35 | PASS
+[2026-08-19 22:15:49 IST] [INFO] [SYSTEM] Paper fill: NIFTY9300CE @ Rs 100.99 x1365
+[2026-08-19 22:15:49 IST] [INFO] [ORDER] [2020-05-06 10:26:00] BUY CE | Strike=9300 | Price=100.99 | Qty=1365 | Mode=paper
+[2026-08-19 22:15:49 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 9300 @ Rs 100.99 x1365 | index 9303.90 stop 9117.35 target 9677.00 risk 186.5pts
+[2026-08-19 22:15:50 IST] [INFO] [ORDER] [2020-05-06 15:15:00] EXIT | Reason=squareoff | P&L=-32402.29
+[2026-08-19 22:15:50 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 77.44 | index 9273.35 | net P&L Rs -32,402.29
+[2026-08-19 22:15:50 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -32,402 <= -Rs 10,000); no further trades today
+[2026-08-19 22:15:50 IST] [INFO] [SYSTEM] New session 2020-05-07 — strategy state reset
+[2026-08-19 22:15:51 IST] [INFO] [SYSTEM] New session 2020-05-08 — strategy state reset
+[2026-08-19 22:15:51 IST] [INFO] [SYSTEM] New session 2020-05-11 — strategy state reset
+[2026-08-19 22:15:52 IST] [INFO] [SYSTEM] Margin Check | Available=6919950.42 | Required=137494.50 | PASS
+[2026-08-19 22:15:52 IST] [INFO] [SYSTEM] Paper fill: NIFTY9350PE @ Rs 141.02 x975
+[2026-08-19 22:15:52 IST] [INFO] [ORDER] [2020-05-11 11:29:00] BUY PE | Strike=9350 | Price=141.02 | Qty=975 | Mode=paper
+[2026-08-19 22:15:52 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 9350 @ Rs 141.02 x975 | index 9332.65 stop 9439.50 target 9118.95 risk 106.9pts
+[2026-08-19 22:15:52 IST] [INFO] [ORDER] [2020-05-11 15:15:00] EXIT | Reason=squareoff | P&L=+46562.37
+[2026-08-19 22:15:52 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 189.13 | index 9241.40 | net P&L Rs 46,562.37
+[2026-08-19 22:15:52 IST] [INFO] [SYSTEM] New session 2020-05-12 — strategy state reset
+[2026-08-19 22:15:53 IST] [INFO] [SYSTEM] New session 2020-05-13 — strategy state reset
+[2026-08-19 22:15:54 IST] [INFO] [SYSTEM] New session 2020-05-14 — strategy state reset
+[2026-08-19 22:15:54 IST] [INFO] [SYSTEM] Margin Check | Available=6966512.79 | Required=66374.10 | PASS
+[2026-08-19 22:15:54 IST] [INFO] [SYSTEM] Paper fill: NIFTY9200PE @ Rs 37.82 x1755
+[2026-08-19 22:15:54 IST] [INFO] [ORDER] [2020-05-14 11:35:00] BUY PE | Strike=9200 | Price=37.82 | Qty=1755 | Mode=paper
+[2026-08-19 22:15:54 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 9200 @ Rs 37.82 x1755 | index 9192.30 stop 9280.65 target 9015.60 risk 88.4pts
+[2026-08-19 22:15:55 IST] [INFO] [ORDER] [2020-05-14 15:15:00] EXIT | Reason=squareoff | P&L=+46955.89
+[2026-08-19 22:15:55 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 64.7 | index 9135.30 | net P&L Rs 46,955.89
+[2026-08-19 22:15:55 IST] [INFO] [SYSTEM] New session 2020-05-15 — strategy state reset
+[2026-08-19 22:15:55 IST] [INFO] [SYSTEM] Margin Check | Available=7013468.68 | Required=134091.10 | PASS
+[2026-08-19 22:15:55 IST] [INFO] [SYSTEM] Paper fill: NIFTY9050PE @ Rs 187.54 x715
+[2026-08-19 22:15:55 IST] [INFO] [ORDER] [2020-05-15 10:59:00] BUY PE | Strike=9050 | Price=187.54 | Qty=715 | Mode=paper
+[2026-08-19 22:15:55 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 9050 @ Rs 187.54 x715 | index 9057.50 stop 9182.40 target 8807.70 risk 124.9pts
+[2026-08-19 22:15:56 IST] [INFO] [ORDER] [2020-05-15 15:15:00] EXIT | Reason=squareoff | P&L=-26525.54
+[2026-08-19 22:15:56 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 150.8 | index 9134.20 | net P&L Rs -26,525.54
+[2026-08-19 22:15:56 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -26,526 <= -Rs 10,000); no further trades today
+[2026-08-19 22:15:56 IST] [INFO] [SYSTEM] New session 2020-05-18 — strategy state reset
+[2026-08-19 22:15:57 IST] [INFO] [SYSTEM] New session 2020-05-19 — strategy state reset
+[2026-08-19 22:15:57 IST] [INFO] [SYSTEM] Margin Check | Available=6986943.14 | Required=135811.00 | PASS
+[2026-08-19 22:15:57 IST] [INFO] [SYSTEM] Paper fill: NIFTY9000CE @ Rs 104.47 x1300
+[2026-08-19 22:15:57 IST] [INFO] [ORDER] [2020-05-19 10:20:00] BUY CE | Strike=9000 | Price=104.47 | Qty=1300 | Mode=paper
+[2026-08-19 22:15:57 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 9000 @ Rs 104.47 x1300 | index 8996.10 stop 8868.05 target 9252.20 risk 128.1pts
+[2026-08-19 22:15:57 IST] [INFO] [ORDER] [2020-05-19 14:11:00] EXIT | Reason=stoploss | P&L=-72799.38
+[2026-08-19 22:15:57 IST] [INFO] [SYSTEM] ORB EXIT [stoploss] @ Rs 48.63 | index 8868.05 | net P&L Rs -72,799.38
+[2026-08-19 22:15:57 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -72,799 <= -Rs 10,000); no further trades today
+[2026-08-19 22:15:57 IST] [INFO] [SYSTEM] New session 2020-05-20 — strategy state reset
+[2026-08-19 22:15:58 IST] [INFO] [SYSTEM] New session 2020-05-21 — strategy state reset
+[2026-08-19 22:15:58 IST] [INFO] [SYSTEM] Margin Check | Available=6914143.76 | Required=42576.30 | PASS
+[2026-08-19 22:15:58 IST] [INFO] [SYSTEM] Paper fill: NIFTY9150CE @ Rs 24.26 x1755
+[2026-08-19 22:15:58 IST] [INFO] [ORDER] [2020-05-21 10:29:00] BUY CE | Strike=9150 | Price=24.26 | Qty=1755 | Mode=paper
+[2026-08-19 22:15:58 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 9150 @ Rs 24.26 x1755 | index 9134.55 stop 9056.60 target 9290.45 risk 77.9pts
+[2026-08-19 22:15:59 IST] [INFO] [ORDER] [2020-05-21 15:15:00] EXIT | Reason=squareoff | P&L=-42528.69
+[2026-08-19 22:15:59 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 0.07 | index 9110.30 | net P&L Rs -42,528.69
+[2026-08-19 22:15:59 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -42,529 <= -Rs 10,000); no further trades today
+[2026-08-19 22:15:59 IST] [INFO] [SYSTEM] New session 2020-05-22 — strategy state reset
+[2026-08-19 22:15:59 IST] [INFO] [SYSTEM] Margin Check | Available=6871615.07 | Required=131558.05 | PASS
+[2026-08-19 22:15:59 IST] [INFO] [SYSTEM] Paper fill: NIFTY9000PE @ Rs 155.69 x845
+[2026-08-19 22:15:59 IST] [INFO] [ORDER] [2020-05-22 10:38:00] BUY PE | Strike=9000 | Price=155.69 | Qty=845 | Mode=paper
+[2026-08-19 22:15:59 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 9000 @ Rs 155.69 x845 | index 8999.90 stop 9148.85 target 8702.00 risk 149.0pts
+[2026-08-19 22:16:00 IST] [INFO] [ORDER] [2020-05-22 15:15:00] EXIT | Reason=squareoff | P&L=-16445.05
+[2026-08-19 22:16:00 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 136.54 | index 9036.15 | net P&L Rs -16,445.05
+[2026-08-19 22:16:00 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -16,445 <= -Rs 10,000); no further trades today
+[2026-08-19 22:16:00 IST] [INFO] [SYSTEM] New session 2020-05-26 — strategy state reset
+[2026-08-19 22:16:00 IST] [INFO] [SYSTEM] Margin Check | Available=6855170.02 | Required=131625.00 | PASS
+[2026-08-19 22:16:00 IST] [INFO] [SYSTEM] Paper fill: NIFTY9100PE @ Rs 101.25 x1300
+[2026-08-19 22:16:00 IST] [INFO] [ORDER] [2020-05-26 11:20:00] BUY PE | Strike=9100 | Price=101.25 | Qty=1300 | Mode=paper
+[2026-08-19 22:16:00 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 9100 @ Rs 101.25 x1300 | index 9088.25 stop 9160.85 target 8943.05 risk 72.6pts
+[2026-08-19 22:16:01 IST] [INFO] [ORDER] [2020-05-26 15:15:00] EXIT | Reason=squareoff | P&L=+45050.29
+[2026-08-19 22:16:01 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 136.16 | index 9020.35 | net P&L Rs 45,050.29
+[2026-08-19 22:16:01 IST] [INFO] [SYSTEM] New session 2020-05-27 — strategy state reset
+[2026-08-19 22:16:01 IST] [INFO] [SYSTEM] Margin Check | Available=6900220.31 | Required=129905.10 | PASS
+[2026-08-19 22:16:01 IST] [INFO] [SYSTEM] Paper fill: NIFTY9100CE @ Rs 74.02 x1755
+[2026-08-19 22:16:01 IST] [INFO] [ORDER] [2020-05-27 10:44:00] BUY CE | Strike=9100 | Price=74.02 | Qty=1755 | Mode=paper
+[2026-08-19 22:16:01 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 9100 @ Rs 74.02 x1755 | index 9102.75 stop 9004.70 target 9298.85 risk 98.0pts
+[2026-08-19 22:16:01 IST] [INFO] [ORDER] [2020-05-27 14:06:00] EXIT | Reason=target | P&L=+239184.60
+[2026-08-19 22:16:01 IST] [INFO] [SYSTEM] ORB EXIT [target] @ Rs 210.62 | index 9298.85 | net P&L Rs 239,184.60
+[2026-08-19 22:16:01 IST] [INFO] [SYSTEM] New session 2020-05-28 — strategy state reset
+[2026-08-19 22:16:02 IST] [INFO] [SYSTEM] Margin Check | Available=7139404.91 | Required=46068.75 | PASS
+[2026-08-19 22:16:02 IST] [INFO] [SYSTEM] Paper fill: NIFTY9450CE @ Rs 26.25 x1755
+[2026-08-19 22:16:02 IST] [INFO] [ORDER] [2020-05-28 10:59:00] BUY CE | Strike=9450 | Price=26.25 | Qty=1755 | Mode=paper
+[2026-08-19 22:16:02 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 9450 @ Rs 26.25 x1755 | index 9438.65 stop 9338.95 target 9638.05 risk 99.7pts
+[2026-08-19 22:16:02 IST] [INFO] [ORDER] [2020-05-28 15:15:00] EXIT | Reason=squareoff | P&L=+19364.39
+[2026-08-19 22:16:02 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 37.37 | index 9487.20 | net P&L Rs 19,364.39
+[2026-08-19 22:16:02 IST] [INFO] [SYSTEM] New session 2020-05-29 — strategy state reset
+[2026-08-19 22:16:02 IST] [INFO] [SYSTEM] Margin Check | Available=7158769.30 | Required=138060.00 | PASS
+[2026-08-19 22:16:02 IST] [INFO] [SYSTEM] Paper fill: NIFTY9500CE @ Rs 177.0 x780
+[2026-08-19 22:16:02 IST] [INFO] [ORDER] [2020-05-29 10:26:00] BUY CE | Strike=9500 | Price=177.00 | Qty=780 | Mode=paper
+[2026-08-19 22:16:02 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 9500 @ Rs 177.0 x780 | index 9480.90 stop 9377.90 target 9686.90 risk 103.0pts
+[2026-08-19 22:16:03 IST] [INFO] [ORDER] [2020-05-29 15:15:00] EXIT | Reason=squareoff | P&L=+44303.86
+[2026-08-19 22:16:03 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 234.24 | index 9590.65 | net P&L Rs 44,303.86
+[2026-08-19 22:16:03 IST] [INFO] [SYSTEM] New session 2020-06-01 — strategy state reset
+[2026-08-19 22:16:03 IST] [INFO] [SYSTEM] Margin Check | Available=7203073.16 | Required=143071.50 | PASS
+[2026-08-19 22:16:03 IST] [INFO] [SYSTEM] Paper fill: NIFTY9850CE @ Rs 146.74 x975
+[2026-08-19 22:16:03 IST] [INFO] [ORDER] [2020-06-01 10:53:00] BUY CE | Strike=9850 | Price=146.74 | Qty=975 | Mode=paper
+[2026-08-19 22:16:03 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 9850 @ Rs 146.74 x975 | index 9861.20 stop 9712.40 target 10158.80 risk 148.8pts
+[2026-08-19 22:16:04 IST] [INFO] [ORDER] [2020-06-01 15:15:00] EXIT | Reason=squareoff | P&L=-21786.31
+[2026-08-19 22:16:04 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 124.68 | index 9825.75 | net P&L Rs -21,786.31
+[2026-08-19 22:16:04 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -21,786 <= -Rs 10,000); no further trades today
+[2026-08-19 22:16:04 IST] [INFO] [SYSTEM] New session 2020-06-02 — strategy state reset
+[2026-08-19 22:16:04 IST] [INFO] [SYSTEM] Margin Check | Available=7181286.85 | Required=140634.00 | PASS
+[2026-08-19 22:16:04 IST] [INFO] [SYSTEM] Paper fill: NIFTY9950CE @ Rs 108.18 x1300
+[2026-08-19 22:16:04 IST] [INFO] [ORDER] [2020-06-02 12:44:00] BUY CE | Strike=9950 | Price=108.18 | Qty=1300 | Mode=paper
+[2026-08-19 22:16:04 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 9950 @ Rs 108.18 x1300 | index 9946.10 stop 9824.65 target 10189.00 risk 121.5pts
+[2026-08-19 22:16:05 IST] [INFO] [ORDER] [2020-06-02 15:15:00] EXIT | Reason=squareoff | P&L=+17920.79
+[2026-08-19 22:16:05 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 122.21 | index 9977.95 | net P&L Rs 17,920.79
+[2026-08-19 22:16:05 IST] [INFO] [SYSTEM] New session 2020-06-03 — strategy state reset
+[2026-08-19 22:16:05 IST] [INFO] [SYSTEM] New session 2020-06-04 — strategy state reset
+[2026-08-19 22:16:06 IST] [INFO] [SYSTEM] Margin Check | Available=7199207.64 | Required=44103.15 | PASS
+[2026-08-19 22:16:06 IST] [INFO] [SYSTEM] Paper fill: NIFTY10000PE @ Rs 25.13 x1755
+[2026-08-19 22:16:06 IST] [INFO] [ORDER] [2020-06-04 11:38:00] BUY PE | Strike=10000 | Price=25.13 | Qty=1755 | Mode=paper
+[2026-08-19 22:16:06 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 10000 @ Rs 25.13 x1755 | index 10009.05 stop 10123.65 target 9779.85 risk 114.6pts
+[2026-08-19 22:16:06 IST] [INFO] [ORDER] [2020-06-04 15:15:00] EXIT | Reason=squareoff | P&L=-42373.63
+[2026-08-19 22:16:06 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 1.03 | index 10022.90 | net P&L Rs -42,373.63
+[2026-08-19 22:16:06 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -42,374 <= -Rs 10,000); no further trades today
+[2026-08-19 22:16:06 IST] [INFO] [SYSTEM] New session 2020-06-05 — strategy state reset
+[2026-08-19 22:16:07 IST] [INFO] [SYSTEM] Margin Check | Available=7156834.01 | Required=132693.60 | PASS
+[2026-08-19 22:16:07 IST] [INFO] [SYSTEM] Paper fill: NIFTY10050PE @ Rs 170.12 x780
+[2026-08-19 22:16:07 IST] [INFO] [ORDER] [2020-06-05 10:17:00] BUY PE | Strike=10050 | Price=170.12 | Qty=780 | Mode=paper
+[2026-08-19 22:16:07 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 10050 @ Rs 170.12 x780 | index 10068.50 stop 10147.05 target 9911.40 risk 78.5pts
+[2026-08-19 22:16:07 IST] [INFO] [ORDER] [2020-06-05 13:30:00] EXIT | Reason=stoploss | P&L=-28160.51
+[2026-08-19 22:16:07 IST] [INFO] [SYSTEM] ORB EXIT [stoploss] @ Rs 134.34 | index 10147.05 | net P&L Rs -28,160.51
+[2026-08-19 22:16:07 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -28,161 <= -Rs 10,000); no further trades today
+[2026-08-19 22:16:07 IST] [INFO] [SYSTEM] New session 2020-06-08 — strategy state reset
+[2026-08-19 22:16:08 IST] [INFO] [SYSTEM] Margin Check | Available=7128673.50 | Required=137706.40 | PASS
+[2026-08-19 22:16:08 IST] [INFO] [SYSTEM] Paper fill: NIFTY10250PE @ Rs 132.41 x1040
+[2026-08-19 22:16:08 IST] [INFO] [ORDER] [2020-06-08 12:29:00] BUY PE | Strike=10250 | Price=132.41 | Qty=1040 | Mode=paper
+[2026-08-19 22:16:08 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 10250 @ Rs 132.41 x1040 | index 10249.00 stop 10327.65 target 10091.70 risk 78.6pts
+[2026-08-19 22:16:08 IST] [INFO] [ORDER] [2020-06-08 15:15:00] EXIT | Reason=squareoff | P&L=+45229.05
+[2026-08-19 22:16:08 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 176.23 | index 10163.35 | net P&L Rs 45,229.05
+[2026-08-19 22:16:08 IST] [INFO] [SYSTEM] New session 2020-06-09 — strategy state reset
+[2026-08-19 22:16:08 IST] [INFO] [SYSTEM] Margin Check | Available=7173902.55 | Required=138320.00 | PASS
+[2026-08-19 22:16:08 IST] [INFO] [SYSTEM] Paper fill: NIFTY10300CE @ Rs 106.4 x1300
+[2026-08-19 22:16:08 IST] [INFO] [ORDER] [2020-06-09 11:53:00] BUY CE | Strike=10300 | Price=106.40 | Qty=1300 | Mode=paper
+[2026-08-19 22:16:08 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 10300 @ Rs 106.4 x1300 | index 10279.95 stop 10136.10 target 10567.65 risk 143.9pts
+[2026-08-19 22:16:09 IST] [INFO] [ORDER] [2020-06-09 14:03:00] EXIT | Reason=stoploss | P&L=-74972.40
+[2026-08-19 22:16:09 IST] [INFO] [SYSTEM] ORB EXIT [stoploss] @ Rs 48.89 | index 10136.10 | net P&L Rs -74,972.40
+[2026-08-19 22:16:09 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -74,972 <= -Rs 10,000); no further trades today
+[2026-08-19 22:16:09 IST] [INFO] [SYSTEM] New session 2020-06-10 — strategy state reset
+[2026-08-19 22:16:09 IST] [INFO] [SYSTEM] Margin Check | Available=7098930.15 | Required=132432.30 | PASS
+[2026-08-19 22:16:09 IST] [INFO] [SYSTEM] Paper fill: NIFTY10150CE @ Rs 75.46 x1755
+[2026-08-19 22:16:09 IST] [INFO] [ORDER] [2020-06-10 10:35:00] BUY CE | Strike=10150 | Price=75.46 | Qty=1755 | Mode=paper
+[2026-08-19 22:16:09 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 10150 @ Rs 75.46 x1755 | index 10136.70 stop 10036.90 target 10336.30 risk 99.8pts
+[2026-08-19 22:16:10 IST] [INFO] [ORDER] [2020-06-10 15:15:00] EXIT | Reason=squareoff | P&L=-10696.03
+[2026-08-19 22:16:10 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 69.52 | index 10138.85 | net P&L Rs -10,696.03
+[2026-08-19 22:16:10 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -10,696 <= -Rs 10,000); no further trades today
+[2026-08-19 22:16:10 IST] [INFO] [SYSTEM] New session 2020-06-11 — strategy state reset
+[2026-08-19 22:16:10 IST] [INFO] [SYSTEM] Margin Check | Available=7088234.12 | Required=61056.45 | PASS
+[2026-08-19 22:16:10 IST] [INFO] [SYSTEM] Paper fill: NIFTY10050PE @ Rs 34.79 x1755
+[2026-08-19 22:16:10 IST] [INFO] [ORDER] [2020-06-11 11:02:00] BUY PE | Strike=10050 | Price=34.79 | Qty=1755 | Mode=paper
+[2026-08-19 22:16:10 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 10050 @ Rs 34.79 x1755 | index 10038.45 stop 10111.65 target 9892.05 risk 73.2pts
+[2026-08-19 22:16:10 IST] [INFO] [ORDER] [2020-06-11 15:11:00] EXIT | Reason=target | P&L=+215746.58
+[2026-08-19 22:16:10 IST] [INFO] [SYSTEM] ORB EXIT [target] @ Rs 157.95 | index 9892.05 | net P&L Rs 215,746.58
+[2026-08-19 22:16:11 IST] [INFO] [SYSTEM] New session 2020-06-12 — strategy state reset
+[2026-08-19 22:16:11 IST] [INFO] [SYSTEM] Margin Check | Available=7303980.70 | Required=137857.20 | PASS
+[2026-08-19 22:16:11 IST] [INFO] [SYSTEM] Paper fill: NIFTY9750CE @ Rs 176.74 x780
+[2026-08-19 22:16:11 IST] [INFO] [ORDER] [2020-06-12 10:41:00] BUY CE | Strike=9750 | Price=176.74 | Qty=780 | Mode=paper
+[2026-08-19 22:16:11 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 9750 @ Rs 176.74 x780 | index 9745.10 stop 9544.95 target 10145.40 risk 200.1pts
+[2026-08-19 22:16:12 IST] [INFO] [ORDER] [2020-06-12 15:15:00] EXIT | Reason=squareoff | P&L=+110155.61
+[2026-08-19 22:16:12 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 318.5 | index 9978.90 | net P&L Rs 110,155.61
+[2026-08-19 22:16:12 IST] [INFO] [SYSTEM] New session 2020-06-15 — strategy state reset
+[2026-08-19 22:16:12 IST] [INFO] [SYSTEM] Margin Check | Available=7414136.31 | Required=141163.75 | PASS
+[2026-08-19 22:16:12 IST] [INFO] [SYSTEM] Paper fill: NIFTY9850PE @ Rs 127.75 x1105
+[2026-08-19 22:16:12 IST] [INFO] [ORDER] [2020-06-15 10:17:00] BUY PE | Strike=9850 | Price=127.75 | Qty=1105 | Mode=paper
+[2026-08-19 22:16:12 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 9850 @ Rs 127.75 x1105 | index 9848.35 stop 9942.50 target 9660.05 risk 94.1pts
+[2026-08-19 22:16:12 IST] [INFO] [ORDER] [2020-06-15 14:17:00] EXIT | Reason=breakeven_stop | P&L=-3896.86
+[2026-08-19 22:16:12 IST] [INFO] [SYSTEM] ORB EXIT [breakeven_stop] @ Rs 124.49 | index 9848.35 | net P&L Rs -3,896.86
+[2026-08-19 22:16:12 IST] [INFO] [SYSTEM] New session 2020-06-16 — strategy state reset
+[2026-08-19 22:16:13 IST] [INFO] [SYSTEM] Margin Check | Available=7410239.45 | Required=142785.50 | PASS
+[2026-08-19 22:16:13 IST] [INFO] [SYSTEM] Paper fill: NIFTY9950PE @ Rs 99.85 x1430
+[2026-08-19 22:16:13 IST] [INFO] [ORDER] [2020-06-16 11:35:00] BUY PE | Strike=9950 | Price=99.85 | Qty=1430 | Mode=paper
+[2026-08-19 22:16:13 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 9950 @ Rs 99.85 x1430 | index 9962.35 stop 10045.50 target 9796.05 risk 83.1pts
+[2026-08-19 22:16:13 IST] [INFO] [ORDER] [2020-06-16 13:16:00] EXIT | Reason=target | P&L=+138266.66
+[2026-08-19 22:16:13 IST] [INFO] [SYSTEM] ORB EXIT [target] @ Rs 196.86 | index 9796.05 | net P&L Rs 138,266.66
+[2026-08-19 22:16:13 IST] [INFO] [SYSTEM] New session 2020-06-17 — strategy state reset
+[2026-08-19 22:16:14 IST] [INFO] [SYSTEM] Margin Check | Available=7548506.11 | Required=147841.20 | PASS
+[2026-08-19 22:16:14 IST] [INFO] [SYSTEM] Paper fill: NIFTY9950CE @ Rs 84.24 x1755
+[2026-08-19 22:16:14 IST] [INFO] [ORDER] [2020-06-17 12:41:00] BUY CE | Strike=9950 | Price=84.24 | Qty=1755 | Mode=paper
+[2026-08-19 22:16:14 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 9950 @ Rs 84.24 x1755 | index 9963.25 stop 9834.40 target 10220.95 risk 128.9pts
+[2026-08-19 22:16:14 IST] [INFO] [ORDER] [2020-06-17 15:15:00] EXIT | Reason=squareoff | P&L=-69029.08
+[2026-08-19 22:16:14 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 45.04 | index 9884.85 | net P&L Rs -69,029.08
+[2026-08-19 22:16:14 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -69,029 <= -Rs 10,000); no further trades today
+[2026-08-19 22:16:14 IST] [INFO] [SYSTEM] New session 2020-06-18 — strategy state reset
+[2026-08-19 22:16:14 IST] [INFO] [SYSTEM] Margin Check | Available=7479477.03 | Required=78360.75 | PASS
+[2026-08-19 22:16:14 IST] [INFO] [SYSTEM] Paper fill: NIFTY9900CE @ Rs 44.65 x1755
+[2026-08-19 22:16:14 IST] [INFO] [ORDER] [2020-06-18 10:17:00] BUY CE | Strike=9900 | Price=44.65 | Qty=1755 | Mode=paper
+[2026-08-19 22:16:14 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 9900 @ Rs 44.65 x1755 | index 9919.95 stop 9850.25 target 10059.35 risk 69.7pts
+[2026-08-19 22:16:15 IST] [INFO] [ORDER] [2020-06-18 14:15:00] EXIT | Reason=target | P&L=+201042.94
+[2026-08-19 22:16:15 IST] [INFO] [SYSTEM] ORB EXIT [target] @ Rs 159.44 | index 10059.35 | net P&L Rs 201,042.94
+[2026-08-19 22:16:15 IST] [INFO] [SYSTEM] New session 2020-06-19 — strategy state reset
+[2026-08-19 22:16:15 IST] [INFO] [SYSTEM] Margin Check | Available=7680519.97 | Required=143793.65 | PASS
+[2026-08-19 22:16:15 IST] [INFO] [SYSTEM] Paper fill: NIFTY10150CE @ Rs 201.11 x715
+[2026-08-19 22:16:15 IST] [INFO] [ORDER] [2020-06-19 11:35:00] BUY CE | Strike=10150 | Price=201.11 | Qty=715 | Mode=paper
+[2026-08-19 22:16:15 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 10150 @ Rs 201.11 x715 | index 10166.70 stop 10073.05 target 10354.00 risk 93.7pts
+[2026-08-19 22:16:16 IST] [INFO] [ORDER] [2020-06-19 15:15:00] EXIT | Reason=squareoff | P&L=+30171.42
+[2026-08-19 22:16:16 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 243.78 | index 10246.35 | net P&L Rs 30,171.42
+[2026-08-19 22:16:16 IST] [INFO] [SYSTEM] New session 2020-06-22 — strategy state reset
+[2026-08-19 22:16:16 IST] [INFO] [SYSTEM] New session 2020-06-23 — strategy state reset
+[2026-08-19 22:16:17 IST] [INFO] [SYSTEM] Margin Check | Available=7710691.39 | Required=153153.00 | PASS
+[2026-08-19 22:16:17 IST] [INFO] [SYSTEM] Paper fill: NIFTY10400CE @ Rs 107.1 x1430
+[2026-08-19 22:16:17 IST] [INFO] [ORDER] [2020-06-23 10:38:00] BUY CE | Strike=10400 | Price=107.10 | Qty=1430 | Mode=paper
+[2026-08-19 22:16:17 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 10400 @ Rs 107.1 x1430 | index 10381.80 stop 10302.25 target 10540.90 risk 79.5pts
+[2026-08-19 22:16:17 IST] [INFO] [ORDER] [2020-06-23 15:15:00] EXIT | Reason=squareoff | P&L=+56201.44
+[2026-08-19 22:16:17 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 146.67 | index 10464.20 | net P&L Rs 56,201.44
+[2026-08-19 22:16:17 IST] [INFO] [SYSTEM] New session 2020-06-24 — strategy state reset
+[2026-08-19 22:16:17 IST] [INFO] [SYSTEM] Margin Check | Available=7766892.83 | Required=151895.25 | PASS
+[2026-08-19 22:16:17 IST] [INFO] [SYSTEM] Paper fill: NIFTY10550CE @ Rs 86.55 x1755
+[2026-08-19 22:16:17 IST] [INFO] [ORDER] [2020-06-24 10:17:00] BUY CE | Strike=10550 | Price=86.55 | Qty=1755 | Mode=paper
+[2026-08-19 22:16:17 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 10550 @ Rs 86.55 x1755 | index 10550.70 stop 10498.40 target 10655.30 risk 52.3pts
+[2026-08-19 22:16:17 IST] [INFO] [ORDER] [2020-06-24 10:46:00] EXIT | Reason=stoploss | P&L=-43792.75
+[2026-08-19 22:16:17 IST] [INFO] [SYSTEM] ORB EXIT [stoploss] @ Rs 61.75 | index 10498.40 | net P&L Rs -43,792.75
+[2026-08-19 22:16:17 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -43,793 <= -Rs 10,000); no further trades today
+[2026-08-19 22:16:18 IST] [INFO] [SYSTEM] New session 2020-06-25 — strategy state reset
+[2026-08-19 22:16:18 IST] [INFO] [SYSTEM] Margin Check | Available=7723100.08 | Required=70428.15 | PASS
+[2026-08-19 22:16:18 IST] [INFO] [SYSTEM] Paper fill: NIFTY10300CE @ Rs 40.13 x1755
+[2026-08-19 22:16:18 IST] [INFO] [ORDER] [2020-06-25 10:29:00] BUY CE | Strike=10300 | Price=40.13 | Qty=1755 | Mode=paper
+[2026-08-19 22:16:18 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 10300 @ Rs 40.13 x1755 | index 10307.50 stop 10195.60 target 10531.30 risk 111.9pts
+[2026-08-19 22:16:19 IST] [INFO] [ORDER] [2020-06-25 15:15:00] EXIT | Reason=squareoff | P&L=-66331.79
+[2026-08-19 22:16:19 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 2.39 | index 10283.70 | net P&L Rs -66,331.79
+[2026-08-19 22:16:19 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -66,332 <= -Rs 10,000); no further trades today
+[2026-08-19 22:16:19 IST] [INFO] [SYSTEM] New session 2020-06-26 — strategy state reset
+[2026-08-19 22:16:19 IST] [INFO] [SYSTEM] Margin Check | Available=7656768.29 | Required=142077.65 | PASS
+[2026-08-19 22:16:19 IST] [INFO] [SYSTEM] Paper fill: NIFTY10350PE @ Rs 198.71 x715
+[2026-08-19 22:16:19 IST] [INFO] [ORDER] [2020-06-26 10:20:00] BUY PE | Strike=10350 | Price=198.71 | Qty=715 | Mode=paper
+[2026-08-19 22:16:19 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 10350 @ Rs 198.71 x715 | index 10339.95 stop 10407.60 target 10204.65 risk 67.6pts
+[2026-08-19 22:16:19 IST] [INFO] [ORDER] [2020-06-26 15:15:00] EXIT | Reason=squareoff | P&L=-16869.57
+[2026-08-19 22:16:19 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 175.51 | index 10382.45 | net P&L Rs -16,869.57
+[2026-08-19 22:16:20 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -16,870 <= -Rs 10,000); no further trades today
+[2026-08-19 22:16:20 IST] [INFO] [SYSTEM] New session 2020-06-29 — strategy state reset
+[2026-08-19 22:16:20 IST] [INFO] [SYSTEM] New session 2020-06-30 — strategy state reset
+[2026-08-19 22:16:20 IST] [INFO] [SYSTEM] Margin Check | Available=7639898.72 | Required=147704.70 | PASS
+[2026-08-19 22:16:20 IST] [INFO] [SYSTEM] Paper fill: NIFTY10350PE @ Rs 103.29 x1430
+[2026-08-19 22:16:20 IST] [INFO] [ORDER] [2020-06-30 10:20:00] BUY PE | Strike=10350 | Price=103.29 | Qty=1430 | Mode=paper
+[2026-08-19 22:16:20 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 10350 @ Rs 103.29 x1430 | index 10362.50 stop 10400.70 target 10286.10 risk 38.2pts
+[2026-08-19 22:16:21 IST] [INFO] [ORDER] [2020-06-30 14:30:00] EXIT | Reason=target | P&L=+51111.80
+[2026-08-19 22:16:21 IST] [INFO] [SYSTEM] ORB EXIT [target] @ Rs 139.29 | index 10286.10 | net P&L Rs 51,111.80
+[2026-08-19 22:16:21 IST] [INFO] [SYSTEM] New session 2020-07-01 — strategy state reset
+[2026-08-19 22:16:21 IST] [INFO] [SYSTEM] Margin Check | Available=7691010.52 | Required=148652.40 | PASS
+[2026-08-19 22:16:21 IST] [INFO] [SYSTEM] Paper fill: NIFTY10350CE @ Rs 87.96 x1690
+[2026-08-19 22:16:21 IST] [INFO] [ORDER] [2020-07-01 11:59:00] BUY CE | Strike=10350 | Price=87.96 | Qty=1690 | Mode=paper
+[2026-08-19 22:16:21 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 10350 @ Rs 87.96 x1690 | index 10370.00 stop 10299.80 target 10510.40 risk 70.2pts
+[2026-08-19 22:16:22 IST] [INFO] [ORDER] [2020-07-01 15:15:00] EXIT | Reason=squareoff | P&L=+53453.95
+[2026-08-19 22:16:22 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 119.81 | index 10429.50 | net P&L Rs 53,453.95
+[2026-08-19 22:16:22 IST] [INFO] [SYSTEM] New session 2020-07-02 — strategy state reset
+[2026-08-19 22:16:22 IST] [INFO] [SYSTEM] Margin Check | Available=7744464.47 | Required=50859.90 | PASS
+[2026-08-19 22:16:22 IST] [INFO] [SYSTEM] Paper fill: NIFTY10550CE @ Rs 28.98 x1755
+[2026-08-19 22:16:22 IST] [INFO] [ORDER] [2020-07-02 12:08:00] BUY CE | Strike=10550 | Price=28.98 | Qty=1755 | Mode=paper
+[2026-08-19 22:16:22 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 10550 @ Rs 28.98 x1755 | index 10552.10 stop 10490.10 target 10676.10 risk 62.0pts
+[2026-08-19 22:16:23 IST] [INFO] [ORDER] [2020-07-02 15:15:00] EXIT | Reason=squareoff | P&L=-42876.53
+[2026-08-19 22:16:23 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 4.6 | index 10543.05 | net P&L Rs -42,876.53
+[2026-08-19 22:16:23 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -42,877 <= -Rs 10,000); no further trades today
+[2026-08-19 22:16:23 IST] [INFO] [SYSTEM] New session 2020-07-03 — strategy state reset
+[2026-08-19 22:16:23 IST] [INFO] [SYSTEM] New session 2020-07-06 — strategy state reset
+[2026-08-19 22:16:23 IST] [INFO] [SYSTEM] Margin Check | Available=7701587.94 | Required=152655.75 | PASS
+[2026-08-19 22:16:23 IST] [INFO] [SYSTEM] Paper fill: NIFTY10750CE @ Rs 138.15 x1105
+[2026-08-19 22:16:23 IST] [INFO] [ORDER] [2020-07-06 11:29:00] BUY CE | Strike=10750 | Price=138.15 | Qty=1105 | Mode=paper
+[2026-08-19 22:16:23 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 10750 @ Rs 138.15 x1105 | index 10756.30 stop 10695.95 target 10877.00 risk 60.3pts
+[2026-08-19 22:16:24 IST] [INFO] [ORDER] [2020-07-06 15:15:00] EXIT | Reason=squareoff | P&L=-1268.31
+[2026-08-19 22:16:24 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 137.29 | index 10761.25 | net P&L Rs -1,268.31
+[2026-08-19 22:16:24 IST] [INFO] [SYSTEM] New session 2020-07-07 — strategy state reset
+[2026-08-19 22:16:24 IST] [INFO] [SYSTEM] Margin Check | Available=7700319.63 | Required=151723.00 | PASS
+[2026-08-19 22:16:24 IST] [INFO] [SYSTEM] Paper fill: NIFTY10750PE @ Rs 106.1 x1430
+[2026-08-19 22:16:24 IST] [INFO] [ORDER] [2020-07-07 10:32:00] BUY PE | Strike=10750 | Price=106.10 | Qty=1430 | Mode=paper
+[2026-08-19 22:16:24 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 10750 @ Rs 106.1 x1430 | index 10750.20 stop 10802.85 target 10644.90 risk 52.6pts
+[2026-08-19 22:16:24 IST] [INFO] [ORDER] [2020-07-07 12:20:00] EXIT | Reason=breakeven_stop | P&L=-2859.96
+[2026-08-19 22:16:24 IST] [INFO] [SYSTEM] ORB EXIT [breakeven_stop] @ Rs 104.32 | index 10750.20 | net P&L Rs -2,859.96
+[2026-08-19 22:16:25 IST] [INFO] [SYSTEM] New session 2020-07-08 — strategy state reset
+[2026-08-19 22:16:25 IST] [INFO] [SYSTEM] Margin Check | Available=7697459.67 | Required=151333.65 | PASS
+[2026-08-19 22:16:25 IST] [INFO] [SYSTEM] Paper fill: NIFTY10800PE @ Rs 86.23 x1755
+[2026-08-19 22:16:25 IST] [INFO] [ORDER] [2020-07-08 11:32:00] BUY PE | Strike=10800 | Price=86.23 | Qty=1755 | Mode=paper
+[2026-08-19 22:16:25 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 10800 @ Rs 86.23 x1755 | index 10781.65 stop 10847.70 target 10649.55 risk 66.1pts
+[2026-08-19 22:16:25 IST] [INFO] [ORDER] [2020-07-08 15:15:00] EXIT | Reason=squareoff | P&L=+75045.80
+[2026-08-19 22:16:25 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 129.22 | index 10703.45 | net P&L Rs 75,045.80
+[2026-08-19 22:16:25 IST] [INFO] [SYSTEM] New session 2020-07-09 — strategy state reset
+[2026-08-19 22:16:26 IST] [INFO] [SYSTEM] Margin Check | Available=7772505.47 | Required=48350.25 | PASS
+[2026-08-19 22:16:26 IST] [INFO] [SYSTEM] Paper fill: NIFTY10800CE @ Rs 27.55 x1755
+[2026-08-19 22:16:26 IST] [INFO] [ORDER] [2020-07-09 10:17:00] BUY CE | Strike=10800 | Price=27.55 | Qty=1755 | Mode=paper
+[2026-08-19 22:16:26 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 10800 @ Rs 27.55 x1755 | index 10786.35 stop 10733.60 target 10891.85 risk 52.8pts
+[2026-08-19 22:16:26 IST] [INFO] [ORDER] [2020-07-09 15:15:00] EXIT | Reason=squareoff | P&L=-23133.00
+[2026-08-19 22:16:26 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 14.43 | index 10811.35 | net P&L Rs -23,133.00
+[2026-08-19 22:16:26 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -23,133 <= -Rs 10,000); no further trades today
+[2026-08-19 22:16:26 IST] [INFO] [SYSTEM] New session 2020-07-10 — strategy state reset
+[2026-08-19 22:16:27 IST] [INFO] [SYSTEM] Margin Check | Available=7749372.47 | Required=150456.80 | PASS
+[2026-08-19 22:16:27 IST] [INFO] [SYSTEM] Paper fill: NIFTY10750PE @ Rs 136.16 x1105
+[2026-08-19 22:16:27 IST] [INFO] [ORDER] [2020-07-10 11:08:00] BUY PE | Strike=10750 | Price=136.16 | Qty=1105 | Mode=paper
+[2026-08-19 22:16:27 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 10750 @ Rs 136.16 x1105 | index 10750.90 stop 10818.95 target 10614.80 risk 68.1pts
+[2026-08-19 22:16:27 IST] [INFO] [ORDER] [2020-07-10 15:15:00] EXIT | Reason=squareoff | P&L=-7666.18
+[2026-08-19 22:16:27 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 129.5 | index 10761.10 | net P&L Rs -7,666.18
+[2026-08-19 22:16:27 IST] [INFO] [SYSTEM] New session 2020-07-13 — strategy state reset
+[2026-08-19 22:16:27 IST] [INFO] [SYSTEM] Margin Check | Available=7741706.29 | Required=148453.50 | PASS
+[2026-08-19 22:16:27 IST] [INFO] [SYSTEM] Paper fill: NIFTY10850PE @ Rs 99.3 x1495
+[2026-08-19 22:16:27 IST] [INFO] [ORDER] [2020-07-13 11:11:00] BUY PE | Strike=10850 | Price=99.30 | Qty=1495 | Mode=paper
+[2026-08-19 22:16:27 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 10850 @ Rs 99.3 x1495 | index 10837.80 stop 10893.45 target 10726.50 risk 55.7pts
+[2026-08-19 22:16:28 IST] [INFO] [ORDER] [2020-07-13 15:15:00] EXIT | Reason=squareoff | P&L=+26807.05
+[2026-08-19 22:16:28 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 117.46 | index 10799.60 | net P&L Rs 26,807.05
+[2026-08-19 22:16:28 IST] [INFO] [SYSTEM] New session 2020-07-14 — strategy state reset
+[2026-08-19 22:16:28 IST] [INFO] [SYSTEM] Margin Check | Available=7768513.34 | Required=146296.80 | PASS
+[2026-08-19 22:16:28 IST] [INFO] [SYSTEM] Paper fill: NIFTY10700PE @ Rs 83.36 x1755
+[2026-08-19 22:16:28 IST] [INFO] [ORDER] [2020-07-14 10:23:00] BUY PE | Strike=10700 | Price=83.36 | Qty=1755 | Mode=paper
+[2026-08-19 22:16:28 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 10700 @ Rs 83.36 x1755 | index 10692.10 stop 10750.85 target 10574.60 risk 58.8pts
+[2026-08-19 22:16:29 IST] [INFO] [ORDER] [2020-07-14 13:11:00] EXIT | Reason=target | P&L=+123543.44
+[2026-08-19 22:16:29 IST] [INFO] [SYSTEM] ORB EXIT [target] @ Rs 154.01 | index 10574.60 | net P&L Rs 123,543.44
+[2026-08-19 22:16:29 IST] [INFO] [SYSTEM] New session 2020-07-15 — strategy state reset
+[2026-08-19 22:16:29 IST] [INFO] [SYSTEM] Margin Check | Available=7892056.78 | Required=122253.30 | PASS
+[2026-08-19 22:16:29 IST] [INFO] [SYSTEM] Paper fill: NIFTY10750CE @ Rs 69.66 x1755
+[2026-08-19 22:16:29 IST] [INFO] [ORDER] [2020-07-15 10:17:00] BUY CE | Strike=10750 | Price=69.66 | Qty=1755 | Mode=paper
+[2026-08-19 22:16:29 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 10750 @ Rs 69.66 x1755 | index 10769.70 stop 10686.10 target 10936.90 risk 83.6pts
+[2026-08-19 22:16:29 IST] [INFO] [ORDER] [2020-07-15 14:37:00] EXIT | Reason=stoploss | P&L=-73348.54
+[2026-08-19 22:16:29 IST] [INFO] [SYSTEM] ORB EXIT [stoploss] @ Rs 27.97 | index 10686.10 | net P&L Rs -73,348.54
+[2026-08-19 22:16:29 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -73,349 <= -Rs 10,000); no further trades today
+[2026-08-19 22:16:30 IST] [INFO] [SYSTEM] New session 2020-07-16 — strategy state reset
+[2026-08-19 22:16:30 IST] [INFO] [SYSTEM] New session 2020-07-17 — strategy state reset
+[2026-08-19 22:16:30 IST] [INFO] [SYSTEM] Margin Check | Available=7818708.24 | Required=154766.30 | PASS
+[2026-08-19 22:16:30 IST] [INFO] [SYSTEM] Paper fill: NIFTY10800CE @ Rs 140.06 x1105
+[2026-08-19 22:16:30 IST] [INFO] [ORDER] [2020-07-17 11:23:00] BUY CE | Strike=10800 | Price=140.06 | Qty=1105 | Mode=paper
+[2026-08-19 22:16:30 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 10800 @ Rs 140.06 x1105 | index 10820.60 stop 10752.00 target 10957.80 risk 68.6pts
+[2026-08-19 22:16:31 IST] [INFO] [ORDER] [2020-07-17 15:15:00] EXIT | Reason=squareoff | P&L=+52260.11
+[2026-08-19 22:16:31 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 187.7 | index 10902.95 | net P&L Rs 52,260.11
+[2026-08-19 22:16:31 IST] [INFO] [SYSTEM] New session 2020-07-20 — strategy state reset
+[2026-08-19 22:16:32 IST] [INFO] [SYSTEM] New session 2020-07-21 — strategy state reset
+[2026-08-19 22:16:32 IST] [INFO] [SYSTEM] Margin Check | Available=7870968.35 | Required=153367.50 | PASS
+[2026-08-19 22:16:32 IST] [INFO] [SYSTEM] Paper fill: NIFTY11150CE @ Rs 90.75 x1690
+[2026-08-19 22:16:32 IST] [INFO] [ORDER] [2020-07-21 13:05:00] BUY CE | Strike=11150 | Price=90.75 | Qty=1690 | Mode=paper
+[2026-08-19 22:16:32 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 11150 @ Rs 90.75 x1690 | index 11172.85 stop 11113.40 target 11291.75 risk 59.5pts
+[2026-08-19 22:16:32 IST] [INFO] [ORDER] [2020-07-21 15:15:00] EXIT | Reason=squareoff | P&L=-15969.02
+[2026-08-19 22:16:32 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 81.48 | index 11159.05 | net P&L Rs -15,969.02
+[2026-08-19 22:16:32 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -15,969 <= -Rs 10,000); no further trades today
+[2026-08-19 22:16:32 IST] [INFO] [SYSTEM] New session 2020-07-22 — strategy state reset
+[2026-08-19 22:16:33 IST] [INFO] [SYSTEM] New session 2020-07-23 — strategy state reset
+[2026-08-19 22:16:33 IST] [INFO] [SYSTEM] Margin Check | Available=7854999.33 | Required=18023.85 | PASS
+[2026-08-19 22:16:33 IST] [INFO] [SYSTEM] Paper fill: NIFTY11200CE @ Rs 10.27 x1755
+[2026-08-19 22:16:33 IST] [INFO] [ORDER] [2020-07-23 11:02:00] BUY CE | Strike=11200 | Price=10.27 | Qty=1755 | Mode=paper
+[2026-08-19 22:16:33 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 11200 @ Rs 10.27 x1755 | index 11183.15 stop 11105.10 target 11339.25 risk 78.0pts
+[2026-08-19 22:16:34 IST] [INFO] [ORDER] [2020-07-23 15:15:00] EXIT | Reason=squareoff | P&L=+6477.03
+[2026-08-19 22:16:34 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 14.01 | index 11213.55 | net P&L Rs 6,477.03
+[2026-08-19 22:16:34 IST] [INFO] [SYSTEM] New session 2020-07-24 — strategy state reset
+[2026-08-19 22:16:34 IST] [INFO] [SYSTEM] Margin Check | Available=7861476.36 | Required=136854.90 | PASS
+[2026-08-19 22:16:34 IST] [INFO] [SYSTEM] Paper fill: NIFTY11100PE @ Rs 77.98 x1755
+[2026-08-19 22:16:34 IST] [INFO] [ORDER] [2020-07-24 10:41:00] BUY PE | Strike=11100 | Price=77.98 | Qty=1755 | Mode=paper
+[2026-08-19 22:16:34 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 11100 @ Rs 77.98 x1755 | index 11120.00 stop 11169.65 target 11020.70 risk 49.6pts
+[2026-08-19 22:16:34 IST] [INFO] [ORDER] [2020-07-24 14:03:00] EXIT | Reason=stoploss | P&L=-36648.67
+[2026-08-19 22:16:34 IST] [INFO] [SYSTEM] ORB EXIT [stoploss] @ Rs 57.24 | index 11169.65 | net P&L Rs -36,648.67
+[2026-08-19 22:16:34 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -36,649 <= -Rs 10,000); no further trades today
+[2026-08-19 22:16:35 IST] [INFO] [SYSTEM] New session 2020-07-27 — strategy state reset
+[2026-08-19 22:16:35 IST] [INFO] [SYSTEM] New session 2020-07-28 — strategy state reset
+[2026-08-19 22:16:36 IST] [INFO] [SYSTEM] Margin Check | Available=7824827.69 | Required=82291.95 | PASS
+[2026-08-19 22:16:36 IST] [INFO] [SYSTEM] Paper fill: NIFTY11250CE @ Rs 46.89 x1755
+[2026-08-19 22:16:36 IST] [INFO] [ORDER] [2020-07-28 12:11:00] BUY CE | Strike=11250 | Price=46.89 | Qty=1755 | Mode=paper
+[2026-08-19 22:16:36 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 11250 @ Rs 46.89 x1755 | index 11231.95 stop 11154.10 target 11387.65 risk 77.9pts
+[2026-08-19 22:16:36 IST] [INFO] [ORDER] [2020-07-28 15:15:00] EXIT | Reason=squareoff | P&L=+64860.98
+[2026-08-19 22:16:36 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 84.0 | index 11300.85 | net P&L Rs 64,860.98
+[2026-08-19 22:16:36 IST] [INFO] [SYSTEM] New session 2020-07-29 — strategy state reset
+[2026-08-19 22:16:36 IST] [INFO] [SYSTEM] Margin Check | Available=7889688.67 | Required=62056.80 | PASS
+[2026-08-19 22:16:36 IST] [INFO] [SYSTEM] Paper fill: NIFTY11250PE @ Rs 35.36 x1755
+[2026-08-19 22:16:36 IST] [INFO] [ORDER] [2020-07-29 10:26:00] BUY PE | Strike=11250 | Price=35.36 | Qty=1755 | Mode=paper
+[2026-08-19 22:16:36 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 11250 @ Rs 35.36 x1755 | index 11256.80 stop 11341.05 target 11088.30 risk 84.2pts
+[2026-08-19 22:16:37 IST] [INFO] [ORDER] [2020-07-29 15:15:00] EXIT | Reason=squareoff | P&L=+41073.41
+[2026-08-19 22:16:37 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 58.88 | index 11209.25 | net P&L Rs 41,073.41
+[2026-08-19 22:16:37 IST] [INFO] [SYSTEM] New session 2020-07-30 — strategy state reset
+[2026-08-19 22:16:37 IST] [INFO] [SYSTEM] Margin Check | Available=7930762.08 | Required=16497.00 | PASS
+[2026-08-19 22:16:37 IST] [INFO] [SYSTEM] Paper fill: NIFTY11300CE @ Rs 9.4 x1755
+[2026-08-19 22:16:37 IST] [INFO] [ORDER] [2020-07-30 10:17:00] BUY CE | Strike=11300 | Price=9.40 | Qty=1755 | Mode=paper
+[2026-08-19 22:16:37 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 11300 @ Rs 9.4 x1755 | index 11284.15 stop 11246.20 target 11360.05 risk 37.9pts
+[2026-08-19 22:16:37 IST] [INFO] [ORDER] [2020-07-30 12:41:00] EXIT | Reason=stoploss | P&L=-15871.33
+[2026-08-19 22:16:37 IST] [INFO] [SYSTEM] ORB EXIT [stoploss] @ Rs 0.39 | index 11246.20 | net P&L Rs -15,871.33
+[2026-08-19 22:16:37 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -15,871 <= -Rs 10,000); no further trades today
+[2026-08-19 22:16:38 IST] [INFO] [SYSTEM] New session 2020-07-31 — strategy state reset
+[2026-08-19 22:16:38 IST] [INFO] [SYSTEM] New session 2020-08-03 — strategy state reset
+[2026-08-19 22:16:39 IST] [INFO] [SYSTEM] Margin Check | Available=7914890.75 | Required=115636.95 | PASS
+[2026-08-19 22:16:39 IST] [INFO] [SYSTEM] Paper fill: NIFTY10950PE @ Rs 65.89 x1755
+[2026-08-19 22:16:39 IST] [INFO] [ORDER] [2020-08-03 12:26:00] BUY PE | Strike=10950 | Price=65.89 | Qty=1755 | Mode=paper
+[2026-08-19 22:16:39 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 10950 @ Rs 65.89 x1755 | index 10942.90 stop 11057.55 target 10713.60 risk 114.6pts
+[2026-08-19 22:16:39 IST] [INFO] [ORDER] [2020-08-03 15:15:00] EXIT | Reason=squareoff | P&L=+47727.13
+[2026-08-19 22:16:39 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 93.26 | index 10892.25 | net P&L Rs 47,727.13
+[2026-08-19 22:16:39 IST] [INFO] [SYSTEM] New session 2020-08-04 — strategy state reset
+[2026-08-19 22:16:39 IST] [INFO] [SYSTEM] Margin Check | Available=7962617.88 | Required=106458.30 | PASS
+[2026-08-19 22:16:39 IST] [INFO] [SYSTEM] Paper fill: NIFTY11000CE @ Rs 60.66 x1755
+[2026-08-19 22:16:39 IST] [INFO] [ORDER] [2020-08-04 10:29:00] BUY CE | Strike=11000 | Price=60.66 | Qty=1755 | Mode=paper
+[2026-08-19 22:16:39 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 11000 @ Rs 60.66 x1755 | index 11005.20 stop 10908.40 target 11198.80 risk 96.8pts
+[2026-08-19 22:16:40 IST] [INFO] [ORDER] [2020-08-04 15:15:00] EXIT | Reason=squareoff | P&L=+99264.88
+[2026-08-19 22:16:40 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 117.42 | index 11095.75 | net P&L Rs 99,264.88
+[2026-08-19 22:16:40 IST] [INFO] [SYSTEM] New session 2020-08-05 — strategy state reset
+[2026-08-19 22:16:40 IST] [INFO] [SYSTEM] Margin Check | Available=8061882.76 | Required=77658.75 | PASS
+[2026-08-19 22:16:40 IST] [INFO] [SYSTEM] Paper fill: NIFTY11150PE @ Rs 44.25 x1755
+[2026-08-19 22:16:40 IST] [INFO] [ORDER] [2020-08-05 11:35:00] BUY PE | Strike=11150 | Price=44.25 | Qty=1755 | Mode=paper
+[2026-08-19 22:16:40 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 11150 @ Rs 44.25 x1755 | index 11149.70 stop 11221.70 target 11005.70 risk 72.0pts
+[2026-08-19 22:16:41 IST] [INFO] [ORDER] [2020-08-05 15:15:00] EXIT | Reason=squareoff | P&L=+36382.59
+[2026-08-19 22:16:41 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 65.11 | index 11107.95 | net P&L Rs 36,382.59
+[2026-08-19 22:16:41 IST] [INFO] [SYSTEM] New session 2020-08-06 — strategy state reset
+[2026-08-19 22:16:41 IST] [INFO] [SYSTEM] Margin Check | Available=8098265.35 | Required=43664.40 | PASS
+[2026-08-19 22:16:41 IST] [INFO] [SYSTEM] Paper fill: NIFTY11200CE @ Rs 24.88 x1755
+[2026-08-19 22:16:41 IST] [INFO] [ORDER] [2020-08-06 12:26:00] BUY CE | Strike=11200 | Price=24.88 | Qty=1755 | Mode=paper
+[2026-08-19 22:16:41 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 11200 @ Rs 24.88 x1755 | index 11216.70 stop 11130.40 target 11389.30 risk 86.3pts
+[2026-08-19 22:16:41 IST] [INFO] [ORDER] [2020-08-06 15:15:00] EXIT | Reason=squareoff | P&L=-35413.36
+[2026-08-19 22:16:41 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 4.75 | index 11200.95 | net P&L Rs -35,413.36
+[2026-08-19 22:16:41 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -35,413 <= -Rs 10,000); no further trades today
+[2026-08-19 22:16:41 IST] [INFO] [SYSTEM] New session 2020-08-07 — strategy state reset
+[2026-08-19 22:16:42 IST] [INFO] [SYSTEM] New session 2020-08-10 — strategy state reset
+[2026-08-19 22:16:42 IST] [INFO] [SYSTEM] Margin Check | Available=8062851.99 | Required=126061.65 | PASS
+[2026-08-19 22:16:42 IST] [INFO] [SYSTEM] Paper fill: NIFTY11350CE @ Rs 71.83 x1755
+[2026-08-19 22:16:42 IST] [INFO] [ORDER] [2020-08-10 11:23:00] BUY CE | Strike=11350 | Price=71.83 | Qty=1755 | Mode=paper
+[2026-08-19 22:16:42 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 11350 @ Rs 71.83 x1755 | index 11335.65 stop 11266.90 target 11473.15 risk 68.8pts
+[2026-08-19 22:16:43 IST] [INFO] [ORDER] [2020-08-10 14:11:00] EXIT | Reason=stoploss | P&L=-52739.76
+[2026-08-19 22:16:43 IST] [INFO] [SYSTEM] ORB EXIT [stoploss] @ Rs 41.9 | index 11266.90 | net P&L Rs -52,739.76
+[2026-08-19 22:16:43 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -52,740 <= -Rs 10,000); no further trades today
+[2026-08-19 22:16:43 IST] [INFO] [SYSTEM] New session 2020-08-11 — strategy state reset
+[2026-08-19 22:16:43 IST] [INFO] [SYSTEM] Margin Check | Available=8010112.23 | Required=84784.05 | PASS
+[2026-08-19 22:16:43 IST] [INFO] [SYSTEM] Paper fill: NIFTY11300PE @ Rs 48.31 x1755
+[2026-08-19 22:16:43 IST] [INFO] [ORDER] [2020-08-11 11:17:00] BUY PE | Strike=11300 | Price=48.31 | Qty=1755 | Mode=paper
+[2026-08-19 22:16:43 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 11300 @ Rs 48.31 x1755 | index 11319.25 stop 11372.85 target 11212.05 risk 53.6pts
+[2026-08-19 22:16:44 IST] [INFO] [ORDER] [2020-08-11 15:15:00] EXIT | Reason=squareoff | P&L=-6438.97
+[2026-08-19 22:16:44 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 44.75 | index 11322.60 | net P&L Rs -6,438.97
+[2026-08-19 22:16:44 IST] [INFO] [SYSTEM] New session 2020-08-12 — strategy state reset
+[2026-08-19 22:16:44 IST] [INFO] [SYSTEM] Margin Check | Available=8003673.26 | Required=73622.25 | PASS
+[2026-08-19 22:16:44 IST] [INFO] [SYSTEM] Paper fill: NIFTY11300CE @ Rs 41.95 x1755
+[2026-08-19 22:16:44 IST] [INFO] [ORDER] [2020-08-12 11:08:00] BUY CE | Strike=11300 | Price=41.95 | Qty=1755 | Mode=paper
+[2026-08-19 22:16:44 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 11300 @ Rs 41.95 x1755 | index 11291.60 stop 11243.45 target 11387.90 risk 48.1pts
+[2026-08-19 22:16:44 IST] [INFO] [ORDER] [2020-08-12 15:15:00] EXIT | Reason=squareoff | P&L=+8709.50
+[2026-08-19 22:16:44 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 47.02 | index 11308.50 | net P&L Rs 8,709.50
+[2026-08-19 22:16:44 IST] [INFO] [SYSTEM] New session 2020-08-13 — strategy state reset
+[2026-08-19 22:16:45 IST] [INFO] [SYSTEM] Margin Check | Available=8012382.76 | Required=19410.30 | PASS
+[2026-08-19 22:16:45 IST] [INFO] [SYSTEM] Paper fill: NIFTY11300PE @ Rs 11.06 x1755
+[2026-08-19 22:16:45 IST] [INFO] [ORDER] [2020-08-13 11:41:00] BUY PE | Strike=11300 | Price=11.06 | Qty=1755 | Mode=paper
+[2026-08-19 22:16:45 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 11300 @ Rs 11.06 x1755 | index 11311.55 stop 11359.25 target 11216.15 risk 47.7pts
+[2026-08-19 22:16:45 IST] [INFO] [ORDER] [2020-08-13 15:15:00] EXIT | Reason=squareoff | P&L=-11493.95
+[2026-08-19 22:16:45 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 4.55 | index 11299.25 | net P&L Rs -11,493.95
+[2026-08-19 22:16:45 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -11,494 <= -Rs 10,000); no further trades today
+[2026-08-19 22:16:45 IST] [INFO] [SYSTEM] New session 2020-08-14 — strategy state reset
+[2026-08-19 22:16:46 IST] [INFO] [SYSTEM] New session 2020-08-17 — strategy state reset
+[2026-08-19 22:16:47 IST] [INFO] [SYSTEM] New session 2020-08-18 — strategy state reset
+[2026-08-19 22:16:47 IST] [INFO] [SYSTEM] Margin Check | Available=8000888.81 | Required=82625.40 | PASS
+[2026-08-19 22:16:47 IST] [INFO] [SYSTEM] Paper fill: NIFTY11350CE @ Rs 47.08 x1755
+[2026-08-19 22:16:47 IST] [INFO] [ORDER] [2020-08-18 10:17:00] BUY CE | Strike=11350 | Price=47.08 | Qty=1755 | Mode=paper
+[2026-08-19 22:16:47 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 11350 @ Rs 47.08 x1755 | index 11330.75 stop 11255.40 target 11481.45 risk 75.4pts
+[2026-08-19 22:16:47 IST] [INFO] [ORDER] [2020-08-18 15:15:00] EXIT | Reason=squareoff | P&L=+41983.41
+[2026-08-19 22:16:47 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 71.14 | index 11381.10 | net P&L Rs 41,983.41
+[2026-08-19 22:16:47 IST] [INFO] [SYSTEM] New session 2020-08-19 — strategy state reset
+[2026-08-19 22:16:48 IST] [INFO] [SYSTEM] Margin Check | Available=8042872.22 | Required=63495.90 | PASS
+[2026-08-19 22:16:48 IST] [INFO] [SYSTEM] Paper fill: NIFTY11400PE @ Rs 36.18 x1755
+[2026-08-19 22:16:48 IST] [INFO] [ORDER] [2020-08-19 11:17:00] BUY PE | Strike=11400 | Price=36.18 | Qty=1755 | Mode=paper
+[2026-08-19 22:16:48 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 11400 @ Rs 36.18 x1755 | index 11412.55 stop 11458.60 target 11320.45 risk 46.1pts
+[2026-08-19 22:16:48 IST] [INFO] [ORDER] [2020-08-19 15:15:00] EXIT | Reason=squareoff | P&L=+1014.24
+[2026-08-19 22:16:48 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 36.85 | index 11404.55 | net P&L Rs 1,014.24
+[2026-08-19 22:16:48 IST] [INFO] [SYSTEM] New session 2020-08-20 — strategy state reset
+[2026-08-19 22:16:48 IST] [INFO] [SYSTEM] Margin Check | Available=8043886.46 | Required=28729.35 | PASS
+[2026-08-19 22:16:48 IST] [INFO] [SYSTEM] Paper fill: NIFTY11350CE @ Rs 16.37 x1755
+[2026-08-19 22:16:48 IST] [INFO] [ORDER] [2020-08-20 10:35:00] BUY CE | Strike=11350 | Price=16.37 | Qty=1755 | Mode=paper
+[2026-08-19 22:16:48 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 11350 @ Rs 16.37 x1755 | index 11344.55 stop 11295.80 target 11442.05 risk 48.8pts
+[2026-08-19 22:16:49 IST] [INFO] [ORDER] [2020-08-20 12:36:00] EXIT | Reason=stoploss | P&L=-26919.64
+[2026-08-19 22:16:49 IST] [INFO] [SYSTEM] ORB EXIT [stoploss] @ Rs 1.07 | index 11295.80 | net P&L Rs -26,919.64
+[2026-08-19 22:16:49 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -26,920 <= -Rs 10,000); no further trades today
+[2026-08-19 22:16:49 IST] [INFO] [SYSTEM] New session 2020-08-21 — strategy state reset
+[2026-08-19 22:16:49 IST] [INFO] [SYSTEM] Margin Check | Available=8016966.82 | Required=154668.80 | PASS
+[2026-08-19 22:16:49 IST] [INFO] [SYSTEM] Paper fill: NIFTY11400PE @ Rs 108.16 x1430
+[2026-08-19 22:16:49 IST] [INFO] [ORDER] [2020-08-21 11:44:00] BUY PE | Strike=11400 | Price=108.16 | Qty=1430 | Mode=paper
+[2026-08-19 22:16:49 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 11400 @ Rs 108.16 x1430 | index 11379.90 stop 11417.95 target 11303.80 risk 38.1pts
+[2026-08-19 22:16:50 IST] [INFO] [ORDER] [2020-08-21 15:15:00] EXIT | Reason=squareoff | P&L=+3948.22
+[2026-08-19 22:16:50 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 111.15 | index 11371.95 | net P&L Rs 3,948.22
+[2026-08-19 22:16:50 IST] [INFO] [SYSTEM] New session 2020-08-24 — strategy state reset
+[2026-08-19 22:16:50 IST] [INFO] [SYSTEM] Margin Check | Available=8020915.04 | Required=118164.15 | PASS
+[2026-08-19 22:16:50 IST] [INFO] [SYSTEM] Paper fill: NIFTY11500CE @ Rs 67.33 x1755
+[2026-08-19 22:16:50 IST] [INFO] [ORDER] [2020-08-24 12:17:00] BUY CE | Strike=11500 | Price=67.33 | Qty=1755 | Mode=paper
+[2026-08-19 22:16:50 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 11500 @ Rs 67.33 x1755 | index 11477.65 stop 11412.00 target 11608.95 risk 65.6pts
+[2026-08-19 22:16:50 IST] [INFO] [ORDER] [2020-08-24 15:15:00] EXIT | Reason=squareoff | P&L=-11371.83
+[2026-08-19 22:16:50 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 60.99 | index 11467.30 | net P&L Rs -11,371.83
+[2026-08-19 22:16:50 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -11,372 <= -Rs 10,000); no further trades today
+[2026-08-19 22:16:51 IST] [INFO] [SYSTEM] New session 2020-08-25 — strategy state reset
+[2026-08-19 22:16:51 IST] [INFO] [SYSTEM] Margin Check | Available=8009543.21 | Required=127167.30 | PASS
+[2026-08-19 22:16:51 IST] [INFO] [SYSTEM] Paper fill: NIFTY11500PE @ Rs 72.46 x1755
+[2026-08-19 22:16:51 IST] [INFO] [ORDER] [2020-08-25 10:35:00] BUY PE | Strike=11500 | Price=72.46 | Qty=1755 | Mode=paper
+[2026-08-19 22:16:51 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 11500 @ Rs 72.46 x1755 | index 11477.65 stop 11525.55 target 11381.85 risk 47.9pts
+[2026-08-19 22:16:51 IST] [INFO] [ORDER] [2020-08-25 15:15:00] EXIT | Reason=squareoff | P&L=-449.00
+[2026-08-19 22:16:51 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 72.36 | index 11473.10 | net P&L Rs -449.00
+[2026-08-19 22:16:51 IST] [INFO] [SYSTEM] New session 2020-08-26 — strategy state reset
+[2026-08-19 22:16:52 IST] [INFO] [SYSTEM] New session 2020-08-27 — strategy state reset
+[2026-08-19 22:16:52 IST] [INFO] [SYSTEM] Margin Check | Available=8009094.21 | Required=47349.90 | PASS
+[2026-08-19 22:16:52 IST] [INFO] [SYSTEM] Paper fill: NIFTY11600PE @ Rs 26.98 x1755
+[2026-08-19 22:16:52 IST] [INFO] [ORDER] [2020-08-27 10:47:00] BUY PE | Strike=11600 | Price=26.98 | Qty=1755 | Mode=paper
+[2026-08-19 22:16:52 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 11600 @ Rs 26.98 x1755 | index 11584.70 stop 11616.50 target 11521.10 risk 31.8pts
+[2026-08-19 22:16:53 IST] [INFO] [ORDER] [2020-08-27 15:15:00] EXIT | Reason=squareoff | P&L=+30756.76
+[2026-08-19 22:16:53 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 44.6 | index 11555.40 | net P&L Rs 30,756.76
+[2026-08-19 22:16:53 IST] [INFO] [SYSTEM] New session 2020-08-28 — strategy state reset
+[2026-08-19 22:16:53 IST] [INFO] [SYSTEM] Margin Check | Available=8039850.97 | Required=159062.80 | PASS
+[2026-08-19 22:16:53 IST] [INFO] [SYSTEM] Paper fill: NIFTY11650CE @ Rs 94.12 x1690
+[2026-08-19 22:16:53 IST] [INFO] [ORDER] [2020-08-28 11:11:00] BUY CE | Strike=11650 | Price=94.12 | Qty=1690 | Mode=paper
+[2026-08-19 22:16:53 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 11650 @ Rs 94.12 x1690 | index 11636.15 stop 11592.50 target 11723.45 risk 43.6pts
+[2026-08-19 22:16:53 IST] [INFO] [ORDER] [2020-08-28 12:55:00] EXIT | Reason=breakeven_stop | P&L=-1393.99
+[2026-08-19 22:16:53 IST] [INFO] [SYSTEM] ORB EXIT [breakeven_stop] @ Rs 93.49 | index 11636.15 | net P&L Rs -1,393.99
+[2026-08-19 22:16:54 IST] [INFO] [SYSTEM] New session 2020-08-31 — strategy state reset
+[2026-08-19 22:16:54 IST] [INFO] [SYSTEM] Margin Check | Available=8038456.98 | Required=100684.35 | PASS
+[2026-08-19 22:16:54 IST] [INFO] [SYSTEM] Paper fill: NIFTY11700PE @ Rs 57.37 x1755
+[2026-08-19 22:16:54 IST] [INFO] [ORDER] [2020-08-31 10:20:00] BUY PE | Strike=11700 | Price=57.37 | Qty=1755 | Mode=paper
+[2026-08-19 22:16:54 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 11700 @ Rs 57.37 x1755 | index 11721.80 stop 11794.15 target 11577.10 risk 72.4pts
+[2026-08-19 22:16:54 IST] [INFO] [ORDER] [2020-08-31 11:36:00] EXIT | Reason=target | P&L=+149446.73
+[2026-08-19 22:16:54 IST] [INFO] [SYSTEM] ORB EXIT [target] @ Rs 142.75 | index 11577.10 | net P&L Rs 149,446.73
+[2026-08-19 22:16:54 IST] [INFO] [SYSTEM] New session 2020-09-01 — strategy state reset
+[2026-08-19 22:16:55 IST] [INFO] [SYSTEM] Margin Check | Available=8187903.71 | Required=161021.25 | PASS
+[2026-08-19 22:16:55 IST] [INFO] [SYSTEM] Paper fill: NIFTY11500CE @ Rs 91.75 x1755
+[2026-08-19 22:16:55 IST] [INFO] [ORDER] [2020-09-01 12:53:00] BUY CE | Strike=11500 | Price=91.75 | Qty=1755 | Mode=paper
+[2026-08-19 22:16:55 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 11500 @ Rs 91.75 x1755 | index 11523.95 stop 11367.20 target 11837.45 risk 156.8pts
+[2026-08-19 22:16:55 IST] [INFO] [ORDER] [2020-09-01 15:15:00] EXIT | Reason=squareoff | P&L=-52048.21
+[2026-08-19 22:16:55 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 62.25 | index 11469.30 | net P&L Rs -52,048.21
+[2026-08-19 22:16:55 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -52,048 <= -Rs 10,000); no further trades today
+[2026-08-19 22:16:55 IST] [INFO] [SYSTEM] New session 2020-09-02 — strategy state reset
+[2026-08-19 22:16:55 IST] [INFO] [SYSTEM] Margin Check | Available=8135855.50 | Required=98876.70 | PASS
+[2026-08-19 22:16:55 IST] [INFO] [SYSTEM] Paper fill: NIFTY11450PE @ Rs 56.34 x1755
+[2026-08-19 22:16:55 IST] [INFO] [ORDER] [2020-09-02 10:26:00] BUY PE | Strike=11450 | Price=56.34 | Qty=1755 | Mode=paper
+[2026-08-19 22:16:55 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 11450 @ Rs 56.34 x1755 | index 11444.55 stop 11519.70 target 11294.25 risk 75.2pts
+[2026-08-19 22:16:56 IST] [INFO] [ORDER] [2020-09-02 14:15:00] EXIT | Reason=stoploss | P&L=-58371.13
+[2026-08-19 22:16:56 IST] [INFO] [SYSTEM] ORB EXIT [stoploss] @ Rs 23.17 | index 11519.70 | net P&L Rs -58,371.13
+[2026-08-19 22:16:56 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -58,371 <= -Rs 10,000); no further trades today
+[2026-08-19 22:16:56 IST] [INFO] [SYSTEM] New session 2020-09-03 — strategy state reset
+[2026-08-19 22:16:57 IST] [INFO] [SYSTEM] Margin Check | Available=8077484.37 | Required=20164.95 | PASS
+[2026-08-19 22:16:57 IST] [INFO] [SYSTEM] Paper fill: NIFTY11500PE @ Rs 11.49 x1755
+[2026-08-19 22:16:57 IST] [INFO] [ORDER] [2020-09-03 11:35:00] BUY PE | Strike=11500 | Price=11.49 | Qty=1755 | Mode=paper
+[2026-08-19 22:16:57 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 11500 @ Rs 11.49 x1755 | index 11520.90 stop 11584.55 target 11393.60 risk 63.6pts
+[2026-08-19 22:16:57 IST] [INFO] [ORDER] [2020-09-03 15:15:00] EXIT | Reason=squareoff | P&L=-19787.11
+[2026-08-19 22:16:57 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 0.25 | index 11521.65 | net P&L Rs -19,787.11
+[2026-08-19 22:16:57 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -19,787 <= -Rs 10,000); no further trades today
+[2026-08-19 22:16:57 IST] [INFO] [SYSTEM] New session 2020-09-04 — strategy state reset
+[2026-08-19 22:16:57 IST] [INFO] [SYSTEM] Margin Check | Available=8057697.26 | Required=158766.40 | PASS
+[2026-08-19 22:16:57 IST] [INFO] [SYSTEM] Paper fill: NIFTY11400CE @ Rs 152.66 x1040
+[2026-08-19 22:16:57 IST] [INFO] [ORDER] [2020-09-04 12:56:00] BUY CE | Strike=11400 | Price=152.66 | Qty=1040 | Mode=paper
+[2026-08-19 22:16:57 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 11400 @ Rs 152.66 x1040 | index 11422.35 stop 11333.35 target 11600.35 risk 89.0pts
+[2026-08-19 22:16:58 IST] [INFO] [ORDER] [2020-09-04 14:40:00] EXIT | Reason=stoploss | P&L=-46911.09
+[2026-08-19 22:16:58 IST] [INFO] [SYSTEM] ORB EXIT [stoploss] @ Rs 107.82 | index 11333.35 | net P&L Rs -46,911.09
+[2026-08-19 22:16:58 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -46,911 <= -Rs 10,000); no further trades today
+[2026-08-19 22:16:58 IST] [INFO] [SYSTEM] New session 2020-09-07 — strategy state reset
+[2026-08-19 22:16:59 IST] [INFO] [SYSTEM] New session 2020-09-08 — strategy state reset
+[2026-08-19 22:16:59 IST] [INFO] [SYSTEM] Margin Check | Available=8010786.17 | Required=135801.90 | PASS
+[2026-08-19 22:16:59 IST] [INFO] [SYSTEM] Paper fill: NIFTY11400CE @ Rs 77.38 x1755
+[2026-08-19 22:16:59 IST] [INFO] [ORDER] [2020-09-08 10:17:00] BUY CE | Strike=11400 | Price=77.38 | Qty=1755 | Mode=paper
+[2026-08-19 22:16:59 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 11400 @ Rs 77.38 x1755 | index 11391.80 stop 11329.20 target 11517.00 risk 62.6pts
+[2026-08-19 22:17:00 IST] [INFO] [ORDER] [2020-09-08 15:01:00] EXIT | Reason=stoploss | P&L=-54071.86
+[2026-08-19 22:17:00 IST] [INFO] [SYSTEM] ORB EXIT [stoploss] @ Rs 46.7 | index 11329.20 | net P&L Rs -54,071.86
+[2026-08-19 22:17:00 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -54,072 <= -Rs 10,000); no further trades today
+[2026-08-19 22:17:00 IST] [INFO] [SYSTEM] New session 2020-09-09 — strategy state reset
+[2026-08-19 22:17:00 IST] [INFO] [SYSTEM] Margin Check | Available=7956714.31 | Required=93401.10 | PASS
+[2026-08-19 22:17:00 IST] [INFO] [SYSTEM] Paper fill: NIFTY11200PE @ Rs 53.22 x1755
+[2026-08-19 22:17:00 IST] [INFO] [ORDER] [2020-09-09 12:08:00] BUY PE | Strike=11200 | Price=53.22 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:00 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 11200 @ Rs 53.22 x1755 | index 11203.20 stop 11280.75 target 11048.10 risk 77.5pts
+[2026-08-19 22:17:01 IST] [INFO] [ORDER] [2020-09-09 15:11:00] EXIT | Reason=stoploss | P&L=-55837.02
+[2026-08-19 22:17:01 IST] [INFO] [SYSTEM] ORB EXIT [stoploss] @ Rs 21.49 | index 11280.75 | net P&L Rs -55,837.02
+[2026-08-19 22:17:01 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -55,837 <= -Rs 10,000); no further trades today
+[2026-08-19 22:17:01 IST] [INFO] [SYSTEM] New session 2020-09-10 — strategy state reset
+[2026-08-19 22:17:01 IST] [INFO] [SYSTEM] Margin Check | Available=7900877.29 | Required=62162.10 | PASS
+[2026-08-19 22:17:01 IST] [INFO] [SYSTEM] Paper fill: NIFTY11350CE @ Rs 35.42 x1755
+[2026-08-19 22:17:01 IST] [INFO] [ORDER] [2020-09-10 10:29:00] BUY CE | Strike=11350 | Price=35.42 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:01 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 11350 @ Rs 35.42 x1755 | index 11369.20 stop 11329.70 target 11448.20 risk 39.5pts
+[2026-08-19 22:17:02 IST] [INFO] [ORDER] [2020-09-10 13:26:00] EXIT | Reason=breakeven_stop | P&L=-14567.78
+[2026-08-19 22:17:02 IST] [INFO] [SYSTEM] ORB EXIT [breakeven_stop] @ Rs 27.2 | index 11369.20 | net P&L Rs -14,567.78
+[2026-08-19 22:17:02 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -14,568 <= -Rs 10,000); no further trades today
+[2026-08-19 22:17:02 IST] [INFO] [SYSTEM] New session 2020-09-11 — strategy state reset
+[2026-08-19 22:17:03 IST] [INFO] [SYSTEM] New session 2020-09-14 — strategy state reset
+[2026-08-19 22:17:03 IST] [INFO] [SYSTEM] New session 2020-09-15 — strategy state reset
+[2026-08-19 22:17:03 IST] [INFO] [SYSTEM] Margin Check | Available=7886309.51 | Required=129712.05 | PASS
+[2026-08-19 22:17:03 IST] [INFO] [SYSTEM] Paper fill: NIFTY11450PE @ Rs 73.91 x1755
+[2026-08-19 22:17:03 IST] [INFO] [ORDER] [2020-09-15 10:44:00] BUY PE | Strike=11450 | Price=73.91 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:03 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 11450 @ Rs 73.91 x1755 | index 11459.15 stop 11510.20 target 11357.05 risk 51.1pts
+[2026-08-19 22:17:04 IST] [INFO] [ORDER] [2020-09-15 13:02:00] EXIT | Reason=stoploss | P&L=-40702.97
+[2026-08-19 22:17:04 IST] [INFO] [SYSTEM] ORB EXIT [stoploss] @ Rs 50.85 | index 11510.20 | net P&L Rs -40,702.97
+[2026-08-19 22:17:04 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -40,703 <= -Rs 10,000); no further trades today
+[2026-08-19 22:17:04 IST] [INFO] [SYSTEM] New session 2020-09-16 — strategy state reset
+[2026-08-19 22:17:04 IST] [INFO] [SYSTEM] Margin Check | Available=7845606.54 | Required=112513.05 | PASS
+[2026-08-19 22:17:04 IST] [INFO] [SYSTEM] Paper fill: NIFTY11550CE @ Rs 64.11 x1755
+[2026-08-19 22:17:04 IST] [INFO] [ORDER] [2020-09-16 10:32:00] BUY CE | Strike=11550 | Price=64.11 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:04 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 11550 @ Rs 64.11 x1755 | index 11560.20 stop 11520.15 target 11640.30 risk 40.1pts
+[2026-08-19 22:17:05 IST] [INFO] [ORDER] [2020-09-16 15:15:00] EXIT | Reason=squareoff | P&L=+33024.81
+[2026-08-19 22:17:05 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 83.09 | index 11600.40 | net P&L Rs 33,024.81
+[2026-08-19 22:17:05 IST] [INFO] [SYSTEM] New session 2020-09-17 — strategy state reset
+[2026-08-19 22:17:05 IST] [INFO] [SYSTEM] Margin Check | Available=7878631.35 | Required=27237.60 | PASS
+[2026-08-19 22:17:05 IST] [INFO] [SYSTEM] Paper fill: NIFTY11600CE @ Rs 15.52 x1755
+[2026-08-19 22:17:05 IST] [INFO] [ORDER] [2020-09-17 10:41:00] BUY CE | Strike=11600 | Price=15.52 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:05 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 11600 @ Rs 15.52 x1755 | index 11583.25 stop 11525.80 target 11698.15 risk 57.5pts
+[2026-08-19 22:17:06 IST] [INFO] [ORDER] [2020-09-17 11:55:00] EXIT | Reason=stoploss | P&L=-24813.37
+[2026-08-19 22:17:06 IST] [INFO] [SYSTEM] ORB EXIT [stoploss] @ Rs 1.42 | index 11525.80 | net P&L Rs -24,813.37
+[2026-08-19 22:17:06 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -24,813 <= -Rs 10,000); no further trades today
+[2026-08-19 22:17:06 IST] [INFO] [SYSTEM] New session 2020-09-18 — strategy state reset
+[2026-08-19 22:17:06 IST] [INFO] [SYSTEM] Margin Check | Available=7853817.98 | Required=150398.30 | PASS
+[2026-08-19 22:17:06 IST] [INFO] [SYSTEM] Paper fill: NIFTY11550PE @ Rs 121.78 x1235
+[2026-08-19 22:17:06 IST] [INFO] [ORDER] [2020-09-18 10:41:00] BUY PE | Strike=11550 | Price=121.78 | Qty=1235 | Mode=paper
+[2026-08-19 22:17:07 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 11550 @ Rs 121.78 x1235 | index 11543.90 stop 11584.10 target 11463.50 risk 40.2pts
+[2026-08-19 22:17:07 IST] [INFO] [ORDER] [2020-09-18 14:35:00] EXIT | Reason=target | P&L=+51237.49
+[2026-08-19 22:17:07 IST] [INFO] [SYSTEM] ORB EXIT [target] @ Rs 163.57 | index 11463.50 | net P&L Rs 51,237.49
+[2026-08-19 22:17:07 IST] [INFO] [SYSTEM] New session 2020-09-21 — strategy state reset
+[2026-08-19 22:17:08 IST] [INFO] [SYSTEM] Margin Check | Available=7905055.47 | Required=133362.45 | PASS
+[2026-08-19 22:17:08 IST] [INFO] [SYSTEM] Paper fill: NIFTY11450PE @ Rs 75.99 x1755
+[2026-08-19 22:17:08 IST] [INFO] [ORDER] [2020-09-21 12:41:00] BUY PE | Strike=11450 | Price=75.99 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:08 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 11450 @ Rs 75.99 x1755 | index 11469.85 stop 11530.45 target 11348.65 risk 60.6pts
+[2026-08-19 22:17:08 IST] [INFO] [ORDER] [2020-09-21 14:09:00] EXIT | Reason=target | P&L=+116887.45
+[2026-08-19 22:17:08 IST] [INFO] [SYSTEM] ORB EXIT [target] @ Rs 142.83 | index 11348.65 | net P&L Rs 116,887.45
+[2026-08-19 22:17:09 IST] [INFO] [SYSTEM] New session 2020-09-22 — strategy state reset
+[2026-08-19 22:17:10 IST] [INFO] [SYSTEM] New session 2020-09-23 — strategy state reset
+[2026-08-19 22:17:10 IST] [INFO] [SYSTEM] Margin Check | Available=8021942.92 | Required=93787.20 | PASS
+[2026-08-19 22:17:10 IST] [INFO] [SYSTEM] Paper fill: NIFTY11150PE @ Rs 53.44 x1755
+[2026-08-19 22:17:10 IST] [INFO] [ORDER] [2020-09-23 12:02:00] BUY PE | Strike=11150 | Price=53.44 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:10 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 11150 @ Rs 53.44 x1755 | index 11153.90 stop 11258.75 target 10944.20 risk 104.9pts
+[2026-08-19 22:17:11 IST] [INFO] [ORDER] [2020-09-23 15:15:00] EXIT | Reason=squareoff | P&L=+16527.15
+[2026-08-19 22:17:11 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 62.99 | index 11129.10 | net P&L Rs 16,527.15
+[2026-08-19 22:17:11 IST] [INFO] [SYSTEM] New session 2020-09-24 — strategy state reset
+[2026-08-19 22:17:11 IST] [INFO] [SYSTEM] Margin Check | Available=8038470.07 | Required=48648.60 | PASS
+[2026-08-19 22:17:11 IST] [INFO] [SYSTEM] Paper fill: NIFTY10950PE @ Rs 27.72 x1755
+[2026-08-19 22:17:11 IST] [INFO] [ORDER] [2020-09-24 10:26:00] BUY PE | Strike=10950 | Price=27.72 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:11 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 10950 @ Rs 27.72 x1755 | index 10944.20 stop 11014.15 target 10804.30 risk 69.9pts
+[2026-08-19 22:17:12 IST] [INFO] [ORDER] [2020-09-24 15:04:00] EXIT | Reason=target | P&L=+206688.01
+[2026-08-19 22:17:12 IST] [INFO] [SYSTEM] ORB EXIT [target] @ Rs 145.7 | index 10804.30 | net P&L Rs 206,688.01
+[2026-08-19 22:17:12 IST] [INFO] [SYSTEM] New session 2020-09-25 — strategy state reset
+[2026-08-19 22:17:12 IST] [INFO] [SYSTEM] Margin Check | Available=8245158.08 | Required=156545.35 | PASS
+[2026-08-19 22:17:12 IST] [INFO] [SYSTEM] Paper fill: NIFTY10950CE @ Rs 141.67 x1105
+[2026-08-19 22:17:12 IST] [INFO] [ORDER] [2020-09-25 12:08:00] BUY CE | Strike=10950 | Price=141.67 | Qty=1105 | Mode=paper
+[2026-08-19 22:17:12 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 10950 @ Rs 141.67 x1105 | index 10951.80 stop 10864.80 target 11125.80 risk 87.0pts
+[2026-08-19 22:17:12 IST] [INFO] [ORDER] [2020-09-25 15:15:00] EXIT | Reason=squareoff | P&L=+58073.73
+[2026-08-19 22:17:12 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 194.58 | index 11046.10 | net P&L Rs 58,073.73
+[2026-08-19 22:17:13 IST] [INFO] [SYSTEM] New session 2020-09-28 — strategy state reset
+[2026-08-19 22:17:13 IST] [INFO] [SYSTEM] Margin Check | Available=8303231.81 | Required=163068.10 | PASS
+[2026-08-19 22:17:13 IST] [INFO] [SYSTEM] Paper fill: NIFTY11200CE @ Rs 96.49 x1690
+[2026-08-19 22:17:13 IST] [INFO] [ORDER] [2020-09-28 10:38:00] BUY CE | Strike=11200 | Price=96.49 | Qty=1690 | Mode=paper
+[2026-08-19 22:17:13 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 11200 @ Rs 96.49 x1690 | index 11181.95 stop 11100.50 target 11344.85 risk 81.5pts
+[2026-08-19 22:17:13 IST] [INFO] [ORDER] [2020-09-28 15:15:00] EXIT | Reason=squareoff | P&L=+33964.52
+[2026-08-19 22:17:13 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 116.81 | index 11227.25 | net P&L Rs 33,964.52
+[2026-08-19 22:17:13 IST] [INFO] [SYSTEM] New session 2020-09-29 — strategy state reset
+[2026-08-19 22:17:14 IST] [INFO] [SYSTEM] Margin Check | Available=8337196.33 | Required=110722.95 | PASS
+[2026-08-19 22:17:14 IST] [INFO] [SYSTEM] Paper fill: NIFTY11200PE @ Rs 63.09 x1755
+[2026-08-19 22:17:14 IST] [INFO] [ORDER] [2020-09-29 10:47:00] BUY PE | Strike=11200 | Price=63.09 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:14 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 11200 @ Rs 63.09 x1755 | index 11219.60 stop 11304.80 target 11049.20 risk 85.2pts
+[2026-08-19 22:17:15 IST] [INFO] [ORDER] [2020-09-29 15:15:00] EXIT | Reason=squareoff | P&L=-9850.97
+[2026-08-19 22:17:15 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 57.61 | index 11225.20 | net P&L Rs -9,850.97
+[2026-08-19 22:17:15 IST] [INFO] [SYSTEM] New session 2020-09-30 — strategy state reset
+[2026-08-19 22:17:15 IST] [INFO] [SYSTEM] Margin Check | Available=8327345.36 | Required=101895.30 | PASS
+[2026-08-19 22:17:15 IST] [INFO] [SYSTEM] Paper fill: NIFTY11250CE @ Rs 58.06 x1755
+[2026-08-19 22:17:15 IST] [INFO] [ORDER] [2020-09-30 10:29:00] BUY CE | Strike=11250 | Price=58.06 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:15 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 11250 @ Rs 58.06 x1755 | index 11253.85 stop 11184.75 target 11392.05 risk 69.1pts
+[2026-08-19 22:17:16 IST] [INFO] [ORDER] [2020-09-30 15:15:00] EXIT | Reason=squareoff | P&L=-16005.91
+[2026-08-19 22:17:16 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 49.06 | index 11245.80 | net P&L Rs -16,005.91
+[2026-08-19 22:17:16 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -16,006 <= -Rs 10,000); no further trades today
+[2026-08-19 22:17:16 IST] [INFO] [SYSTEM] New session 2020-10-01 — strategy state reset
+[2026-08-19 22:17:16 IST] [INFO] [SYSTEM] Margin Check | Available=8311339.45 | Required=39522.60 | PASS
+[2026-08-19 22:17:16 IST] [INFO] [SYSTEM] Paper fill: NIFTY11400CE @ Rs 22.52 x1755
+[2026-08-19 22:17:16 IST] [INFO] [ORDER] [2020-10-01 10:59:00] BUY CE | Strike=11400 | Price=22.52 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:16 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 11400 @ Rs 22.52 x1755 | index 11399.95 stop 11350.60 target 11498.65 risk 49.4pts
+[2026-08-19 22:17:17 IST] [INFO] [ORDER] [2020-10-01 15:15:00] EXIT | Reason=squareoff | P&L=-4254.74
+[2026-08-19 22:17:17 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 20.16 | index 11419.75 | net P&L Rs -4,254.74
+[2026-08-19 22:17:17 IST] [INFO] [SYSTEM] New session 2020-10-05 — strategy state reset
+[2026-08-19 22:17:17 IST] [INFO] [SYSTEM] Margin Check | Available=8307084.71 | Required=164268.00 | PASS
+[2026-08-19 22:17:17 IST] [INFO] [SYSTEM] Paper fill: NIFTY11550CE @ Rs 97.2 x1690
+[2026-08-19 22:17:17 IST] [INFO] [ORDER] [2020-10-05 11:08:00] BUY CE | Strike=11550 | Price=97.20 | Qty=1690 | Mode=paper
+[2026-08-19 22:17:17 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 11550 @ Rs 97.2 x1690 | index 11559.60 stop 11484.30 target 11710.20 risk 75.3pts
+[2026-08-19 22:17:18 IST] [INFO] [ORDER] [2020-10-05 13:12:00] EXIT | Reason=stoploss | P&L=-61583.97
+[2026-08-19 22:17:18 IST] [INFO] [SYSTEM] ORB EXIT [stoploss] @ Rs 60.92 | index 11484.30 | net P&L Rs -61,583.97
+[2026-08-19 22:17:18 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -61,584 <= -Rs 10,000); no further trades today
+[2026-08-19 22:17:18 IST] [INFO] [SYSTEM] New session 2020-10-06 — strategy state reset
+[2026-08-19 22:17:19 IST] [INFO] [SYSTEM] New session 2020-10-07 — strategy state reset
+[2026-08-19 22:17:19 IST] [INFO] [SYSTEM] Margin Check | Available=8245500.74 | Required=94120.65 | PASS
+[2026-08-19 22:17:19 IST] [INFO] [SYSTEM] Paper fill: NIFTY11750CE @ Rs 53.63 x1755
+[2026-08-19 22:17:19 IST] [INFO] [ORDER] [2020-10-07 10:26:00] BUY CE | Strike=11750 | Price=53.63 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:19 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 11750 @ Rs 53.63 x1755 | index 11741.75 stop 11631.00 target 11963.25 risk 110.8pts
+[2026-08-19 22:17:20 IST] [INFO] [ORDER] [2020-10-07 15:15:00] EXIT | Reason=squareoff | P&L=-16044.65
+[2026-08-19 22:17:20 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 44.6 | index 11733.35 | net P&L Rs -16,044.65
+[2026-08-19 22:17:20 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -16,045 <= -Rs 10,000); no further trades today
+[2026-08-19 22:17:20 IST] [INFO] [SYSTEM] New session 2020-10-08 — strategy state reset
+[2026-08-19 22:17:20 IST] [INFO] [SYSTEM] Margin Check | Available=8229456.09 | Required=28150.20 | PASS
+[2026-08-19 22:17:20 IST] [INFO] [SYSTEM] Paper fill: NIFTY11900CE @ Rs 16.04 x1755
+[2026-08-19 22:17:20 IST] [INFO] [ORDER] [2020-10-08 11:20:00] BUY CE | Strike=11900 | Price=16.04 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:20 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 11900 @ Rs 16.04 x1755 | index 11886.50 stop 11825.70 target 12008.10 risk 60.8pts
+[2026-08-19 22:17:20 IST] [INFO] [ORDER] [2020-10-08 14:30:00] EXIT | Reason=stoploss | P&L=-28128.19
+[2026-08-19 22:17:20 IST] [INFO] [SYSTEM] ORB EXIT [stoploss] @ Rs 0.05 | index 11825.70 | net P&L Rs -28,128.19
+[2026-08-19 22:17:20 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -28,128 <= -Rs 10,000); no further trades today
+[2026-08-19 22:17:20 IST] [INFO] [SYSTEM] New session 2020-10-09 — strategy state reset
+[2026-08-19 22:17:21 IST] [INFO] [SYSTEM] Margin Check | Available=8201327.90 | Required=163514.00 | PASS
+[2026-08-19 22:17:21 IST] [INFO] [SYSTEM] Paper fill: NIFTY11900CE @ Rs 132.4 x1235
+[2026-08-19 22:17:21 IST] [INFO] [ORDER] [2020-10-09 10:50:00] BUY CE | Strike=11900 | Price=132.40 | Qty=1235 | Mode=paper
+[2026-08-19 22:17:21 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 11900 @ Rs 132.4 x1235 | index 11891.25 stop 11806.15 target 12061.45 risk 85.1pts
+[2026-08-19 22:17:21 IST] [INFO] [ORDER] [2020-10-09 15:15:00] EXIT | Reason=squareoff | P&L=+10208.94
+[2026-08-19 22:17:21 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 140.95 | index 11911.70 | net P&L Rs 10,208.94
+[2026-08-19 22:17:21 IST] [INFO] [SYSTEM] New session 2020-10-12 — strategy state reset
+[2026-08-19 22:17:21 IST] [INFO] [SYSTEM] Margin Check | Available=8211536.84 | Required=158522.00 | PASS
+[2026-08-19 22:17:21 IST] [INFO] [SYSTEM] Paper fill: NIFTY11950PE @ Rs 93.8 x1690
+[2026-08-19 22:17:21 IST] [INFO] [ORDER] [2020-10-12 11:08:00] BUY PE | Strike=11950 | Price=93.80 | Qty=1690 | Mode=paper
+[2026-08-19 22:17:21 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 11950 @ Rs 93.8 x1690 | index 11944.60 stop 12020.60 target 11792.60 risk 76.0pts
+[2026-08-19 22:17:22 IST] [INFO] [ORDER] [2020-10-12 14:07:00] EXIT | Reason=breakeven_stop | P&L=-3249.94
+[2026-08-19 22:17:22 IST] [INFO] [SYSTEM] ORB EXIT [breakeven_stop] @ Rs 92.07 | index 11944.60 | net P&L Rs -3,249.94
+[2026-08-19 22:17:22 IST] [INFO] [SYSTEM] New session 2020-10-13 — strategy state reset
+[2026-08-19 22:17:22 IST] [INFO] [SYSTEM] Margin Check | Available=8208286.90 | Required=126360.00 | PASS
+[2026-08-19 22:17:22 IST] [INFO] [SYSTEM] Paper fill: NIFTY12000CE @ Rs 72.0 x1755
+[2026-08-19 22:17:22 IST] [INFO] [ORDER] [2020-10-13 10:23:00] BUY CE | Strike=12000 | Price=72.00 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:22 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 12000 @ Rs 72.0 x1755 | index 11979.10 stop 11891.80 target 12153.70 risk 87.3pts
+[2026-08-19 22:17:23 IST] [INFO] [ORDER] [2020-10-13 15:15:00] EXIT | Reason=squareoff | P&L=-38049.94
+[2026-08-19 22:17:23 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 50.45 | index 11937.70 | net P&L Rs -38,049.94
+[2026-08-19 22:17:23 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -38,050 <= -Rs 10,000); no further trades today
+[2026-08-19 22:17:23 IST] [INFO] [SYSTEM] New session 2020-10-14 — strategy state reset
+[2026-08-19 22:17:24 IST] [INFO] [SYSTEM] New session 2020-10-15 — strategy state reset
+[2026-08-19 22:17:24 IST] [INFO] [SYSTEM] Margin Check | Available=8170236.96 | Required=38469.60 | PASS
+[2026-08-19 22:17:24 IST] [INFO] [SYSTEM] Paper fill: NIFTY11900PE @ Rs 21.92 x1755
+[2026-08-19 22:17:24 IST] [INFO] [ORDER] [2020-10-15 11:32:00] BUY PE | Strike=11900 | Price=21.92 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:24 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 11900 @ Rs 21.92 x1755 | index 11898.65 stop 12023.45 target 11649.05 risk 124.8pts
+[2026-08-19 22:17:24 IST] [INFO] [ORDER] [2020-10-15 15:15:00] EXIT | Reason=squareoff | P&L=+365705.49
+[2026-08-19 22:17:24 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 230.6 | index 11669.40 | net P&L Rs 365,705.49
+[2026-08-19 22:17:24 IST] [INFO] [SYSTEM] New session 2020-10-16 — strategy state reset
+[2026-08-19 22:17:25 IST] [INFO] [SYSTEM] New session 2020-10-19 — strategy state reset
+[2026-08-19 22:17:26 IST] [INFO] [SYSTEM] New session 2020-10-20 — strategy state reset
+[2026-08-19 22:17:26 IST] [INFO] [SYSTEM] Margin Check | Available=8535942.45 | Required=134222.40 | PASS
+[2026-08-19 22:17:26 IST] [INFO] [SYSTEM] Paper fill: NIFTY11950CE @ Rs 76.48 x1755
+[2026-08-19 22:17:26 IST] [INFO] [ORDER] [2020-10-20 11:11:00] BUY CE | Strike=11950 | Price=76.48 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:26 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 11950 @ Rs 76.48 x1755 | index 11929.10 stop 11839.40 target 12108.50 risk 89.7pts
+[2026-08-19 22:17:27 IST] [INFO] [ORDER] [2020-10-20 15:15:00] EXIT | Reason=squareoff | P&L=-30543.46
+[2026-08-19 22:17:27 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 59.22 | index 11897.85 | net P&L Rs -30,543.46
+[2026-08-19 22:17:27 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -30,543 <= -Rs 10,000); no further trades today
+[2026-08-19 22:17:27 IST] [INFO] [SYSTEM] New session 2020-10-21 — strategy state reset
+[2026-08-19 22:17:27 IST] [INFO] [SYSTEM] Margin Check | Available=8505398.99 | Required=105019.20 | PASS
+[2026-08-19 22:17:27 IST] [INFO] [SYSTEM] Paper fill: NIFTY11950PE @ Rs 59.84 x1755
+[2026-08-19 22:17:27 IST] [INFO] [ORDER] [2020-10-21 13:20:00] BUY PE | Strike=11950 | Price=59.84 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:27 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 11950 @ Rs 59.84 x1755 | index 11936.95 stop 12018.10 target 11774.65 risk 81.1pts
+[2026-08-19 22:17:27 IST] [INFO] [ORDER] [2020-10-21 15:10:00] EXIT | Reason=breakeven_stop | P&L=-3459.81
+[2026-08-19 22:17:27 IST] [INFO] [SYSTEM] ORB EXIT [breakeven_stop] @ Rs 58.0 | index 11936.95 | net P&L Rs -3,459.81
+[2026-08-19 22:17:27 IST] [INFO] [SYSTEM] New session 2020-10-22 — strategy state reset
+[2026-08-19 22:17:28 IST] [INFO] [SYSTEM] New session 2020-10-23 — strategy state reset
+[2026-08-19 22:17:28 IST] [INFO] [SYSTEM] Margin Check | Available=8501939.18 | Required=168286.95 | PASS
+[2026-08-19 22:17:28 IST] [INFO] [SYSTEM] Paper fill: NIFTY11900PE @ Rs 95.89 x1755
+[2026-08-19 22:17:28 IST] [INFO] [ORDER] [2020-10-23 11:47:00] BUY PE | Strike=11900 | Price=95.89 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:28 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 11900 @ Rs 95.89 x1755 | index 11919.95 stop 11974.25 target 11811.35 risk 54.3pts
+[2026-08-19 22:17:29 IST] [INFO] [ORDER] [2020-10-23 15:15:00] EXIT | Reason=squareoff | P&L=-9865.84
+[2026-08-19 22:17:29 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 90.46 | index 11929.60 | net P&L Rs -9,865.84
+[2026-08-19 22:17:29 IST] [INFO] [SYSTEM] New session 2020-10-26 — strategy state reset
+[2026-08-19 22:17:29 IST] [INFO] [SYSTEM] Margin Check | Available=8492073.34 | Required=116689.95 | PASS
+[2026-08-19 22:17:29 IST] [INFO] [SYSTEM] Paper fill: NIFTY11850PE @ Rs 66.49 x1755
+[2026-08-19 22:17:29 IST] [INFO] [ORDER] [2020-10-26 11:20:00] BUY PE | Strike=11850 | Price=66.49 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:29 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 11850 @ Rs 66.49 x1755 | index 11866.65 stop 11937.40 target 11725.15 risk 70.8pts
+[2026-08-19 22:17:29 IST] [INFO] [ORDER] [2020-10-26 14:02:00] EXIT | Reason=target | P&L=+144772.71
+[2026-08-19 22:17:29 IST] [INFO] [SYSTEM] ORB EXIT [target] @ Rs 149.22 | index 11725.15 | net P&L Rs 144,772.71
+[2026-08-19 22:17:29 IST] [INFO] [SYSTEM] New session 2020-10-27 — strategy state reset
+[2026-08-19 22:17:30 IST] [INFO] [SYSTEM] Margin Check | Available=8636846.05 | Required=98192.25 | PASS
+[2026-08-19 22:17:30 IST] [INFO] [SYSTEM] Paper fill: NIFTY11850CE @ Rs 55.95 x1755
+[2026-08-19 22:17:30 IST] [INFO] [ORDER] [2020-10-27 11:44:00] BUY CE | Strike=11850 | Price=55.95 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:30 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 11850 @ Rs 55.95 x1755 | index 11830.20 stop 11725.75 target 12039.10 risk 104.5pts
+[2026-08-19 22:17:30 IST] [INFO] [ORDER] [2020-10-27 15:15:00] EXIT | Reason=squareoff | P&L=+48529.54
+[2026-08-19 22:17:30 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 83.76 | index 11886.50 | net P&L Rs 48,529.54
+[2026-08-19 22:17:30 IST] [INFO] [SYSTEM] New session 2020-10-28 — strategy state reset
+[2026-08-19 22:17:30 IST] [INFO] [SYSTEM] Margin Check | Available=8685375.59 | Required=80010.45 | PASS
+[2026-08-19 22:17:30 IST] [INFO] [SYSTEM] Paper fill: NIFTY11850PE @ Rs 45.59 x1755
+[2026-08-19 22:17:30 IST] [INFO] [ORDER] [2020-10-28 10:38:00] BUY PE | Strike=11850 | Price=45.59 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:30 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 11850 @ Rs 45.59 x1755 | index 11847.55 stop 11929.35 target 11683.95 risk 81.8pts
+[2026-08-19 22:17:31 IST] [INFO] [ORDER] [2020-10-28 15:15:00] EXIT | Reason=squareoff | P&L=+141314.45
+[2026-08-19 22:17:31 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 126.31 | index 11728.05 | net P&L Rs 141,314.45
+[2026-08-19 22:17:31 IST] [INFO] [SYSTEM] New session 2020-10-29 — strategy state reset
+[2026-08-19 22:17:31 IST] [INFO] [SYSTEM] Margin Check | Available=8826690.04 | Required=46735.65 | PASS
+[2026-08-19 22:17:31 IST] [INFO] [SYSTEM] Paper fill: NIFTY11700CE @ Rs 26.63 x1755
+[2026-08-19 22:17:31 IST] [INFO] [ORDER] [2020-10-29 11:53:00] BUY CE | Strike=11700 | Price=26.63 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:31 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 11700 @ Rs 26.63 x1755 | index 11715.05 stop 11609.80 target 11925.55 risk 105.2pts
+[2026-08-19 22:17:32 IST] [INFO] [ORDER] [2020-10-29 14:35:00] EXIT | Reason=stoploss | P&L=-46725.83
+[2026-08-19 22:17:32 IST] [INFO] [SYSTEM] ORB EXIT [stoploss] @ Rs 0.05 | index 11609.80 | net P&L Rs -46,725.83
+[2026-08-19 22:17:32 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -46,726 <= -Rs 10,000); no further trades today
+[2026-08-19 22:17:32 IST] [INFO] [SYSTEM] New session 2020-10-30 — strategy state reset
+[2026-08-19 22:17:32 IST] [INFO] [SYSTEM] Margin Check | Available=8779964.21 | Required=170866.80 | PASS
+[2026-08-19 22:17:32 IST] [INFO] [SYSTEM] Paper fill: NIFTY11650PE @ Rs 109.53 x1560
+[2026-08-19 22:17:32 IST] [INFO] [ORDER] [2020-10-30 11:26:00] BUY PE | Strike=11650 | Price=109.53 | Qty=1560 | Mode=paper
+[2026-08-19 22:17:32 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 11650 @ Rs 109.53 x1560 | index 11639.50 stop 11748.15 target 11422.20 risk 108.6pts
+[2026-08-19 22:17:33 IST] [INFO] [ORDER] [2020-10-30 15:15:00] EXIT | Reason=squareoff | P&L=-9747.73
+[2026-08-19 22:17:33 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 103.5 | index 11649.30 | net P&L Rs -9,747.73
+[2026-08-19 22:17:33 IST] [INFO] [SYSTEM] New session 2020-11-02 — strategy state reset
+[2026-08-19 22:17:33 IST] [INFO] [SYSTEM] New session 2020-11-03 — strategy state reset
+[2026-08-19 22:17:33 IST] [INFO] [SYSTEM] Margin Check | Available=8770216.48 | Required=123622.20 | PASS
+[2026-08-19 22:17:33 IST] [INFO] [SYSTEM] Paper fill: NIFTY11800CE @ Rs 70.44 x1755
+[2026-08-19 22:17:33 IST] [INFO] [ORDER] [2020-11-03 10:44:00] BUY CE | Strike=11800 | Price=70.44 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:33 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 11800 @ Rs 70.44 x1755 | index 11808.00 stop 11729.85 target 11964.30 risk 78.1pts
+[2026-08-19 22:17:34 IST] [INFO] [ORDER] [2020-11-03 15:15:00] EXIT | Reason=squareoff | P&L=-2686.55
+[2026-08-19 22:17:34 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 69.06 | index 11811.00 | net P&L Rs -2,686.55
+[2026-08-19 22:17:34 IST] [INFO] [SYSTEM] New session 2020-11-04 — strategy state reset
+[2026-08-19 22:17:35 IST] [INFO] [SYSTEM] Margin Check | Available=8767529.93 | Required=100930.05 | PASS
+[2026-08-19 22:17:35 IST] [INFO] [SYSTEM] Paper fill: NIFTY11800PE @ Rs 57.51 x1755
+[2026-08-19 22:17:35 IST] [INFO] [ORDER] [2020-11-04 13:20:00] BUY PE | Strike=11800 | Price=57.51 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:35 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 11800 @ Rs 57.51 x1755 | index 11775.35 stop 11920.20 target 11485.65 risk 144.9pts
+[2026-08-19 22:17:35 IST] [INFO] [ORDER] [2020-11-04 14:59:00] EXIT | Reason=stoploss | P&L=-87755.48
+[2026-08-19 22:17:35 IST] [INFO] [SYSTEM] ORB EXIT [stoploss] @ Rs 7.58 | index 11920.20 | net P&L Rs -87,755.48
+[2026-08-19 22:17:35 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -87,755 <= -Rs 10,000); no further trades today
+[2026-08-19 22:17:35 IST] [INFO] [SYSTEM] New session 2020-11-05 — strategy state reset
+[2026-08-19 22:17:35 IST] [INFO] [SYSTEM] Margin Check | Available=8679774.45 | Required=22270.95 | PASS
+[2026-08-19 22:17:35 IST] [INFO] [SYSTEM] Paper fill: NIFTY12100CE @ Rs 12.69 x1755
+[2026-08-19 22:17:35 IST] [INFO] [ORDER] [2020-11-05 10:23:00] BUY CE | Strike=12100 | Price=12.69 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:35 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 12100 @ Rs 12.69 x1755 | index 12080.40 stop 12028.40 target 12184.40 risk 52.0pts
+[2026-08-19 22:17:36 IST] [INFO] [ORDER] [2020-11-05 15:15:00] EXIT | Reason=squareoff | P&L=+12867.98
+[2026-08-19 22:17:36 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 20.08 | index 12119.85 | net P&L Rs 12,867.98
+[2026-08-19 22:17:36 IST] [INFO] [SYSTEM] New session 2020-11-06 — strategy state reset
+[2026-08-19 22:17:36 IST] [INFO] [SYSTEM] Margin Check | Available=8692642.43 | Required=168285.00 | PASS
+[2026-08-19 22:17:36 IST] [INFO] [SYSTEM] Paper fill: NIFTY12200CE @ Rs 129.45 x1300
+[2026-08-19 22:17:36 IST] [INFO] [ORDER] [2020-11-06 12:35:00] BUY CE | Strike=12200 | Price=129.45 | Qty=1300 | Mode=paper
+[2026-08-19 22:17:36 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 12200 @ Rs 129.45 x1300 | index 12216.95 stop 12134.95 target 12380.95 risk 82.0pts
+[2026-08-19 22:17:37 IST] [INFO] [ORDER] [2020-11-06 15:15:00] EXIT | Reason=squareoff | P&L=+36232.86
+[2026-08-19 22:17:37 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 157.62 | index 12267.35 | net P&L Rs 36,232.86
+[2026-08-19 22:17:37 IST] [INFO] [SYSTEM] New session 2020-11-09 — strategy state reset
+[2026-08-19 22:17:37 IST] [INFO] [SYSTEM] Margin Check | Available=8728875.29 | Required=170340.30 | PASS
+[2026-08-19 22:17:37 IST] [INFO] [SYSTEM] Paper fill: NIFTY12400PE @ Rs 97.06 x1755
+[2026-08-19 22:17:37 IST] [INFO] [ORDER] [2020-11-09 11:23:00] BUY PE | Strike=12400 | Price=97.06 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:37 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 12400 @ Rs 97.06 x1755 | index 12379.75 stop 12451.65 target 12235.95 risk 71.9pts
+[2026-08-19 22:17:37 IST] [INFO] [ORDER] [2020-11-09 14:40:00] EXIT | Reason=stoploss | P&L=-61040.30
+[2026-08-19 22:17:37 IST] [INFO] [SYSTEM] ORB EXIT [stoploss] @ Rs 62.44 | index 12451.65 | net P&L Rs -61,040.30
+[2026-08-19 22:17:37 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -61,040 <= -Rs 10,000); no further trades today
+[2026-08-19 22:17:37 IST] [INFO] [SYSTEM] New session 2020-11-10 — strategy state reset
+[2026-08-19 22:17:38 IST] [INFO] [SYSTEM] Margin Check | Available=8667834.99 | Required=155475.45 | PASS
+[2026-08-19 22:17:38 IST] [INFO] [SYSTEM] Paper fill: NIFTY12550CE @ Rs 88.59 x1755
+[2026-08-19 22:17:38 IST] [INFO] [ORDER] [2020-11-10 10:50:00] BUY CE | Strike=12550 | Price=88.59 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:38 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 12550 @ Rs 88.59 x1755 | index 12570.50 stop 12476.70 target 12758.10 risk 93.8pts
+[2026-08-19 22:17:38 IST] [INFO] [ORDER] [2020-11-10 15:15:00] EXIT | Reason=squareoff | P&L=+53651.52
+[2026-08-19 22:17:38 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 119.38 | index 12625.95 | net P&L Rs 53,651.52
+[2026-08-19 22:17:38 IST] [INFO] [SYSTEM] New session 2020-11-11 — strategy state reset
+[2026-08-19 22:17:38 IST] [INFO] [SYSTEM] Margin Check | Available=8721486.51 | Required=116110.80 | PASS
+[2026-08-19 22:17:38 IST] [INFO] [SYSTEM] Paper fill: NIFTY12650PE @ Rs 66.16 x1755
+[2026-08-19 22:17:38 IST] [INFO] [ORDER] [2020-11-11 11:14:00] BUY PE | Strike=12650 | Price=66.16 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:38 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 12650 @ Rs 66.16 x1755 | index 12629.30 stop 12768.85 target 12350.20 risk 139.6pts
+[2026-08-19 22:17:39 IST] [INFO] [ORDER] [2020-11-11 15:15:00] EXIT | Reason=squareoff | P&L=-86730.70
+[2026-08-19 22:17:39 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 16.83 | index 12749.20 | net P&L Rs -86,730.70
+[2026-08-19 22:17:39 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -86,731 <= -Rs 10,000); no further trades today
+[2026-08-19 22:17:39 IST] [INFO] [SYSTEM] New session 2020-11-12 — strategy state reset
+[2026-08-19 22:17:39 IST] [INFO] [SYSTEM] Margin Check | Available=8634755.81 | Required=26061.75 | PASS
+[2026-08-19 22:17:39 IST] [INFO] [SYSTEM] Paper fill: NIFTY12650PE @ Rs 14.85 x1755
+[2026-08-19 22:17:39 IST] [INFO] [ORDER] [2020-11-12 10:29:00] BUY PE | Strike=12650 | Price=14.85 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:39 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 12650 @ Rs 14.85 x1755 | index 12670.55 stop 12740.85 target 12529.95 risk 70.3pts
+[2026-08-19 22:17:40 IST] [INFO] [ORDER] [2020-11-12 15:15:00] EXIT | Reason=squareoff | P&L=-26038.37
+[2026-08-19 22:17:40 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 0.05 | index 12700.50 | net P&L Rs -26,038.37
+[2026-08-19 22:17:40 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -26,038 <= -Rs 10,000); no further trades today
+[2026-08-19 22:17:40 IST] [INFO] [SYSTEM] New session 2020-11-13 — strategy state reset
+[2026-08-19 22:17:40 IST] [INFO] [SYSTEM] Margin Check | Available=8608717.44 | Required=163872.15 | PASS
+[2026-08-19 22:17:40 IST] [INFO] [SYSTEM] Paper fill: NIFTY12650CE @ Rs 132.69 x1235
+[2026-08-19 22:17:40 IST] [INFO] [ORDER] [2020-11-13 10:17:00] BUY CE | Strike=12650 | Price=132.69 | Qty=1235 | Mode=paper
+[2026-08-19 22:17:40 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 12650 @ Rs 132.69 x1235 | index 12665.45 stop 12608.30 target 12779.75 risk 57.2pts
+[2026-08-19 22:17:40 IST] [INFO] [ORDER] [2020-11-13 11:30:00] EXIT | Reason=breakeven_stop | P&L=-1005.21
+[2026-08-19 22:17:40 IST] [INFO] [SYSTEM] ORB EXIT [breakeven_stop] @ Rs 132.15 | index 12665.45 | net P&L Rs -1,005.21
+[2026-08-19 22:17:41 IST] [INFO] [SYSTEM] New session 2020-11-14 — strategy state reset
+[2026-08-19 22:17:41 IST] [INFO] [SYSTEM] New session 2020-11-17 — strategy state reset
+[2026-08-19 22:17:41 IST] [INFO] [SYSTEM] Margin Check | Available=8607712.23 | Required=138645.00 | PASS
+[2026-08-19 22:17:41 IST] [INFO] [SYSTEM] Paper fill: NIFTY12850PE @ Rs 79.0 x1755
+[2026-08-19 22:17:41 IST] [INFO] [ORDER] [2020-11-17 10:35:00] BUY PE | Strike=12850 | Price=79.00 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:41 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 12850 @ Rs 79.0 x1755 | index 12832.70 stop 12932.50 target 12633.10 risk 99.8pts
+[2026-08-19 22:17:41 IST] [INFO] [ORDER] [2020-11-17 15:15:00] EXIT | Reason=squareoff | P&L=-41735.63
+[2026-08-19 22:17:41 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 55.36 | index 12875.90 | net P&L Rs -41,735.63
+[2026-08-19 22:17:41 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -41,736 <= -Rs 10,000); no further trades today
+[2026-08-19 22:17:41 IST] [INFO] [SYSTEM] New session 2020-11-18 — strategy state reset
+[2026-08-19 22:17:42 IST] [INFO] [SYSTEM] Margin Check | Available=8565976.60 | Required=73043.10 | PASS
+[2026-08-19 22:17:42 IST] [INFO] [SYSTEM] Paper fill: NIFTY12800PE @ Rs 41.62 x1755
+[2026-08-19 22:17:42 IST] [INFO] [ORDER] [2020-11-18 11:20:00] BUY PE | Strike=12800 | Price=41.62 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:42 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 12800 @ Rs 41.62 x1755 | index 12820.90 stop 12901.00 target 12660.70 risk 80.1pts
+[2026-08-19 22:17:42 IST] [INFO] [ORDER] [2020-11-18 13:50:00] EXIT | Reason=stoploss | P&L=-47456.37
+[2026-08-19 22:17:42 IST] [INFO] [SYSTEM] ORB EXIT [stoploss] @ Rs 14.65 | index 12901.00 | net P&L Rs -47,456.37
+[2026-08-19 22:17:42 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -47,456 <= -Rs 10,000); no further trades today
+[2026-08-19 22:17:42 IST] [INFO] [SYSTEM] New session 2020-11-19 — strategy state reset
+[2026-08-19 22:17:43 IST] [INFO] [SYSTEM] New session 2020-11-20 — strategy state reset
+[2026-08-19 22:17:43 IST] [INFO] [SYSTEM] Margin Check | Available=8518520.23 | Required=165205.95 | PASS
+[2026-08-19 22:17:43 IST] [INFO] [SYSTEM] Paper fill: NIFTY12800PE @ Rs 121.03 x1365
+[2026-08-19 22:17:43 IST] [INFO] [ORDER] [2020-11-20 10:53:00] BUY PE | Strike=12800 | Price=121.03 | Qty=1365 | Mode=paper
+[2026-08-19 22:17:43 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 12800 @ Rs 121.03 x1365 | index 12780.45 stop 12853.70 target 12633.95 risk 73.2pts
+[2026-08-19 22:17:44 IST] [INFO] [ORDER] [2020-11-20 13:51:00] EXIT | Reason=stoploss | P&L=-47080.98
+[2026-08-19 22:17:44 IST] [INFO] [SYSTEM] ORB EXIT [stoploss] @ Rs 86.75 | index 12853.70 | net P&L Rs -47,080.98
+[2026-08-19 22:17:44 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -47,081 <= -Rs 10,000); no further trades today
+[2026-08-19 22:17:44 IST] [INFO] [SYSTEM] New session 2020-11-23 — strategy state reset
+[2026-08-19 22:17:44 IST] [INFO] [SYSTEM] Margin Check | Available=8471439.25 | Required=154545.30 | PASS
+[2026-08-19 22:17:44 IST] [INFO] [SYSTEM] Paper fill: NIFTY12850PE @ Rs 88.06 x1755
+[2026-08-19 22:17:44 IST] [INFO] [ORDER] [2020-11-23 10:47:00] BUY PE | Strike=12850 | Price=88.06 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:44 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 12850 @ Rs 88.06 x1755 | index 12837.15 stop 12960.80 target 12589.85 risk 123.6pts
+[2026-08-19 22:17:44 IST] [INFO] [ORDER] [2020-11-23 14:05:00] EXIT | Reason=stoploss | P&L=-88499.59
+[2026-08-19 22:17:44 IST] [INFO] [SYSTEM] ORB EXIT [stoploss] @ Rs 37.76 | index 12960.80 | net P&L Rs -88,499.59
+[2026-08-19 22:17:44 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -88,500 <= -Rs 10,000); no further trades today
+[2026-08-19 22:17:45 IST] [INFO] [SYSTEM] New session 2020-11-24 — strategy state reset
+[2026-08-19 22:17:45 IST] [INFO] [SYSTEM] New session 2020-11-25 — strategy state reset
+[2026-08-19 22:17:45 IST] [INFO] [SYSTEM] Margin Check | Available=8382939.66 | Required=105422.85 | PASS
+[2026-08-19 22:17:45 IST] [INFO] [SYSTEM] Paper fill: NIFTY13100PE @ Rs 60.07 x1755
+[2026-08-19 22:17:45 IST] [INFO] [ORDER] [2020-11-25 10:23:00] BUY PE | Strike=13100 | Price=60.07 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:45 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 13100 @ Rs 60.07 x1755 | index 13078.60 stop 13144.65 target 12946.50 risk 66.0pts
+[2026-08-19 22:17:46 IST] [INFO] [ORDER] [2020-11-25 13:58:00] EXIT | Reason=target | P&L=+168826.74
+[2026-08-19 22:17:46 IST] [INFO] [SYSTEM] ORB EXIT [target] @ Rs 156.51 | index 12946.50 | net P&L Rs 168,826.74
+[2026-08-19 22:17:46 IST] [INFO] [SYSTEM] New session 2020-11-26 — strategy state reset
+[2026-08-19 22:17:46 IST] [INFO] [SYSTEM] Margin Check | Available=8551766.40 | Required=34819.20 | PASS
+[2026-08-19 22:17:46 IST] [INFO] [SYSTEM] Paper fill: NIFTY12800PE @ Rs 19.84 x1755
+[2026-08-19 22:17:46 IST] [INFO] [ORDER] [2020-11-26 12:08:00] BUY PE | Strike=12800 | Price=19.84 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:46 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 12800 @ Rs 19.84 x1755 | index 12793.35 stop 12916.55 target 12546.95 risk 123.2pts
+[2026-08-19 22:17:46 IST] [INFO] [ORDER] [2020-11-26 13:03:00] EXIT | Reason=stoploss | P&L=-34801.56
+[2026-08-19 22:17:46 IST] [INFO] [SYSTEM] ORB EXIT [stoploss] @ Rs 0.05 | index 12916.55 | net P&L Rs -34,801.56
+[2026-08-19 22:17:46 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -34,802 <= -Rs 10,000); no further trades today
+[2026-08-19 22:17:47 IST] [INFO] [SYSTEM] New session 2020-11-27 — strategy state reset
+[2026-08-19 22:17:47 IST] [INFO] [SYSTEM] New session 2020-12-01 — strategy state reset
+[2026-08-19 22:17:48 IST] [INFO] [SYSTEM] Margin Check | Available=8516964.84 | Required=139873.50 | PASS
+[2026-08-19 22:17:48 IST] [INFO] [SYSTEM] Paper fill: NIFTY13050CE @ Rs 79.7 x1755
+[2026-08-19 22:17:48 IST] [INFO] [ORDER] [2020-12-01 10:44:00] BUY CE | Strike=13050 | Price=79.70 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:48 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 13050 @ Rs 79.7 x1755 | index 13069.00 stop 12963.70 target 13279.60 risk 105.3pts
+[2026-08-19 22:17:48 IST] [INFO] [ORDER] [2020-12-01 15:15:00] EXIT | Reason=squareoff | P&L=+25788.68
+[2026-08-19 22:17:48 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 94.58 | index 13099.15 | net P&L Rs 25,788.68
+[2026-08-19 22:17:48 IST] [INFO] [SYSTEM] New session 2020-12-02 — strategy state reset
+[2026-08-19 22:17:48 IST] [INFO] [SYSTEM] Margin Check | Available=8542753.52 | Required=68831.10 | PASS
+[2026-08-19 22:17:48 IST] [INFO] [SYSTEM] Paper fill: NIFTY13050PE @ Rs 39.22 x1755
+[2026-08-19 22:17:48 IST] [INFO] [ORDER] [2020-12-02 11:29:00] BUY PE | Strike=13050 | Price=39.22 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:48 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 13050 @ Rs 39.22 x1755 | index 13068.00 stop 13127.70 target 12948.60 risk 59.7pts
+[2026-08-19 22:17:49 IST] [INFO] [ORDER] [2020-12-02 14:45:00] EXIT | Reason=breakeven_stop | P&L=-5008.12
+[2026-08-19 22:17:49 IST] [INFO] [SYSTEM] ORB EXIT [breakeven_stop] @ Rs 36.46 | index 13068.00 | net P&L Rs -5,008.12
+[2026-08-19 22:17:49 IST] [INFO] [SYSTEM] New session 2020-12-03 — strategy state reset
+[2026-08-19 22:17:49 IST] [INFO] [SYSTEM] Margin Check | Available=8537745.40 | Required=39908.70 | PASS
+[2026-08-19 22:17:49 IST] [INFO] [SYSTEM] Paper fill: NIFTY13150PE @ Rs 22.74 x1755
+[2026-08-19 22:17:49 IST] [INFO] [ORDER] [2020-12-03 12:17:00] BUY PE | Strike=13150 | Price=22.74 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:49 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 13150 @ Rs 22.74 x1755 | index 13138.65 stop 13215.30 target 12985.35 risk 76.6pts
+[2026-08-19 22:17:50 IST] [INFO] [ORDER] [2020-12-03 15:15:00] EXIT | Reason=squareoff | P&L=-13563.98
+[2026-08-19 22:17:50 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 15.07 | index 13135.50 | net P&L Rs -13,563.98
+[2026-08-19 22:17:50 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -13,564 <= -Rs 10,000); no further trades today
+[2026-08-19 22:17:50 IST] [INFO] [SYSTEM] New session 2020-12-04 — strategy state reset
+[2026-08-19 22:17:50 IST] [INFO] [SYSTEM] Margin Check | Available=8524181.42 | Required=169915.20 | PASS
+[2026-08-19 22:17:50 IST] [INFO] [SYSTEM] Paper fill: NIFTY13250CE @ Rs 108.92 x1560
+[2026-08-19 22:17:50 IST] [INFO] [ORDER] [2020-12-04 10:29:00] BUY CE | Strike=13250 | Price=108.92 | Qty=1560 | Mode=paper
+[2026-08-19 22:17:50 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 13250 @ Rs 108.92 x1560 | index 13235.70 stop 13165.20 target 13376.70 risk 70.5pts
+[2026-08-19 22:17:50 IST] [INFO] [ORDER] [2020-12-04 12:50:00] EXIT | Reason=stoploss | P&L=-51569.31
+[2026-08-19 22:17:50 IST] [INFO] [SYSTEM] ORB EXIT [stoploss] @ Rs 76.05 | index 13165.20 | net P&L Rs -51,569.31
+[2026-08-19 22:17:50 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -51,569 <= -Rs 10,000); no further trades today
+[2026-08-19 22:17:51 IST] [INFO] [SYSTEM] New session 2020-12-07 — strategy state reset
+[2026-08-19 22:17:51 IST] [INFO] [SYSTEM] Margin Check | Available=8472612.11 | Required=124078.50 | PASS
+[2026-08-19 22:17:51 IST] [INFO] [SYSTEM] Paper fill: NIFTY13350CE @ Rs 70.7 x1755
+[2026-08-19 22:17:51 IST] [INFO] [ORDER] [2020-12-07 12:11:00] BUY CE | Strike=13350 | Price=70.70 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:51 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 13350 @ Rs 70.7 x1755 | index 13327.55 stop 13246.25 target 13490.15 risk 81.3pts
+[2026-08-19 22:17:51 IST] [INFO] [ORDER] [2020-12-07 15:15:00] EXIT | Reason=squareoff | P&L=+20312.33
+[2026-08-19 22:17:51 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 82.44 | index 13354.55 | net P&L Rs 20,312.33
+[2026-08-19 22:17:51 IST] [INFO] [SYSTEM] New session 2020-12-08 — strategy state reset
+[2026-08-19 22:17:51 IST] [INFO] [SYSTEM] Margin Check | Available=8492924.44 | Required=87644.70 | PASS
+[2026-08-19 22:17:51 IST] [INFO] [SYSTEM] Paper fill: NIFTY13350PE @ Rs 49.94 x1755
+[2026-08-19 22:17:51 IST] [INFO] [ORDER] [2020-12-08 11:11:00] BUY PE | Strike=13350 | Price=49.94 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:51 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 13350 @ Rs 49.94 x1755 | index 13360.85 stop 13434.85 target 13212.85 risk 74.0pts
+[2026-08-19 22:17:52 IST] [INFO] [ORDER] [2020-12-08 15:15:00] EXIT | Reason=squareoff | P&L=-21835.63
+[2026-08-19 22:17:52 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 37.6 | index 13385.35 | net P&L Rs -21,835.63
+[2026-08-19 22:17:52 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -21,836 <= -Rs 10,000); no further trades today
+[2026-08-19 22:17:52 IST] [INFO] [SYSTEM] New session 2020-12-09 — strategy state reset
+[2026-08-19 22:17:53 IST] [INFO] [SYSTEM] New session 2020-12-10 — strategy state reset
+[2026-08-19 22:17:53 IST] [INFO] [SYSTEM] New session 2020-12-11 — strategy state reset
+[2026-08-19 22:17:54 IST] [INFO] [SYSTEM] Margin Check | Available=8471088.81 | Required=166229.05 | PASS
+[2026-08-19 22:17:54 IST] [INFO] [SYSTEM] Paper fill: NIFTY13550CE @ Rs 111.19 x1495
+[2026-08-19 22:17:54 IST] [INFO] [ORDER] [2020-12-11 10:23:00] BUY CE | Strike=13550 | Price=111.19 | Qty=1495 | Mode=paper
+[2026-08-19 22:17:54 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 13550 @ Rs 111.19 x1495 | index 13568.20 stop 13510.95 target 13682.70 risk 57.2pts
+[2026-08-19 22:17:54 IST] [INFO] [ORDER] [2020-12-11 13:57:00] EXIT | Reason=stoploss | P&L=-45949.18
+[2026-08-19 22:17:54 IST] [INFO] [SYSTEM] ORB EXIT [stoploss] @ Rs 80.65 | index 13510.95 | net P&L Rs -45,949.18
+[2026-08-19 22:17:54 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -45,949 <= -Rs 10,000); no further trades today
+[2026-08-19 22:17:54 IST] [INFO] [SYSTEM] New session 2020-12-14 — strategy state reset
+[2026-08-19 22:17:54 IST] [INFO] [SYSTEM] Margin Check | Available=8425139.63 | Required=126009.00 | PASS
+[2026-08-19 22:17:54 IST] [INFO] [SYSTEM] Paper fill: NIFTY13550PE @ Rs 71.8 x1755
+[2026-08-19 22:17:54 IST] [INFO] [ORDER] [2020-12-14 10:38:00] BUY PE | Strike=13550 | Price=71.80 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:54 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 13550 @ Rs 71.8 x1755 | index 13528.10 stop 13597.40 target 13389.50 risk 69.3pts
+[2026-08-19 22:17:55 IST] [INFO] [ORDER] [2020-12-14 15:15:00] EXIT | Reason=squareoff | P&L=-32772.70
+[2026-08-19 22:17:55 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 53.26 | index 13562.35 | net P&L Rs -32,772.70
+[2026-08-19 22:17:55 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -32,773 <= -Rs 10,000); no further trades today
+[2026-08-19 22:17:55 IST] [INFO] [SYSTEM] New session 2020-12-15 — strategy state reset
+[2026-08-19 22:17:56 IST] [INFO] [SYSTEM] New session 2020-12-16 — strategy state reset
+[2026-08-19 22:17:56 IST] [INFO] [SYSTEM] Margin Check | Available=8392366.93 | Required=53404.65 | PASS
+[2026-08-19 22:17:56 IST] [INFO] [SYSTEM] Paper fill: NIFTY13600PE @ Rs 30.43 x1755
+[2026-08-19 22:17:56 IST] [INFO] [ORDER] [2020-12-16 12:53:00] BUY PE | Strike=13600 | Price=30.43 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:56 IST] [INFO] [SYSTEM] ORB ENTRY SHORT PE 13600 @ Rs 30.43 x1755 | index 13612.45 stop 13663.10 target 13511.15 risk 50.6pts
+[2026-08-19 22:17:57 IST] [INFO] [ORDER] [2020-12-16 13:38:00] EXIT | Reason=stoploss | P&L=-30522.24
+[2026-08-19 22:17:57 IST] [INFO] [SYSTEM] ORB EXIT [stoploss] @ Rs 13.1 | index 13663.10 | net P&L Rs -30,522.24
+[2026-08-19 22:17:57 IST] [WARNING] [SYSTEM] Daily loss limit reached (Rs -30,522 <= -Rs 10,000); no further trades today
+[2026-08-19 22:17:57 IST] [INFO] [SYSTEM] New session 2020-12-17 — strategy state reset
+[2026-08-19 22:17:57 IST] [INFO] [SYSTEM] Margin Check | Available=8361844.69 | Required=10091.25 | PASS
+[2026-08-19 22:17:57 IST] [INFO] [SYSTEM] Paper fill: NIFTY13750CE @ Rs 5.75 x1755
+[2026-08-19 22:17:57 IST] [INFO] [ORDER] [2020-12-17 12:11:00] BUY CE | Strike=13750 | Price=5.75 | Qty=1755 | Mode=paper
+[2026-08-19 22:17:57 IST] [INFO] [SYSTEM] ORB ENTRY LONG CE 13750 @ Rs 5.75 x1755 | index 13730.25 stop 13678.65 target 13833.45 risk 51.6pts
+[2026-08-19 22:17:58 IST] [INFO] [ORDER] [2020-12-17 15:15:00] EXIT | Reason=squareoff | P&L=-8532.28
+[2026-08-19 22:17:58 IST] [INFO] [SYSTEM] ORB EXIT [squareoff] @ Rs 0.92 | index 13741.80 | net P&L Rs -8,532.28
+[2026-08-19 22:17:58 IST] [INFO] [SYSTEM] New session 2020-12-18 — strategy state reset
