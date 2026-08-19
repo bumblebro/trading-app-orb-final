@@ -6,7 +6,8 @@ LIMIT orders through Angel One SmartAPI (MARKET is blocked for algo APIs since
 Apr 2026), slicing above the exchange freeze quantity, and then *verifies* the
 fill from the order book instead of assuming the requested price. If part of a
 sliced entry fails, the filled portion is sold back immediately rather than
-left as an unintended position.
+left as an unintended position. Live exits escalate: normal pad → 1.5x →
+force LIMIT (~8% of LTP) → last-resort MARKET (Angel MPP).
 """
 
 from __future__ import annotations
@@ -34,15 +35,17 @@ FILL_POLL_ATTEMPTS = 8
 FILL_POLL_DELAY_SEC = 0.5
 # NIFTY option tick; used to round LIMIT prices.
 OPTION_TICK = 0.05
-# Adaptive pads: scale with premium + lots, hard-capped (no chase-until-fill).
-# 1-lot ~₹55 → entry ~₹0.20–0.22, exit ~₹0.50–0.55 (same as before).
+# Adaptive pads: scale with premium + lots; entry/exit caps differ (exits need room).
+# 1-lot ~₹55 → entry ~₹0.20–0.25, exit ~₹0.50–0.55.
 ENTRY_PAD_MIN = 0.20
 ENTRY_PAD_PCT = 0.004          # 0.4% of LTP
 ENTRY_PAD_PER_EXTRA_LOT = 0.05
+ENTRY_PAD_CAP_PCT = 0.03       # entry never exceeds 3% of LTP
 EXIT_PAD_MIN = 0.50
 EXIT_PAD_PCT = 0.010           # 1.0% of LTP
 EXIT_PAD_PER_EXTRA_LOT = 0.10
-PAD_CAP_PCT = 0.03             # never exceed 3% of LTP
+EXIT_PAD_CAP_PCT = 0.06        # normal/1.5x exit attempts
+FORCE_EXIT_PAD_PCT = 0.08      # tier-3 "must exit" LIMIT (ignore lot formula)
 _LPP_PRICE_RE = re.compile(r"<\s*([0-9]+(?:\.[0-9]+)?)\s*>")
 
 
@@ -305,11 +308,17 @@ class OrderManager:
         return 0.0
 
     def _limit_pad(self, side: str, ref: float, quantity: int,
-                   pad_mult: float = 1.0) -> float:
+                   pad_mult: float = 1.0, force_exit: bool = False) -> float:
         """
         Rupee cushion around LTP.
-        Scales with premium and lots; capped so we never chase like MARKET.
+        Scales with premium and lots; entry/exit caps differ.
+        force_exit: tier-3 pad = FORCE_EXIT_PAD_PCT of LTP (must-get-flat).
         """
+        if force_exit and side == "SELL":
+            pad = max(EXIT_PAD_MIN, ref * FORCE_EXIT_PAD_PCT)
+            ticks = max(1, int(math.ceil(pad / OPTION_TICK - 1e-9)))
+            return round(ticks * OPTION_TICK, 2)
+
         lot_size = int(get_setting("lot_size") or "65")
         lots = max(float(quantity) / max(lot_size, 1), 1.0)
         extra_lots = max(lots - 1.0, 0.0)
@@ -317,19 +326,23 @@ class OrderManager:
         if side == "BUY":
             pad = max(ENTRY_PAD_MIN, ref * ENTRY_PAD_PCT)
             pad += extra_lots * ENTRY_PAD_PER_EXTRA_LOT
+            cap_pct = ENTRY_PAD_CAP_PCT
+            floor = ENTRY_PAD_MIN
         else:
             pad = max(EXIT_PAD_MIN, ref * EXIT_PAD_PCT)
             pad += extra_lots * EXIT_PAD_PER_EXTRA_LOT
+            cap_pct = EXIT_PAD_CAP_PCT
+            floor = EXIT_PAD_MIN
 
         pad *= max(pad_mult, 1.0)
-        pad = min(pad, max(ref * PAD_CAP_PCT, ENTRY_PAD_MIN))
-        # Round up to a whole tick so the exchange accepts the price.
+        pad = min(pad, max(ref * cap_pct, floor))
         ticks = max(1, int(math.ceil(pad / OPTION_TICK - 1e-9)))
         return round(ticks * OPTION_TICK, 2)
 
     def _limit_price(self, side: str, symbol: str, token: Optional[str],
                      hint_price: float = 0.0, quantity: int = 0,
-                     pad_mult: float = 1.0) -> Optional[float]:
+                     pad_mult: float = 1.0, force_exit: bool = False
+                     ) -> Optional[float]:
         """Build a marketable LIMIT from live LTP (estimate only as last resort)."""
         ref = self._fetch_ltp(symbol, token)
         source = "ltp"
@@ -339,8 +352,10 @@ class OrderManager:
         if ref <= 0:
             return None
 
-        pad = self._limit_pad(side, ref, quantity or int(get_setting("lot_size") or "65"),
-                              pad_mult=pad_mult)
+        pad = self._limit_pad(
+            side, ref, quantity or int(get_setting("lot_size") or "65"),
+            pad_mult=pad_mult, force_exit=force_exit,
+        )
         if side == "BUY":
             raw = ref + pad
             stepped = math.ceil(raw / OPTION_TICK) * OPTION_TICK
@@ -348,8 +363,9 @@ class OrderManager:
             raw = ref - pad
             stepped = math.floor(raw / OPTION_TICK) * OPTION_TICK
         price = max(round(stepped, 2), OPTION_TICK)
+        tag = "FORCE " if force_exit else ""
         self.logger.info(
-            f"LIMIT {side} {symbol}: ref={ref:.2f} ({source}) pad={pad:.2f} "
+            f"{tag}LIMIT {side} {symbol}: ref={ref:.2f} ({source}) pad={pad:.2f} "
             f"qty={quantity} -> {price:.2f}"
         )
         return price
@@ -368,9 +384,10 @@ class OrderManager:
 
     def _execute_sliced(self, symbol: str, token: str, side: str,
                         quantity: int, hint_price: float = 0.0,
-                        pad_mult: float = 1.0
+                        pad_mult: float = 1.0, force_exit: bool = False,
+                        use_market: bool = False
                         ) -> Tuple[List[str], int]:
-        """Place LIMIT orders, splitting across the freeze limit."""
+        """Place LIMIT (or last-resort MARKET) orders, splitting across freeze."""
         if not self.smart_api:
             return [], 0
 
@@ -383,6 +400,7 @@ class OrderManager:
             order_id = self._place_chunk(
                 symbol, token, side, chunk,
                 hint_price=hint_price, pad_mult=pad_mult,
+                force_exit=force_exit, use_market=use_market,
             )
             if order_id is None:
                 self.logger.error(f"{side} slice of {chunk} failed after "
@@ -399,32 +417,53 @@ class OrderManager:
 
     def _place_chunk(self, symbol: str, token: str, side: str,
                      quantity: int, hint_price: float = 0.0,
-                     pad_mult: float = 1.0) -> Optional[str]:
-        # Angel algo rules (from Apr 2026): MARKET / IOC not allowed via API.
-        limit_price = self._limit_price(
-            side, symbol, token, hint_price=hint_price,
-            quantity=quantity, pad_mult=pad_mult,
-        )
-        if limit_price is None:
-            self.logger.error(
-                f"Cannot place {side} LIMIT for {symbol}: no LTP/estimate price")
-            return None
+                     pad_mult: float = 1.0, force_exit: bool = False,
+                     use_market: bool = False) -> Optional[str]:
+        # Prefer LIMIT. MARKET is last-resort only — Angel converts via MPP.
+        limit_price: Optional[float] = None
+        if not use_market:
+            limit_price = self._limit_price(
+                side, symbol, token, hint_price=hint_price,
+                quantity=quantity, pad_mult=pad_mult, force_exit=force_exit,
+            )
+            if limit_price is None:
+                self.logger.error(
+                    f"Cannot place {side} LIMIT for {symbol}: no LTP/estimate price")
+                return None
 
         for attempt in range(1, ORDER_RETRIES + 1):
-            params = {
-                "variety": "NORMAL",
-                "tradingsymbol": symbol,
-                "symboltoken": str(token) if token is not None else "",
-                "transactiontype": side,
-                "exchange": "NFO",
-                "ordertype": "LIMIT",
-                "producttype": "INTRADAY",
-                "duration": "DAY",
-                "price": str(limit_price),
-                "squareoff": "0",
-                "stoploss": "0",
-                "quantity": str(quantity),
-            }
+            if use_market:
+                params = {
+                    "variety": "NORMAL",
+                    "tradingsymbol": symbol,
+                    "symboltoken": str(token) if token is not None else "",
+                    "transactiontype": side,
+                    "exchange": "NFO",
+                    "ordertype": "MARKET",
+                    "producttype": "INTRADAY",
+                    "duration": "DAY",
+                    "price": "0",
+                    "squareoff": "0",
+                    "stoploss": "0",
+                    "quantity": str(quantity),
+                }
+                price_label = "MARKET"
+            else:
+                params = {
+                    "variety": "NORMAL",
+                    "tradingsymbol": symbol,
+                    "symboltoken": str(token) if token is not None else "",
+                    "transactiontype": side,
+                    "exchange": "NFO",
+                    "ordertype": "LIMIT",
+                    "producttype": "INTRADAY",
+                    "duration": "DAY",
+                    "price": str(limit_price),
+                    "squareoff": "0",
+                    "stoploss": "0",
+                    "quantity": str(quantity),
+                }
+                price_label = str(limit_price)
             try:
                 # Full response so Angel's message/errorcode reaches our logs.
                 place = getattr(self.smart_api, "placeOrderFullResponse", None)
@@ -435,7 +474,7 @@ class OrderManager:
                     if not order_id:
                         self.logger.warning(
                             f"{side} attempt {attempt} returned no order id "
-                            f"for {symbol} @ {limit_price}"
+                            f"for {symbol} @ {price_label}"
                         )
                 elif isinstance(response, dict):
                     data = response.get("data") or {}
@@ -445,10 +484,11 @@ class OrderManager:
                         message = str(response.get("message") or "")
                         self.logger.error(
                             f"{side} attempt {attempt} rejected for {symbol} "
-                            f"@ {limit_price}: {response}"
+                            f"@ {price_label}: {response}"
                         )
                         # Exchange Limit Price Protection — retry inside the band.
-                        if response.get("errorcode") == "AB1007":
+                        if (not use_market and limit_price is not None
+                                and response.get("errorcode") == "AB1007"):
                             bound = self._parse_lpp_bound(message)
                             if bound and bound > 0:
                                 if side == "BUY":
@@ -472,7 +512,7 @@ class OrderManager:
 
                 if order_id:
                     self.logger.info(
-                        f"{side} {quantity} {symbol} LIMIT {limit_price} -> order {order_id}"
+                        f"{side} {quantity} {symbol} {price_label} -> order {order_id}"
                     )
                     return str(order_id)
             except Exception as exc:
@@ -480,6 +520,24 @@ class OrderManager:
             if attempt < ORDER_RETRIES:
                 time.sleep(RETRY_DELAY_SEC)
         return None
+
+    def _attempt_live_exit(self, symbol: str, token: Optional[str], quantity: int,
+                           hint_price: float = 0.0, pad_mult: float = 1.0,
+                           force_exit: bool = False, use_market: bool = False
+                           ) -> Tuple[List[str], float, int]:
+        """Place sell, wait for fill, cancel leftovers. Returns (ids, avg, filled)."""
+        order_ids, _ = self._execute_sliced(
+            symbol, token, "SELL", quantity, hint_price=hint_price,
+            pad_mult=pad_mult, force_exit=force_exit, use_market=use_market,
+        )
+        if not order_ids:
+            return [], 0.0, 0
+
+        avg, filled = self._confirm_fills(order_ids)
+        if filled < quantity:
+            self._cancel_orders(order_ids)
+            avg, filled = self._confirm_fills(order_ids, attempts=3)
+        return order_ids, avg, filled
 
     def _cancel_orders(self, order_ids: List[str]) -> None:
         """Cancel resting LIMIT orders so they cannot fill hours later unmanaged."""
@@ -561,47 +619,79 @@ class OrderManager:
             # Mark before live fill — used to measure exit slippage.
             estimated_exit = round(float(exit_price), 2) if exit_price else None
             if mode == "live" and self.smart_api:
-                exit_order_ids, placed = self._execute_sliced(
-                    trade["trading_symbol"], trade.get("token"), "SELL",
-                    trade["quantity"], hint_price=estimated_exit or 0.0,
+                symbol = trade["trading_symbol"]
+                token = trade.get("token")
+                qty = int(trade["quantity"])
+                hint = estimated_exit or 0.0
+                filled = 0
+                notional = 0.0
+                all_order_ids: List[str] = []
+
+                def _accumulate(ids: List[str], avg: float, got: int) -> None:
+                    nonlocal filled, notional, all_order_ids
+                    if ids:
+                        all_order_ids.extend(ids)
+                    if got > 0 and avg > 0:
+                        notional += avg * got
+                        filled += got
+
+                remaining = qty
+
+                # Tier 1: normal adaptive exit pad.
+                ids, avg, got = self._attempt_live_exit(
+                    symbol, token, remaining, hint_price=hint,
                 )
-                if not exit_order_ids:
-                    self.logger.error(
-                        f"EXIT FAILED for trade {trade_id}: sell order not accepted. "
-                        f"Position may still be open at the broker."
-                    )
-                    return 0.0
+                _accumulate(ids, avg, got)
+                remaining = qty - filled
 
-                avg, filled = self._confirm_fills(exit_order_ids)
-                if filled < trade["quantity"]:
-                    self._cancel_orders(exit_order_ids)
-                    avg, filled = self._confirm_fills(exit_order_ids, attempts=3)
-
-                # One wider exit attempt (1.5x pad) — not unbounded chase.
-                if filled < trade["quantity"]:
+                # Tier 2: wider pad (1.5x), still under EXIT_PAD_CAP_PCT.
+                if remaining > 0:
                     self.logger.warning(
-                        f"Exit LIMIT missed for trade {trade_id}; retrying once with wider pad"
+                        f"Exit LIMIT missed for trade {trade_id}; "
+                        f"retrying {remaining} with 1.5x pad"
                     )
-                    exit_order_ids, _ = self._execute_sliced(
-                        trade["trading_symbol"], trade.get("token"), "SELL",
-                        trade["quantity"], hint_price=estimated_exit or 0.0,
-                        pad_mult=1.5,
+                    ids, avg, got = self._attempt_live_exit(
+                        symbol, token, remaining, hint_price=hint, pad_mult=1.5,
                     )
-                    if exit_order_ids:
-                        avg, filled = self._confirm_fills(exit_order_ids)
-                        if filled < trade["quantity"]:
-                            self._cancel_orders(exit_order_ids)
-                            avg, filled = self._confirm_fills(exit_order_ids, attempts=3)
+                    _accumulate(ids, avg, got)
+                    remaining = qty - filled
 
-                if filled < trade["quantity"]:
+                # Tier 3: must-exit LIMIT at FORCE_EXIT_PAD_PCT of LTP.
+                if remaining > 0:
+                    self.logger.warning(
+                        f"Exit still open for trade {trade_id}; "
+                        f"FORCE LIMIT {remaining} at {FORCE_EXIT_PAD_PCT:.0%} of LTP"
+                    )
+                    ids, avg, got = self._attempt_live_exit(
+                        symbol, token, remaining, hint_price=hint, force_exit=True,
+                    )
+                    _accumulate(ids, avg, got)
+                    remaining = qty - filled
+
+                # Tier 4: MARKET (Angel MPP) — last resort to get flat.
+                if remaining > 0:
+                    self.logger.warning(
+                        f"FORCE LIMIT missed for trade {trade_id}; "
+                        f"last-resort MARKET {remaining} (Angel MPP)"
+                    )
+                    ids, avg, got = self._attempt_live_exit(
+                        symbol, token, remaining, hint_price=hint, use_market=True,
+                    )
+                    _accumulate(ids, avg, got)
+                    remaining = qty - filled
+
+                exit_order_ids = all_order_ids
+
+                if remaining > 0:
                     self.logger.error(
-                        f"EXIT INCOMPLETE for trade {trade_id}: sold {filled} of "
-                        f"{trade['quantity']}. Pending limits cancelled where possible. "
-                        f"Manual intervention required.")
+                        f"ALERT EXIT INCOMPLETE trade {trade_id}: sold {filled} of "
+                        f"{qty}. All exit tiers failed — MANUAL SQUARE-OFF NOW. "
+                        f"Position still open at broker."
+                    )
                     return 0.0
 
-                if avg > 0:
-                    exit_price = round(avg, 2)
+                if filled > 0 and notional > 0:
+                    exit_price = round(notional / filled, 2)
 
             pnl = close_trade(trade_id, exit_price, reason, timestamp=timestamp,
                               underlying_exit_price=underlying_price,
