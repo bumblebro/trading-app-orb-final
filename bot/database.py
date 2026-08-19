@@ -669,9 +669,23 @@ def insert_signal_log(data: Dict[str, Any], timestamp: datetime = None, db_path:
 
 
 def clear_trade_data(db_path: str = None) -> bool:
-    """Wipe trades, signal logs and system logs. Settings are preserved."""
+    """Wipe trades, signal logs and system logs. Settings are preserved.
+
+    Refuses to run while any trade is still status=open (live position would
+    be orphaned at the broker with no DB row to manage/exit).
+    """
     conn = get_connection(db_path)
     try:
+        open_row = conn.execute(
+            "SELECT id, trading_symbol, mode FROM trades WHERE status = 'open' "
+            "ORDER BY id DESC LIMIT 1"
+        ).fetchone()
+        if open_row:
+            raise RuntimeError(
+                f"Cannot clear history: open trade #{open_row['id']} "
+                f"({open_row['trading_symbol']}, mode={open_row['mode']}) still exists. "
+                f"Exit/square-off first."
+            )
         for table in ("trades", "signal_logs", "logs"):
             conn.execute(f"DELETE FROM {table}")
         conn.execute("DELETE FROM sqlite_sequence "
@@ -682,6 +696,8 @@ def clear_trade_data(db_path: str = None) -> bool:
         except sqlite3.Error:
             pass
         return True
+    except RuntimeError:
+        raise
     except sqlite3.Error:
         return False
     finally:

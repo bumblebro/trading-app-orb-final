@@ -220,6 +220,18 @@ async def exit_trade(req: ExitTradeRequest):
     return get_bot().manual_exit(req.price)
 
 
+@app.post("/recover-position", dependencies=Protected)
+async def recover_position():
+    """Re-adopt an open Angel NFO long into the DB after Clear history."""
+    bot = get_bot()
+    if not bot.is_running:
+        raise HTTPException(status_code=409, detail="Start the bot first")
+    result = await asyncio.to_thread(bot.adopt_broker_position)
+    if result.get("status") == "error":
+        raise HTTPException(status_code=400, detail=result.get("message") or "Recover failed")
+    return result
+
+
 @app.get("/pnl")
 async def pnl(mode: Optional[str] = None):
     bot = get_bot()
@@ -274,13 +286,27 @@ async def clear_data():
     bot = get_bot()
     if bot.is_running:
         raise HTTPException(status_code=409, detail="Stop the bot before clearing data")
-    if not clear_trade_data():
-        raise HTTPException(status_code=500, detail="Failed to clear data")
+    open_trade = get_active_trade()
+    if open_trade:
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                f"Cannot clear history while trade #{open_trade['id']} "
+                f"({open_trade.get('trading_symbol')}) is still open. "
+                f"Square off / exit first — clearing would orphan the broker position."
+            ),
+        )
+    try:
+        if not clear_trade_data():
+            raise HTTPException(status_code=500, detail="Failed to clear data")
+    except RuntimeError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
     # Reset tracked capital so the dashboard matches a fresh history.
     initial = float(get_setting("initial_capital") or "500000")
     bot.capital = initial
     bot.capital_history = []
     bot._first_trade_date = None
+    bot._position = None
     return {"status": "cleared"}
 
 

@@ -65,7 +65,10 @@ export default function TradesPage() {
   const clearHistory = async () => {
     if (
       !confirm(
-        'Clear all trades, signals and logs?\n\nSettings and Angel credentials are kept. Stop the bot first if it is running.',
+        'Clear all trades, signals and logs?\n\n'
+          + 'Do NOT clear while a live position is open at the broker — '
+          + 'that deletes the trade from the DB and the bot can no longer exit it.\n\n'
+          + 'Settings and Angel credentials are kept. Stop the bot first if it is running.',
       )
     ) {
       return;

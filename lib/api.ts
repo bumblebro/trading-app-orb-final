@@ -43,6 +43,11 @@ export const api = {
   }),
 
   clearData: () => call<{ status: string }>('/clear-data', { method: 'POST' }),
+  recoverPosition: () =>
+    call<{ status: string; trade_id?: number; symbol?: string; message?: string }>(
+      '/recover-position',
+      { method: 'POST' },
+    ),
   logs: (limit = 100) => call<{ logs: LogEntry[] }>(`/logs?limit=${limit}`),
 };
 

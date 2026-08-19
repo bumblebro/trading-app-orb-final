@@ -22,7 +22,7 @@ from data_feed import DataFeed, get_data_feed
 from database import (
     close_trade, get_active_trade, get_all_settings, get_all_time_pnl,
     get_first_trade_date, get_setting, get_today_pnl, get_today_trade_count,
-    insert_signal_log, update_trade,
+    insert_signal_log, insert_trade, update_trade,
 )
 from logger import get_logger
 from market_calendar import get_ist_now, is_trading_day, should_bot_run
@@ -128,6 +128,8 @@ class TradingBot:
         # Force a fresh session on every start so a pre-open CLOSED phase
         # cannot stick around after a soft restart once the market is open.
         self._session_date = None
+        self._position = None
+        self._strike = 0
         self.strategy.reset_day()
 
         self.data_feed = self._build_feed(mode, data_source)
@@ -148,6 +150,12 @@ class TradingBot:
 
         self.data_feed.start()
         self._restore_open_position()
+        if self.mode == "live" and self._position is None:
+            adopted = self.adopt_broker_position()
+            if adopted.get("status") == "recovered":
+                self.logger.info(
+                    f"Adopted broker position after clear/restart: {adopted.get('symbol')}"
+                )
 
         self._running = True
         self._thread = threading.Thread(target=self._run_loop, daemon=True,
@@ -708,11 +716,137 @@ class TradingBot:
         self._strike = trade.get("strike_price") or 0
         self._expiry = next_weekly_expiry(self._now())
         self.strategy.phase = PHASE_IN_TRADE
+        if self.strategy.trades_taken < 1:
+            self.strategy.trades_taken = 1
+            self.strategy.directions_taken.append(direction)
         self.logger.info(f"Recovered open trade #{trade['id']} "
                          f"({trade['type']} {trade['strike_price']}) — resuming management")
 
         if self.mode == "live" and trade.get("token") and self.data_feed:
             self.data_feed.subscribe_token(trade["token"])
+
+    def adopt_broker_position(self) -> Dict:
+        """
+        Re-create a DB open trade from Angel's live NFO position.
+
+        Used when Clear history wiped the row but the broker position remains.
+        Rebuilds stop/target from today's OR if available.
+        """
+        if get_active_trade(mode=self.mode):
+            return {"status": "ok", "message": "Active trade already in DB"}
+
+        if self.mode != "live" or not self.order_manager or not self.order_manager.smart_api:
+            return {"status": "error", "message": "Live Angel session required"}
+
+        try:
+            resp = self.order_manager.smart_api.position() or {}
+        except Exception as exc:
+            self.logger.error("Broker position fetch failed", exc)
+            return {"status": "error", "message": f"position() failed: {exc}"}
+
+        rows = resp.get("data") or []
+        if not isinstance(rows, list):
+            return {"status": "error", "message": "Unexpected position payload"}
+
+        longs = []
+        for row in rows:
+            try:
+                if str(row.get("exchange", "")).upper() not in ("NFO", "NFO"):
+                    continue
+                net = int(float(row.get("netqty") or row.get("netQty") or 0))
+            except (TypeError, ValueError):
+                continue
+            if net <= 0:
+                continue
+            symbol = str(row.get("tradingsymbol") or row.get("tradingSymbol") or "")
+            if not symbol.upper().startswith("NIFTY"):
+                continue
+            longs.append((net, row))
+
+        if not longs:
+            return {"status": "empty", "message": "No open NIFTY option long at Angel"}
+
+        # One strategy slot — take the largest NIFTY long.
+        net, row = max(longs, key=lambda item: item[0])
+        symbol = str(row.get("tradingsymbol") or row.get("tradingSymbol") or "")
+        token = str(row.get("symboltoken") or row.get("symbolToken") or "")
+        avg = float(
+            row.get("buyavgprice")
+            or row.get("avgnetprice")
+            or row.get("averageprice")
+            or 0
+        )
+        strike = int(float(row.get("strikeprice") or row.get("strikePrice") or 0))
+        if strike <= 0:
+            # NIFTY25AUG2624050PE → strike before CE/PE
+            digits = "".join(ch if ch.isdigit() else " " for ch in symbol)
+            parts = [p for p in digits.split() if len(p) >= 4]
+            strike = int(parts[-1]) if parts else 0
+
+        option_type = "CE" if symbol.upper().endswith("CE") else "PE"
+        direction = "LONG" if option_type == "CE" else "SHORT"
+        lot_size = int(get_setting("lot_size") or "65")
+        quantity = net
+
+        snap = self.strategy.snapshot()
+        orb_high = snap.get("orb_high")
+        orb_low = snap.get("orb_low")
+        orb_range = snap.get("orb_range")
+        index_price = float(self.data_feed.current_price or 0) if self.data_feed else 0.0
+        if index_price <= 0:
+            index_price = float((orb_high or 0) + (orb_low or 0)) / 2.0 if orb_high and orb_low else 0.0
+
+        cfg = self.strategy.config
+        stop_index = target_index = risk_points = 0.0
+        if orb_high and orb_low and index_price > 0:
+            if direction == "SHORT":
+                stop_index = float(orb_high)
+                risk_points = abs(index_price - stop_index)
+                target_index = index_price - cfg.target_r * risk_points
+            else:
+                stop_index = float(orb_low)
+                risk_points = abs(index_price - stop_index)
+                target_index = index_price + cfg.target_r * risk_points
+
+        if avg <= 0:
+            return {"status": "error", "message": f"No avg price on broker position {symbol}"}
+
+        trade_id = insert_trade({
+            "type": option_type,
+            "direction": direction,
+            "strike_price": strike,
+            "trading_symbol": symbol,
+            "token": token or None,
+            "entry_price": round(avg, 2),
+            "quantity": quantity,
+            "lot_size": lot_size,
+            "mode": "live",
+            "orb_high": orb_high,
+            "orb_low": orb_low,
+            "orb_range": orb_range,
+            "underlying_entry_price": round(index_price, 2) if index_price else None,
+            "stop_index": round(stop_index, 2) if stop_index else None,
+            "target_index": round(target_index, 2) if target_index else None,
+            "risk_points": round(risk_points, 2) if risk_points else None,
+            "capital_used": round(avg * quantity, 2),
+            "estimated_entry_price": round(avg, 2),
+            "entry_slippage": 0.0,
+        })
+
+        self._restore_open_position()
+        self.logger.info(
+            f"ADOPTED broker position as trade #{trade_id}: {symbol} "
+            f"@ {avg} x{quantity} stop={stop_index:.2f} target={target_index:.2f}"
+        )
+        return {
+            "status": "recovered",
+            "trade_id": trade_id,
+            "symbol": symbol,
+            "quantity": quantity,
+            "entry_price": round(avg, 2),
+            "stop_index": round(stop_index, 2) if stop_index else None,
+            "target_index": round(target_index, 2) if target_index else None,
+        }
 
     # --------------------------------------------------------------- reporting
 
