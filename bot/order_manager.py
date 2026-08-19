@@ -34,10 +34,15 @@ FILL_POLL_ATTEMPTS = 8
 FILL_POLL_DELAY_SEC = 0.5
 # NIFTY option tick; used to round LIMIT prices.
 OPTION_TICK = 0.05
-# Small cushion above/below LTP so LIMIT still fills without breaching LPP.
-# Entry: tight (less chase). Exit: wider so stops / square-off fill like old MARKET.
-LIMIT_BUY_TICKS = 4    # +₹0.20
-LIMIT_SELL_TICKS = 10  # -₹0.50
+# Adaptive pads: scale with premium + lots, hard-capped (no chase-until-fill).
+# 1-lot ~₹55 → entry ~₹0.20–0.22, exit ~₹0.50–0.55 (same as before).
+ENTRY_PAD_MIN = 0.20
+ENTRY_PAD_PCT = 0.004          # 0.4% of LTP
+ENTRY_PAD_PER_EXTRA_LOT = 0.05
+EXIT_PAD_MIN = 0.50
+EXIT_PAD_PCT = 0.010           # 1.0% of LTP
+EXIT_PAD_PER_EXTRA_LOT = 0.10
+PAD_CAP_PCT = 0.03             # never exceed 3% of LTP
 _LPP_PRICE_RE = re.compile(r"<\s*([0-9]+(?:\.[0-9]+)?)\s*>")
 
 
@@ -299,8 +304,32 @@ class OrderManager:
             self.logger.warning(f"ltpData raised for {symbol}: {exc}")
         return 0.0
 
+    def _limit_pad(self, side: str, ref: float, quantity: int,
+                   pad_mult: float = 1.0) -> float:
+        """
+        Rupee cushion around LTP.
+        Scales with premium and lots; capped so we never chase like MARKET.
+        """
+        lot_size = int(get_setting("lot_size") or "65")
+        lots = max(float(quantity) / max(lot_size, 1), 1.0)
+        extra_lots = max(lots - 1.0, 0.0)
+
+        if side == "BUY":
+            pad = max(ENTRY_PAD_MIN, ref * ENTRY_PAD_PCT)
+            pad += extra_lots * ENTRY_PAD_PER_EXTRA_LOT
+        else:
+            pad = max(EXIT_PAD_MIN, ref * EXIT_PAD_PCT)
+            pad += extra_lots * EXIT_PAD_PER_EXTRA_LOT
+
+        pad *= max(pad_mult, 1.0)
+        pad = min(pad, max(ref * PAD_CAP_PCT, ENTRY_PAD_MIN))
+        # Round up to a whole tick so the exchange accepts the price.
+        ticks = max(1, int(math.ceil(pad / OPTION_TICK - 1e-9)))
+        return round(ticks * OPTION_TICK, 2)
+
     def _limit_price(self, side: str, symbol: str, token: Optional[str],
-                     hint_price: float = 0.0) -> Optional[float]:
+                     hint_price: float = 0.0, quantity: int = 0,
+                     pad_mult: float = 1.0) -> Optional[float]:
         """Build a marketable LIMIT from live LTP (estimate only as last resort)."""
         ref = self._fetch_ltp(symbol, token)
         source = "ltp"
@@ -309,15 +338,19 @@ class OrderManager:
             source = "estimate"
         if ref <= 0:
             return None
+
+        pad = self._limit_pad(side, ref, quantity or int(get_setting("lot_size") or "65"),
+                              pad_mult=pad_mult)
         if side == "BUY":
-            raw = ref + LIMIT_BUY_TICKS * OPTION_TICK
+            raw = ref + pad
             stepped = math.ceil(raw / OPTION_TICK) * OPTION_TICK
         else:
-            raw = ref - LIMIT_SELL_TICKS * OPTION_TICK
+            raw = ref - pad
             stepped = math.floor(raw / OPTION_TICK) * OPTION_TICK
         price = max(round(stepped, 2), OPTION_TICK)
         self.logger.info(
-            f"LIMIT {side} {symbol}: ref={ref:.2f} ({source}) -> {price:.2f}"
+            f"LIMIT {side} {symbol}: ref={ref:.2f} ({source}) pad={pad:.2f} "
+            f"qty={quantity} -> {price:.2f}"
         )
         return price
 
@@ -334,7 +367,8 @@ class OrderManager:
             return None
 
     def _execute_sliced(self, symbol: str, token: str, side: str,
-                        quantity: int, hint_price: float = 0.0
+                        quantity: int, hint_price: float = 0.0,
+                        pad_mult: float = 1.0
                         ) -> Tuple[List[str], int]:
         """Place LIMIT orders, splitting across the freeze limit."""
         if not self.smart_api:
@@ -346,8 +380,10 @@ class OrderManager:
 
         while remaining > 0:
             chunk = min(remaining, MAX_QTY_PER_ORDER)
-            order_id = self._place_chunk(symbol, token, side, chunk,
-                                         hint_price=hint_price)
+            order_id = self._place_chunk(
+                symbol, token, side, chunk,
+                hint_price=hint_price, pad_mult=pad_mult,
+            )
             if order_id is None:
                 self.logger.error(f"{side} slice of {chunk} failed after "
                                   f"{ORDER_RETRIES} attempts; stopping")
@@ -362,9 +398,13 @@ class OrderManager:
         return order_ids, placed
 
     def _place_chunk(self, symbol: str, token: str, side: str,
-                     quantity: int, hint_price: float = 0.0) -> Optional[str]:
+                     quantity: int, hint_price: float = 0.0,
+                     pad_mult: float = 1.0) -> Optional[str]:
         # Angel algo rules (from Apr 2026): MARKET / IOC not allowed via API.
-        limit_price = self._limit_price(side, symbol, token, hint_price=hint_price)
+        limit_price = self._limit_price(
+            side, symbol, token, hint_price=hint_price,
+            quantity=quantity, pad_mult=pad_mult,
+        )
         if limit_price is None:
             self.logger.error(
                 f"Cannot place {side} LIMIT for {symbol}: no LTP/estimate price")
@@ -536,6 +576,22 @@ class OrderManager:
                 if filled < trade["quantity"]:
                     self._cancel_orders(exit_order_ids)
                     avg, filled = self._confirm_fills(exit_order_ids, attempts=3)
+
+                # One wider exit attempt (1.5x pad) — not unbounded chase.
+                if filled < trade["quantity"]:
+                    self.logger.warning(
+                        f"Exit LIMIT missed for trade {trade_id}; retrying once with wider pad"
+                    )
+                    exit_order_ids, _ = self._execute_sliced(
+                        trade["trading_symbol"], trade.get("token"), "SELL",
+                        trade["quantity"], hint_price=estimated_exit or 0.0,
+                        pad_mult=1.5,
+                    )
+                    if exit_order_ids:
+                        avg, filled = self._confirm_fills(exit_order_ids)
+                        if filled < trade["quantity"]:
+                            self._cancel_orders(exit_order_ids)
+                            avg, filled = self._confirm_fills(exit_order_ids, attempts=3)
 
                 if filled < trade["quantity"]:
                     self.logger.error(
