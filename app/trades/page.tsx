@@ -256,7 +256,7 @@ export default function TradesPage() {
       {/* Desktop table */}
       <section className="card hidden overflow-hidden md:block">
         <div className="scroll-x scroll-y max-h-[540px]">
-          <table className="table min-w-[1020px]">
+          <table className="table min-w-[1080px]">
             <thead>
               <tr>
                 <th>Date</th>
@@ -264,8 +264,8 @@ export default function TradesPage() {
                 <th>Dir</th>
                 <th>Symbol</th>
                 <th>Qty</th>
-                <th>Entry</th>
-                <th>Exit</th>
+                <th>Entry fill</th>
+                <th>Exit fill</th>
                 <th>Capital used</th>
                 <th>Slip</th>
                 <th>Index in/out</th>
@@ -336,6 +336,39 @@ function formatSlip(slipTotal: number | null, slipPct: number | null, hasSlip: b
   return `${signed} (${pct})`;
 }
 
+/** Ask/mark before order → actual fill. Falls back to fill only. */
+function formatAskFill(
+  asked: number | null | undefined,
+  filled: number | null | undefined,
+): string {
+  if (filled == null || !Number.isFinite(filled)) return '—';
+  if (asked == null || !Number.isFinite(asked) || Math.abs(asked - filled) < 0.005) {
+    return num(filled);
+  }
+  return `${num(asked)} → ${num(filled)}`;
+}
+
+function FillCell({
+  asked,
+  filled,
+}: {
+  asked: number | null | undefined;
+  filled: number | null | undefined;
+}) {
+  if (filled == null || !Number.isFinite(filled)) {
+    return <span className="text-[var(--faint)]">—</span>;
+  }
+  const showAsk =
+    asked != null && Number.isFinite(asked) && Math.abs(asked - filled) >= 0.005;
+  if (!showAsk) return <>{num(filled)}</>;
+  return (
+    <span className="inline-flex flex-col leading-tight">
+      <span>{num(filled)}</span>
+      <span className="text-[0.66rem] text-[var(--faint)]">ask {num(asked)}</span>
+    </span>
+  );
+}
+
 function TradeCard({ trade, capitalBase }: { trade: Trade; capitalBase: number }) {
   const { pnl, open, capitalUsed, capitalPct, slipTotal, slipPct, hasSlip } = tradeMeta(
     trade,
@@ -360,8 +393,14 @@ function TradeCard({ trade, capitalBase }: { trade: Trade; capitalBase: number }
       <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[0.75rem]">
         <Meta label="Qty" value={String(trade.quantity)} />
         <Meta label="Capital" value={formatCapitalUsed(capitalUsed, capitalPct)} />
-        <Meta label="Entry" value={num(trade.entry_price)} />
-        <Meta label="Exit" value={trade.exit_price === null ? '—' : num(trade.exit_price)} />
+        <Meta
+          label="Entry"
+          value={formatAskFill(trade.estimated_entry_price, trade.entry_price)}
+        />
+        <Meta
+          label="Exit"
+          value={formatAskFill(trade.estimated_exit_price, trade.exit_price)}
+        />
         <Meta
           label="Index"
           value={`${num(trade.underlying_entry_price, 0)} → ${num(trade.underlying_exit_price, 0)}`}
@@ -402,8 +441,12 @@ function TradeRow({ trade, capitalBase }: { trade: Trade; capitalBase: number })
       <td className={trade.direction === 'LONG' ? 'up' : 'down'}>{trade.direction ?? '—'}</td>
       <td>{trade.trading_symbol}</td>
       <td>{trade.quantity}</td>
-      <td>{num(trade.entry_price)}</td>
-      <td>{trade.exit_price === null ? '—' : num(trade.exit_price)}</td>
+      <td>
+        <FillCell asked={trade.estimated_entry_price} filled={trade.entry_price} />
+      </td>
+      <td>
+        <FillCell asked={trade.estimated_exit_price} filled={trade.exit_price} />
+      </td>
       <td>{formatCapitalUsed(capitalUsed, capitalPct)}</td>
       <td className={slipClass}>{formatSlip(slipTotal, slipPct, hasSlip)}</td>
       <td className="text-[var(--muted)]">
