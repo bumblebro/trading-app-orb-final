@@ -557,6 +557,8 @@ DEFAULT_SETTINGS = {
     # Mode
     "trading_mode": "paper",
     "data_source": "playback",
+    # After API restart, resume the strategy unless the user hit Stop.
+    "bot_autostart": "true",
 
     # ORB strategy — defaults validated by research/backtest.py over
     # 2019-2026 NIFTY data, chosen for in-sample/out-of-sample agreement

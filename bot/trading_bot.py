@@ -78,12 +78,18 @@ class TradingBot:
         self._available_cash_cache: Optional[float] = None
         self._available_cash_cached_at = 0.0
         self._last_session_refresh_at = 0.0
+        self._next_autostart_at = 0.0
+        self._autostart_fail_streak = 0
 
     # --------------------------------------------------------------- lifecycle
 
     @property
     def is_running(self) -> bool:
-        return self._running
+        if not self._running:
+            return False
+        if self._thread is not None and not self._thread.is_alive():
+            return False
+        return True
 
     @property
     def current_signal(self) -> str:
@@ -108,9 +114,17 @@ class TradingBot:
         self.strategy.config = OrbConfig.from_settings(get_setting)
 
     def start(self):
-        if self._running:
+        if self._running and self._thread is not None and self._thread.is_alive():
             self.logger.warning("Bot is already running")
             return
+
+        # Loop thread died while the flag was still set — clean up and revive.
+        if self._running:
+            self.logger.warning("Bot loop is dead — restarting")
+            try:
+                self.stop()
+            except Exception:
+                self._running = False
 
         # Ensure a previous soft-stop released any Angel WS slots.
         if self.data_feed:
@@ -161,7 +175,34 @@ class TradingBot:
         self._thread = threading.Thread(target=self._run_loop, daemon=True,
                                         name="orb-bot")
         self._thread.start()
+        self._autostart_fail_streak = 0
         self.logger.bot_status("STARTED", f"mode={mode} source={data_source}")
+
+    def ensure_running(self) -> str:
+        """
+        Keep the strategy loop up for hit-and-forget (systemd / crash revive).
+        Skips CSV playback so a server restart cannot launch a 500x replay.
+        """
+        source = get_setting("data_source") or "playback"
+        if source == "playback":
+            return "skipped_playback"
+
+        if self.is_running:
+            return "already_running"
+
+        now = time.time()
+        if now < self._next_autostart_at:
+            return "backoff"
+
+        try:
+            self.start()
+            self._next_autostart_at = 0.0
+            return "started"
+        except Exception:
+            self._autostart_fail_streak += 1
+            delay = min(300.0, 20.0 * (2 ** min(self._autostart_fail_streak, 4)))
+            self._next_autostart_at = now + delay
+            raise
 
     def stop(self):
         was_running = self._running
@@ -301,10 +342,11 @@ class TradingBot:
             except Exception as exc:
                 self.logger.error("Bot tick error", exc)
 
-            if self.is_playback and self.data_feed.playback_speed >= 500:
+            if self.is_playback and self.data_feed and self.data_feed.playback_speed >= 500:
                 time.sleep(0.001)
             else:
                 time.sleep(1)
+        self.logger.warning("Bot loop exited")
 
     def _tick(self):
         with self._lock:
@@ -633,7 +675,20 @@ class TradingBot:
             return False
 
     def _broker_available_cash(self) -> Optional[float]:
-        """Angel available cash, cached briefly to avoid hammering rmsLimit."""
+        """Cash shown on the dashboard.
+
+        Paper (including paper + live SmartAPI feed) uses the virtual book —
+        Settings capital plus cumulative paper PnL. Live mode reads Angel RMS.
+        """
+        if self.mode != "live" or self.is_playback:
+            try:
+                available = round(self._available_capital(), 2)
+                self._available_cash_cache = available
+                self._available_cash_cached_at = time.time()
+                return available
+            except Exception:
+                return self._available_cash_cache
+
         if not (self._running and self.order_manager and self.order_manager.smart_api):
             return self._available_cash_cache
         now = time.time()
@@ -657,12 +712,21 @@ class TradingBot:
 
     # ------------------------------------------------------------------ sizing
 
+    def _paper_base_capital(self) -> float:
+        # Settings UI edits initial_capital; paper_capital is a legacy mirror.
+        return float(
+            get_setting("initial_capital")
+            or get_setting("paper_capital")
+            or "500000"
+        )
+
     def _available_capital(self) -> float:
         if self.is_playback:
             return max(self.capital, 0)
         if self.mode == "paper":
-            base = float(get_setting("paper_capital") or "500000")
-            return base + get_all_time_pnl(mode="paper").get("all_time_pnl", 0)
+            return self._paper_base_capital() + get_all_time_pnl(mode="paper").get(
+                "all_time_pnl", 0
+            )
         # Prefer a fresh RMS read; fall back to last good cash so a blip
         # does not size the next live order as zero.
         if self.order_manager:
@@ -928,7 +992,11 @@ class TradingBot:
                 "total_trades": all_time["all_time_trades"],
                 "all_time_win_rate": all_time["all_time_win_rate"],
                 "total_charges": all_time["all_time_charges"],
-                "capital": round(self.capital, 2),
+                "capital": round(
+                    self._available_capital() if self.mode == "paper" or self.is_playback
+                    else self.capital,
+                    2,
+                ),
                 "initial_capital": float(get_setting("initial_capital") or "500000"),
                 "market_open": should_run,
                 "market_status": market_reason,

@@ -216,7 +216,7 @@ For **WebSocket / feed** fixes, prefer a longer gap instead of plain restart:
 ssh root@168.144.177.107 'cd ~/trading-app-orb-final && cp bot/trading.db ~/trading.db.bak && git checkout -- bot/trading.db bot/trading.log bot/instruments_cache.json && git pull origin main && cp ~/trading.db.bak bot/trading.db && systemctl stop nifty-orb && sleep 120 && systemctl start nifty-orb && systemctl status nifty-orb --no-pager'
 ```
 
-**3. In the UI** (Mac / localhost): Stop bot if it still shows running, then Start bot once. Check logs for `WebSocket CONNECTED` when using the live Angel feed.
+**3. In the UI** (Mac / localhost): For Angel live feed the bot **auto-starts** after a process restart. Hit **Stop** only if you want it to stay down (that turns autostart off). Hit **Start** to enable autostart again. Check logs for `WebSocket CONNECTED` / `Supervisor started the bot`.
 
 If `git pull` still complains about another local file, add it to the `git checkout -- ...` list — never wipe `trading.db` without a backup.
 

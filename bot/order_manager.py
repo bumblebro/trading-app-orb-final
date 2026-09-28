@@ -76,7 +76,12 @@ class OrderManager:
                 if self.data_feed is not None and getattr(self.data_feed, "playback_file", None):
                     available = self.capital
                 else:
-                    base = float(get_setting("paper_capital") or "500000")
+                    # Match Settings → Capital (initial_capital); paper_capital is legacy.
+                    base = float(
+                        get_setting("initial_capital")
+                        or get_setting("paper_capital")
+                        or "500000"
+                    )
                     available = base + get_all_time_pnl(mode="paper").get("all_time_pnl", 0)
                 result = {"available": available, "required": required,
                           "sufficient": available >= required, "mode": "paper",

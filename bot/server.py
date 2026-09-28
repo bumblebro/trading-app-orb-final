@@ -11,9 +11,12 @@ Security notes:
 import asyncio
 import os
 import sys
+import threading
+import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+from contextlib import asynccontextmanager
 from typing import Dict, Optional
 
 import uvicorn
@@ -42,7 +45,34 @@ CORS_ORIGINS = [
     if origin.strip()
 ]
 
-app = FastAPI(title="NIFTY ORB Trading Bot", version="3.0.0")
+
+def _autostart_enabled() -> bool:
+    flag = (get_setting("bot_autostart") or "true").strip().lower()
+    return flag in ("1", "true", "yes", "on")
+
+
+def _supervise_bot():
+    """Revive the strategy after API restart or a dead loop thread."""
+    time.sleep(2)
+    while True:
+        try:
+            if _autostart_enabled():
+                result = get_bot().ensure_running()
+                if result == "started":
+                    logger.info("Supervisor started the bot")
+        except Exception as exc:
+            logger.error("Supervisor failed to revive bot", exc)
+        time.sleep(20)
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    thread = threading.Thread(target=_supervise_bot, daemon=True, name="orb-supervisor")
+    thread.start()
+    yield
+
+
+app = FastAPI(title="NIFTY ORB Trading Bot", version="3.0.0", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,
@@ -101,8 +131,8 @@ async def start_bot():
         )
 
     try:
-        # bot.start() is sync and can do I/O — keep the event loop free.
         await asyncio.to_thread(bot.start)
+        save_settings({"bot_autostart": "true"})
     except Exception as exc:
         logger.error("Bot failed to start", exc)
         raise HTTPException(status_code=500, detail=str(exc))
@@ -117,6 +147,7 @@ async def stop_bot():
     if not bot.is_running:
         return {"status": "already_stopped"}
     await asyncio.to_thread(bot.stop)
+    save_settings({"bot_autostart": "false"})
     return {"status": "stopped"}
 
 
@@ -275,6 +306,9 @@ async def write_settings(req: SettingsRequest):
     # A masked value means "unchanged" — do not overwrite the real secret.
     incoming = {k: v for k, v in req.settings.items()
                 if not (k in SECRET_KEYS and set(v or "") == {"*"})}
+    # Keep legacy paper_capital aligned with Settings → Capital.
+    if "initial_capital" in incoming and "paper_capital" not in incoming:
+        incoming["paper_capital"] = incoming["initial_capital"]
     try:
         save_settings(incoming)
     except Exception as exc:
